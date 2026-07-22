@@ -135,6 +135,13 @@ export function Sidebar({
           </span>
         </button>
 
+        <a
+          href="mailto:easypdf19@gmail.com?subject=Feedback%20-%20Easy%20PDF"
+          className="block rounded-lg px-1 py-1 text-center text-[11px] leading-snug text-slate-400 transition hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-slate-500 dark:hover:text-brand-400"
+        >
+          💡 Sugestões ou Relatar Falha
+        </a>
+
         <p className="px-1 text-center text-[11px] leading-snug text-slate-400 dark:text-slate-500">
           Processamento 100% no dispositivo
         </p>
