@@ -280,7 +280,7 @@ export default function ExtrairTextoPage() {
         />
 
         {hasResult && (
-          <SuccessAction message="Arquivo processado e baixado com sucesso!" />
+          <SuccessAction message="Texto extraído com sucesso!" />
         )}
 
         {hasResult && (

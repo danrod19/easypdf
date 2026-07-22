@@ -12,6 +12,7 @@ import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
 import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
+import { SuccessAction } from '../components/SuccessAction';
 import {
   applyRotationDelta,
   applyRotationsToPdf,
@@ -79,6 +80,8 @@ export default function GirarPdfPage() {
   const [progressMsg, setProgressMsg] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  /** true apenas após download do PDF rotacionado (não em rotações intermediárias) */
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
 
   const pendingCount = useMemo(
     () => countPendingRotations(rotations),
@@ -88,6 +91,7 @@ export default function GirarPdfPage() {
   const resetResult = useCallback(() => {
     setError(null);
     setSuccess(null);
+    setDownloadSuccess(false);
     setProgress(0);
     setProgressMsg('');
   }, []);
@@ -144,6 +148,7 @@ export default function GirarPdfPage() {
         const next = applyRotationDelta(rotations, indices, direction);
         setRotations(next);
         setError(null);
+        setDownloadSuccess(false);
         const n = indices.length;
         setSuccess(
           n === pageCount
@@ -152,6 +157,7 @@ export default function GirarPdfPage() {
         );
       } catch (err) {
         setSuccess(null);
+        setDownloadSuccess(false);
         setError(
           err instanceof Error ? err.message : 'Não foi possível girar as páginas.'
         );
@@ -186,6 +192,7 @@ export default function GirarPdfPage() {
     if (pageCount == null) return;
     setRotations(createZeroRotations(pageCount));
     setError(null);
+    setDownloadSuccess(false);
     setSuccess('Rotações desfeitas. O PDF voltou à orientação original.');
   };
 
@@ -204,6 +211,7 @@ export default function GirarPdfPage() {
     setIsProcessing(true);
     setError(null);
     setSuccess(null);
+    setDownloadSuccess(false);
     setProgress(0);
     setProgressMsg('Preparando…');
 
@@ -235,12 +243,14 @@ export default function GirarPdfPage() {
       setSuccess(
         `PDF rotacionado salvo (${pendingCount} página${pendingCount === 1 ? '' : 's'} alterada${pendingCount === 1 ? '' : 's'}). O download deve ter iniciado.`
       );
+      setDownloadSuccess(true);
     } catch (err) {
       const message =
         err instanceof Error
           ? err.message
           : 'Falha inesperada ao salvar o PDF rotacionado.';
       setError(message);
+      setDownloadSuccess(false);
       setProgress(0);
       setProgressMsg('');
     } finally {
@@ -536,7 +546,11 @@ export default function GirarPdfPage() {
           </div>
         )}
 
-        {success && (
+        {success && downloadSuccess && (
+          <SuccessAction message={success} />
+        )}
+
+        {success && !downloadSuccess && (
           <div
             role="status"
             className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"

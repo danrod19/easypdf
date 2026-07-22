@@ -5,6 +5,7 @@ import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
 import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
+import { SuccessAction } from '../components/SuccessAction';
 import {
   extractPdfPages,
   getPdfPageCount,
@@ -276,12 +277,7 @@ export default function DividirPdfPage() {
         )}
 
         {success && (
-          <div
-            role="status"
-            className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
-          >
-            {success}
-          </div>
+          <SuccessAction message={success} />
         )}
 
         <ProgressBar

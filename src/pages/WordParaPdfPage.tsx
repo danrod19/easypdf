@@ -211,7 +211,7 @@ export default function WordParaPdfPage() {
         )}
 
         {success && (
-          <SuccessAction message="Arquivo processado e baixado com sucesso!" />
+          <SuccessAction message={success} />
         )}
 
         <ProgressBar
