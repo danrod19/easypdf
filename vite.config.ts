@@ -13,15 +13,6 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    // Assets grandes (tesseract WASM) — chunking adequado
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'pdf-lib': ['pdf-lib'],
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-        },
-      },
-    },
   },
   worker: {
     format: 'es',
