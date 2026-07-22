@@ -28,4 +28,12 @@
     <loc>https://easypdflocal.com.br/word-para-pdf</loc>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://easypdflocal.com.br/privacidade</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://easypdflocal.com.br/termos</loc>
+    <priority>0.5</priority>
+  </url>
 </urlset>
