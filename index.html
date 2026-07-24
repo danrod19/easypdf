@@ -1,6 +1,28 @@
 <!doctype html>
 <html lang="pt-BR">
   <head>
+    <!--
+      Google Consent Mode v2 — defaults DENIED antes de qualquer tag Google
+      (AdSense / GA4). A CMP oficial do AdSense (Funding Choices) atualiza
+      para granted após o usuário aceitar. Não remova este bloco nem o mova
+      para depois do adsbygoogle.
+    -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'denied',
+        functionality_storage: 'denied',
+        personalization_storage: 'denied',
+        security_storage: 'granted',
+        wait_for_update: 500,
+      });
+    </script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1776280342582118"
      crossorigin="anonymous"></script>
     <meta charset="UTF-8" />
@@ -8,21 +30,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Uma suíte completa e segura para manipular PDFs direto no seu navegador. Nenhuma imagem ou documento é enviado para a nuvem. 100% gratuito e privado."
+      content="Junte, divida, gire e converta PDFs grátis no navegador. Processamento 100% local — seus arquivos nunca sobem para a nuvem. Sem cadastro."
     />
     <meta
       name="keywords"
-      content="editar pdf, juntar pdf, imagem para pdf, conversor pdf offline, pdf grátis"
+      content="juntar pdf, dividir pdf, girar pdf, marca d'água pdf, word para pdf, imagem para pdf, pdf grátis, pdf sem upload, pdf offline, editar pdf"
     />
     <meta name="theme-color" content="#ef4444" />
-    <meta name="apple-mobile-web-app-title" content="Easy PDF" />
+    <meta name="apple-mobile-web-app-title" content="Easy PDF Local" />
+    <meta property="og:site_name" content="Easy PDF Local" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+    <link rel="canonical" href="https://easypdflocal.com.br/" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <title>Easy PDF - Edite, Junte e Converta PDFs Grátis e Offline</title>
+    <title>Easy PDF Local | Ferramentas de PDF 100% Seguras e Sem Upload</title>
   </head>
   <body class="antialiased">
     <div id="root"></div>

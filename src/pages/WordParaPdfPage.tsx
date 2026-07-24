@@ -1,11 +1,14 @@
 import { useCallback, useId, useState } from 'react';
 import { Seo } from '../components/Seo';
+import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
 import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
+import { ToolSeoContent } from '../components/ToolSeoContent';
+import { wordParaPdfSeoContent } from '../data/toolSeoContent';
 import {
   convertDocxToPdf,
   DOCX_MIME,
@@ -102,17 +105,16 @@ export default function WordParaPdfPage() {
 
   const canConvert = !!file && !isProcessing;
 
+  const seo = getSeoForPath('/word-para-pdf');
+
   return (
     <>
-      <Seo
-        title="Word para PDF"
-        description="Converta documentos DOCX em PDF 100% no navegador. Seus arquivos não são enviados para nenhum servidor."
-      />
+      <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
         <header className="space-y-2">
           <p className="text-sm font-medium text-brand-600 dark:text-brand-400">
-            Ferramenta gratuita
+            Ferramenta gratuita · Sem upload
           </p>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Word para PDF
@@ -254,6 +256,8 @@ export default function WordParaPdfPage() {
             é uma conversão client-side via HTML.
           </p>
         </section>
+
+        <ToolSeoContent content={wordParaPdfSeoContent} />
 
         <FaqAccordion
           title="Perguntas frequentes sobre Word para PDF"

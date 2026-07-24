@@ -7,8 +7,8 @@ Aplicação web utilitária de processamento de PDFs **100% no cliente**. Nenhum
 - **React 18 + Vite** — build estático puro (Azure Static Web Apps)
 - **Tailwind CSS** — UI moderna, responsiva, Dark/Light mode
 - **pdf-lib** — merge, split, rotação e metadados
-- **mammoth.js** — DOCX → HTML (preparado)
-- **jsPDF / html2pdf.js** — HTML/texto → PDF (preparado)
+- **mammoth.js** — DOCX → HTML (Word para PDF)
+- **jsPDF / html2pdf.js** — HTML → PDF (Word para PDF)
 - **tesseract.js** — OCR (preparado)
 
 ## Rotas
@@ -17,10 +17,14 @@ Aplicação web utilitária de processamento de PDFs **100% no cliente**. Nenhum
 |------|--------|--------|
 | `/` | Home | ✅ |
 | `/juntar-pdf` | Merge de PDFs | ✅ completo |
-| `/dividir-pdf` | Split | 🔜 placeholder |
-| `/word-para-pdf` | DOCX → PDF | 🔜 placeholder |
-| `/imagem-para-pdf` | JPG/PNG → PDF | 🔜 placeholder |
-| `/extrair-texto` | OCR | 🔜 placeholder |
+| `/dividir-pdf` | Split | ✅ completo |
+| `/word-para-pdf` | DOCX → PDF | ✅ completo (mammoth + html2pdf.js) |
+| `/imagem-para-pdf` | JPG/PNG → PDF | ✅ completo |
+| `/extrair-texto` | OCR | ✅ completo |
+| `/proteger-pdf` | PDF + senha | ✅ completo (pdf-lib-plus-encrypt) |
+| `/desbloquear-pdf` | Remover senha | ✅ completo (pdf.js + pdf-lib) |
+| `/remover-paginas` | Excluir páginas | ✅ completo (thumbs + pdf-lib) |
+| `/comprimir-pdf` | Reduzir tamanho | ✅ completo (raster pdf.js + pdf-lib) |
 
 ## Desenvolvimento
 

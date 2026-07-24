@@ -22,8 +22,9 @@ export const IMAGE_MIME_TYPES = [
 
 export type ImageMimeType = (typeof IMAGE_MIME_TYPES)[number];
 
+/** accept do <input type="file"> — foco em PNG/JPG/JPEG */
 const IMAGE_ACCEPT_ATTR =
-  'image/jpeg,image/png,.jpg,.jpeg,.png';
+  'image/jpeg,image/png,image/jpg,.jpg,.jpeg,.png';
 
 export function getImageAcceptAttr(): string {
   return IMAGE_ACCEPT_ATTR;
@@ -38,7 +39,8 @@ export function isSupportedImageFile(file: File): boolean {
   if (
     type === 'image/jpeg' ||
     type === 'image/png' ||
-    type === 'image/webp'
+    type === 'image/webp' ||
+    type === 'image/jpg'
   ) {
     return true;
   }
@@ -64,7 +66,7 @@ function isPngFile(file: File): boolean {
 
 function isJpegFile(file: File): boolean {
   const type = (file.type || '').toLowerCase();
-  if (type === 'image/jpeg') return true;
+  if (type === 'image/jpeg' || type === 'image/jpg') return true;
   const name = file.name.toLowerCase();
   return name.endsWith('.jpg') || name.endsWith('.jpeg');
 }
@@ -102,17 +104,24 @@ async function convertToPngBytes(file: File): Promise<Uint8Array> {
   }
 }
 
-/**
- * Nome de download: imagens-convertidas.pdf (padrão pedido).
- * Se já existir sessão com o mesmo nome, o browser costuma sufixar (1).
- */
+/** Nome padrão do download. */
 export function imagesToPdfFileName(): string {
   return 'imagens-convertidas.pdf';
 }
 
 /**
- * Converte 1..N imagens em um único PDF com pdf-lib.
- * Cada imagem vira uma página com as dimensões exatas da imagem embutida.
+ * Converte 1..N imagens em um único PDF com pdf-lib (100% client-side).
+ *
+ * Abordagem de página: **dimensões exatas da imagem** (não A4).
+ * Cada imagem vira uma página com width/height = tamanho nativo embutido,
+ * desenhada em (0,0) cobrindo a página inteira — sem letterbox nem escala
+ * para folha padrão. Preserva proporção e nitidez do arquivo original.
+ *
+ * Fluxo por imagem:
+ * 1. Lê ArrayBuffer
+ * 2. embedJpg / embedPng (WebP → PNG via canvas)
+ * 3. addPage([width, height])
+ * 4. drawImage na página
  */
 export async function convertImagesToPdf(
   files: File[],
@@ -138,8 +147,10 @@ export async function convertImagesToPdf(
     total,
   });
 
+  // 1) Novo documento vazio
   const pdfDoc = await PDFDocument.create();
 
+  // 2) Itera na ordem definida pelo usuário
   for (let i = 0; i < total; i++) {
     const file = files[i];
     const n = i + 1;
@@ -158,6 +169,7 @@ export async function convertImagesToPdf(
       throw new Error(`Não foi possível ler o arquivo "${file.name}".`);
     }
 
+    // 3) Embed conforme tipo
     let embedded;
     try {
       if (isJpegFile(file)) {
@@ -165,7 +177,6 @@ export async function convertImagesToPdf(
       } else if (isPngFile(file)) {
         embedded = await pdfDoc.embedPng(bytes);
       } else if (isWebpFile(file)) {
-        // pdf-lib não embute WebP nativamente — converte para PNG
         const pngBytes = await convertToPngBytes(file);
         embedded = await pdfDoc.embedPng(pngBytes);
       } else {
@@ -185,7 +196,7 @@ export async function convertImagesToPdf(
       throw new Error(`A imagem "${file.name}" possui dimensões inválidas.`);
     }
 
-    // Página com as dimensões exatas da imagem original
+    // 4) Página = tamanho da imagem + drawImage em tela cheia
     const page = pdfDoc.addPage([width, height]);
     page.drawImage(embedded, {
       x: 0,
@@ -202,6 +213,7 @@ export async function convertImagesToPdf(
     total,
   });
 
+  // 5) Serializa PDF
   const pdfBytes = await pdfDoc.save();
 
   onProgress?.({
@@ -215,7 +227,7 @@ export async function convertImagesToPdf(
 }
 
 /**
- * Converte e inicia o download como imagens-convertidas.pdf.
+ * Converte e dispara o download de imagens-convertidas.pdf.
  */
 export async function convertAndDownloadImagesToPdf(
   files: File[],

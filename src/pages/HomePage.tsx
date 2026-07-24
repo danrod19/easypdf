@@ -2,7 +2,9 @@ import { Link } from 'react-router-dom';
 import {
   Combine,
   FileType2,
+  FileArchive,
   Images,
+  Lock,
   PenTool,
   RotateCw,
   ScanText,
@@ -10,12 +12,17 @@ import {
   ShieldCheck,
   Sparkles,
   Stamp,
+  Trash2,
+  Unlock,
   Zap,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Seo } from '../components/Seo';
 import { HowItWorks } from '../components/HowItWorks';
 import { FaqAccordion } from '../components/FaqAccordion';
+import { ToolSeoContent } from '../components/ToolSeoContent';
+import { getSeoForPath } from '../data/seo';
+import { homeSeoContent } from '../data/toolSeoContent';
 import { tools, toolAccentStyles } from '../data/tools';
 
 const iconComponents: Record<string, LucideIcon> = {
@@ -27,15 +34,18 @@ const iconComponents: Record<string, LucideIcon> = {
   word: FileType2,
   image: Images,
   ocr: ScanText,
+  lock: Lock,
+  unlock: Unlock,
+  trash: Trash2,
+  compress: FileArchive,
 };
 
 export default function HomePage() {
+  const seo = getSeoForPath('/');
+
   return (
     <>
-      <Seo
-        title="Converta e edite PDFs com facilidade"
-        description="Junte, divida e converta PDFs 100% no navegador. Privacidade total: seus arquivos nunca são enviados a servidores. Grátis e sem cadastro."
-      />
+      <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-16 pb-8 sm:space-y-20">
         {/* Hero + Grid de ferramentas */}
@@ -50,13 +60,13 @@ export default function HomePage() {
               id="home-hero"
               className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl md:text-5xl dark:text-slate-50"
             >
-              Converta e edite seus documentos com facilidade!
+              Ferramentas de PDF 100% seguras e sem upload
             </h1>
 
             <p className="mx-auto max-w-2xl text-base text-slate-600 sm:text-lg dark:text-slate-400">
-              Ferramentas de PDF privadas que rodam no seu dispositivo.
-              Sem conta, sem fila e sem rastros na nuvem — no estilo das
-              plataformas líderes, com privacidade de verdade.
+              Junte, divida, gire e converta PDFs grátis no navegador.
+              Processamento local no seu dispositivo — sem conta, sem fila e
+              sem enviar arquivos para a nuvem.
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-3">
@@ -185,7 +195,10 @@ export default function HomePage() {
           ))}
         </section>
 
-        {/* FAQ SEO */}
+        {/* Conteúdo semântico para Googlebot (H2/H3/P) */}
+        <ToolSeoContent content={homeSeoContent} />
+
+        {/* FAQ interativo */}
         <FaqAccordion />
       </div>
     </>

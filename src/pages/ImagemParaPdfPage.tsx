@@ -1,11 +1,14 @@
 import { useCallback, useId, useState } from 'react';
 import { Images, Loader2 } from 'lucide-react';
 import { Seo } from '../components/Seo';
+import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
 import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
+import { ToolSeoContent } from '../components/ToolSeoContent';
+import { imagemParaPdfSeoContent } from '../data/toolSeoContent';
 import { SuccessAction } from '../components/SuccessAction';
 import {
   ImageFileList,
@@ -27,13 +30,19 @@ const imagePdfFaqItems: FaqItem[] = [
     id: 'juntar-varias',
     question: 'Como juntar várias imagens em um único PDF?',
     answer:
-      'Envie múltiplos arquivos JPG ou PNG de uma vez no DropZone (ou adicione em etapas). As miniaturas aparecem em grade — use as setas para reordenar e defina a sequência das páginas. Clique em “Gerar PDF”: cada imagem vira uma página no mesmo arquivo, com pdf-lib no seu navegador.',
+      'Envie múltiplos arquivos JPG ou PNG de uma vez no DropZone (ou adicione em etapas). As miniaturas aparecem em grade — use Subir/Descer para reordenar e defina a sequência das páginas. Clique em “Gerar PDF”: cada imagem vira uma página no mesmo arquivo, com pdf-lib no seu navegador.',
   },
   {
     id: 'qualidade',
     question: 'Meus JPGs perdem qualidade?',
     answer:
-      'Não. JPEG e PNG são embutidos nativamente no PDF (embedJpg / embedPng), sem recompactação destrutiva. A página usa as dimensões exatas da imagem original. Assim a nitidez e a compressão do arquivo de origem são preservadas.',
+      'Não. JPEG e PNG são embutidos nativamente no PDF (embedJpg / embedPng), sem recompactação destrutiva. A página usa as dimensões exatas da imagem original — não redimensionamos para A4. Assim a nitidez e a compressão do arquivo de origem são preservadas.',
+  },
+  {
+    id: 'tamanho-pagina',
+    question: 'A página do PDF fica no tamanho A4?',
+    answer:
+      'Não. Adotamos a abordagem “página = tamanho da imagem”: cada página tem width e height iguais aos pixels da imagem embutida. Isso evita bordas brancas e distorção. Visualizadores de PDF escalam a visualização; a impressão em A4 pode exigir “ajustar à página” no diálogo de impressão.',
   },
   {
     id: 'seguro',
@@ -47,17 +56,11 @@ const imagePdfFaqItems: FaqItem[] = [
     answer:
       'Principalmente JPEG (.jpg/.jpeg) e PNG (.png). Arquivos WebP podem ser aceitos e convertidos internamente para PNG antes do embed. Outros formatos (GIF, BMP, HEIC) não são suportados nesta ferramenta.',
   },
-  {
-    id: 'uma-ou-varias',
-    question: 'Posso converter só uma imagem?',
-    answer:
-      'Sim. Com uma única imagem o PDF terá uma página do tamanho dela. Com várias, o mesmo fluxo “junta” tudo em um único PDF multipágina, na ordem do grid.',
-  },
 ];
 
 /**
  * Página /imagem-para-pdf — 1..N imagens → um PDF (pdf-lib).
- * Suporta conversão unitária e mesclagem de múltiplas imagens.
+ * Reordenação, exclusão e download 100% no navegador.
  */
 export default function ImagemParaPdfPage() {
   const errorId = useId();
@@ -93,11 +96,11 @@ export default function ImagemParaPdfPage() {
     setSuccess(false);
   }, []);
 
-  const moveItem = useCallback((id: string, direction: 'back' | 'forward') => {
+  const moveItem = useCallback((id: string, direction: 'up' | 'down') => {
     setItems((prev) => {
       const index = prev.findIndex((i) => i.id === id);
       if (index < 0) return prev;
-      const target = direction === 'back' ? index - 1 : index + 1;
+      const target = direction === 'up' ? index - 1 : index + 1;
       if (target < 0 || target >= prev.length) return prev;
       const copy = [...prev];
       const [removed] = copy.splice(index, 1);
@@ -127,6 +130,7 @@ export default function ImagemParaPdfPage() {
     setProgressMsg('Iniciando…');
 
     try {
+      // Ordem da lista = ordem das páginas
       const files = items.map((i) => i.file);
       await convertAndDownloadImagesToPdf(files, ({ percent, message }) => {
         setProgress(percent);
@@ -148,18 +152,16 @@ export default function ImagemParaPdfPage() {
   };
 
   const canConvert = items.length >= 1 && !isProcessing;
+  const seo = getSeoForPath('/imagem-para-pdf');
 
   return (
     <>
-      <Seo
-        title="Imagem para PDF — Juntar imagens JPG/PNG"
-        description="Junte várias imagens JPG/PNG em um único PDF, 100% no navegador. Reordene, converta e baixe sem enviar arquivos para a nuvem."
-      />
+      <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
         <header className="space-y-2">
           <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-            Ferramenta gratuita
+            Ferramenta gratuita · Sem upload
           </p>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Imagem para PDF
@@ -169,12 +171,11 @@ export default function ImagemParaPdfPage() {
             <strong className="font-semibold text-slate-800 dark:text-slate-200">
               junte várias JPG/PNG
             </strong>{' '}
-            em um único PDF. Cada arquivo vira uma página no tamanho original —
-            processamento com{' '}
+            em um único PDF. Cada arquivo vira uma página no{' '}
             <strong className="font-semibold text-slate-800 dark:text-slate-200">
-              pdf-lib no seu navegador
-            </strong>
-            , sem upload.
+              tamanho original da imagem
+            </strong>{' '}
+            — processamento com pdf-lib no navegador, sem upload.
           </p>
         </header>
 
@@ -185,14 +186,15 @@ export default function ImagemParaPdfPage() {
           accept={getImageAcceptAttr()}
           acceptFile={isSupportedImageFile}
           onReject={() =>
-            setError('Apenas imagens JPEG ou PNG são aceitas.')
+            setError('Apenas imagens JPEG (.jpg/.jpeg) ou PNG (.png) são aceitas.')
           }
           labels={{
             idle: 'Arraste e solte suas imagens',
             dragging: 'Solte as imagens aqui',
-            hint: 'ou clique para escolher · múltiplos arquivos · JPEG e PNG · processamento local',
-            ariaLabel: 'Selecionar imagens JPEG ou PNG',
-            rejectMessage: 'Apenas imagens JPEG ou PNG são aceitas.',
+            hint: 'ou clique para escolher · múltiplos arquivos · PNG, JPG, JPEG · processamento local',
+            ariaLabel: 'Selecionar imagens PNG ou JPEG',
+            rejectMessage:
+              'Apenas imagens JPEG (.jpg/.jpeg) ou PNG (.png) são aceitas.',
           }}
         />
 
@@ -259,7 +261,8 @@ export default function ImagemParaPdfPage() {
           )}
           {items.length > 1 && !isProcessing && (
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              {items.length} imagens serão mescladas em um único PDF.
+              {items.length} imagens serão mescladas em um único PDF, na ordem
+              da lista.
             </p>
           )}
         </div>
@@ -273,28 +276,39 @@ export default function ImagemParaPdfPage() {
             Como funciona
           </h2>
           <ol className="list-decimal space-y-1 pl-5">
-            <li>Arraste ou selecione uma ou várias imagens JPEG/PNG.</li>
+            <li>Arraste ou selecione uma ou várias imagens PNG/JPG/JPEG.</li>
             <li>
-              Reordene no grid com as setas — a ordem define as páginas do PDF.
+              Reordene no grid com <em>Subir</em> / <em>Descer</em> — a ordem
+              define as páginas do PDF. Use a lixeira para excluir.
             </li>
             <li>
               Clique em <em>Gerar PDF</em> — cada imagem é embutida com pdf-lib
-              em uma página do tamanho original (sem redimensionar para A4).
+              (<code className="rounded bg-slate-100 px-1 dark:bg-slate-800">
+                embedJpg
+              </code>{' '}
+              /{' '}
+              <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">
+                embedPng
+              </code>
+              ) em uma página do <strong>tamanho original da imagem</strong>{' '}
+              (não A4).
             </li>
             <li>
               O arquivo{' '}
               <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">
                 imagens-convertidas.pdf
               </code>{' '}
-              é baixado automaticamente.
+              é baixado automaticamente no seu dispositivo.
             </li>
           </ol>
         </section>
 
+        <ToolSeoContent content={imagemParaPdfSeoContent} />
+
         <FaqAccordion
           items={imagePdfFaqItems}
           title="Perguntas frequentes sobre Imagem para PDF"
-          subtitle="Juntar várias imagens, qualidade JPG e privacidade offline."
+          subtitle="Juntar várias imagens, qualidade JPG, tamanho de página e privacidade."
         />
       </div>
 

@@ -1,12 +1,15 @@
 import { useCallback, useId, useState } from 'react';
 import { Loader2, Stamp } from 'lucide-react';
 import { Seo } from '../components/Seo';
+import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
 import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
+import { ToolSeoContent } from '../components/ToolSeoContent';
+import { marcaDaguaSeoContent } from '../data/toolSeoContent';
 import {
   applyWatermarkToPdf,
   DEFAULT_WATERMARK_OPTIONS,
@@ -199,17 +202,16 @@ export default function MarcaDaguaPage() {
 
   const opacityPercent = Math.round(options.opacity * 100);
 
+  const seo = getSeoForPath('/marca-dagua');
+
   return (
     <>
-      <Seo
-        title="Marca d'água PDF"
-        description="Adicione texto de marca d'água em todas as páginas do PDF, 100% no navegador. Sem upload para servidores."
-      />
+      <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
         <header className="space-y-2">
           <p className="text-sm font-medium text-cyan-600 dark:text-cyan-400">
-            Ferramenta gratuita
+            Ferramenta gratuita · Sem upload
           </p>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Marca d&apos;água PDF
@@ -559,6 +561,8 @@ export default function MarcaDaguaPage() {
             </li>
           </ol>
         </section>
+
+        <ToolSeoContent content={marcaDaguaSeoContent} />
 
         <FaqAccordion
           items={watermarkFaqItems}

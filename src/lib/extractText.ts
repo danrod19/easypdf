@@ -1,169 +1,320 @@
+import { loadPdfJs } from './pdfjsLoader';
+
 export interface ExtractProgress {
   /** 0–100 */
   percent: number;
   message: string;
-  /** Status bruto do Tesseract (ex.: "recognizing text") */
   status?: string;
 }
 
 export type ExtractProgressCallback = (progress: ExtractProgress) => void;
 
-export const OCR_IMAGE_ACCEPT =
-  'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp';
+export const PDF_EXTRACT_ACCEPT = 'application/pdf,.pdf';
+
+/** @deprecated use PDF_EXTRACT_ACCEPT */
+export const OCR_IMAGE_ACCEPT = PDF_EXTRACT_ACCEPT;
 
 /**
- * Aceita JPEG, PNG e WebP (mesmo critério das outras rotas de imagem).
+ * Aceita apenas PDF (extração de texto / OCR de páginas).
  */
-export function isOcrImageFile(file: File): boolean {
+export function isPdfFile(file: File): boolean {
   const type = (file.type || '').toLowerCase();
-  if (
-    type === 'image/jpeg' ||
-    type === 'image/png' ||
-    type === 'image/webp'
-  ) {
-    return true;
-  }
-
+  if (type === 'application/pdf') return true;
   if (!type || type === 'application/octet-stream') {
-    const name = file.name.toLowerCase();
-    return (
-      name.endsWith('.jpg') ||
-      name.endsWith('.jpeg') ||
-      name.endsWith('.png') ||
-      name.endsWith('.webp')
-    );
+    return file.name.toLowerCase().endsWith('.pdf');
   }
+  return file.name.toLowerCase().endsWith('.pdf');
+}
 
-  return false;
+/** Alias legado */
+export function isOcrImageFile(file: File): boolean {
+  return isPdfFile(file);
 }
 
 type LoggerMessage = {
   status?: string;
   progress?: number;
-  jobId?: string;
-  userJobId?: string;
-  workerId?: string;
 };
 
-function mapTesseractProgress(m: LoggerMessage): ExtractProgress {
-  const p = typeof m.progress === 'number' && Number.isFinite(m.progress) ? m.progress : 0;
-  const status = (m.status || '').toLowerCase();
+type TextItem = { str?: string; transform?: number[] };
 
-  if (status.includes('loading tesseract') || status.includes('loading core')) {
-    return {
-      percent: Math.round(p * 15),
-      message: 'Carregando motor OCR…',
-      status: m.status,
-    };
+/**
+ * Junta itens de getTextContent em linhas razoáveis (por posição Y).
+ */
+function textContentToString(items: TextItem[]): string {
+  if (!items.length) return '';
+
+  type Line = { y: number; parts: { x: number; str: string }[] };
+  const lines: Line[] = [];
+  const yTolerance = 3;
+
+  for (const item of items) {
+    const str = (item.str ?? '').replace(/\s+/g, ' ');
+    if (!str.trim() && str !== ' ') continue;
+
+    const transform = item.transform;
+    const x = transform?.[4] ?? 0;
+    const y = transform?.[5] ?? 0;
+
+    let line = lines.find((l) => Math.abs(l.y - y) <= yTolerance);
+    if (!line) {
+      line = { y, parts: [] };
+      lines.push(line);
+    }
+    line.parts.push({ x, str });
   }
 
-  if (status.includes('initializing tesseract') || status.includes('initialized tesseract')) {
-    return {
-      percent: 15 + Math.round(p * 10),
-      message: 'Inicializando Tesseract…',
-      status: m.status,
-    };
-  }
+  // PDF: Y cresce para cima → ordenar linhas de cima para baixo
+  lines.sort((a, b) => b.y - a.y);
 
-  if (status.includes('loading language') || status.includes('loaded language')) {
-    return {
-      percent: 25 + Math.round(p * 15),
-      message: 'Carregando idioma (português)…',
-      status: m.status,
-    };
-  }
+  return lines
+    .map((line) => {
+      line.parts.sort((a, b) => a.x - b.x);
+      let out = '';
+      for (const part of line.parts) {
+        if (!out) {
+          out = part.str;
+          continue;
+        }
+        const needsSpace =
+          !/\s$/.test(out) && !/^\s/.test(part.str) && part.str.length > 0;
+        out += needsSpace ? ` ${part.str}` : part.str;
+      }
+      return out.trimEnd();
+    })
+    .filter((l) => l.length > 0)
+    .join('\n');
+}
 
-  if (status.includes('initializing api') || status.includes('initialized api')) {
-    return {
-      percent: 40 + Math.round(p * 5),
-      message: 'Preparando reconhecimento…',
-      status: m.status,
-    };
-  }
-
-  // Evento principal pedido no requisito
-  if (status === 'recognizing text' || status.includes('recognizing')) {
-    return {
-      percent: 45 + Math.round(p * 50),
-      message: 'Lendo a imagem…',
-      status: m.status,
-    };
-  }
-
-  return {
-    percent: Math.min(95, Math.round(p * 100)),
-    message: m.status || 'Processando…',
-    status: m.status,
-  };
+function formatPageBlocks(chunks: string[], pageCount: number): string {
+  return chunks
+    .map((t, idx) => {
+      if (!t.trim()) return '';
+      return pageCount > 1 ? `--- Página ${idx + 1} ---\n${t}` : t;
+    })
+    .filter(Boolean)
+    .join('\n\n')
+    .trim();
 }
 
 /**
- * Extrai texto de uma imagem com tesseract.js (Web Worker + WASM).
- * Idioma: português (`por`). Sempre encerra o worker ao final.
+ * Extração nativa (rápida): pdf.js getTextContent em todas as páginas.
  */
-export async function extractTextFromImage(
+export async function extractNativeTextFromPdf(
   file: File,
   onProgress?: ExtractProgressCallback
 ): Promise<string> {
-  if (!isOcrImageFile(file)) {
-    throw new Error(
-      'Envie uma imagem JPEG, PNG ou WebP para o OCR.'
-    );
+  if (!isPdfFile(file)) {
+    throw new Error('Envie um arquivo PDF para extrair o texto.');
   }
 
-  onProgress?.({ percent: 2, message: 'Preparando OCR…' });
+  onProgress?.({ percent: 2, message: 'Carregando PDF…' });
 
-  // Lazy-load: worker + WASM só entram quando a rota OCR é usada
+  const pdfjs = await loadPdfJs();
+  const data = new Uint8Array(await file.arrayBuffer());
+  const pdf = await pdfjs.getDocument({ data }).promise;
+  const pageCount = pdf.numPages;
+
+  if (pageCount < 1) {
+    throw new Error('O PDF não contém páginas legíveis.');
+  }
+
+  const chunks: string[] = [];
+
+  for (let i = 1; i <= pageCount; i++) {
+    onProgress?.({
+      percent: Math.min(95, Math.round(((i - 1) / pageCount) * 100)),
+      message: `Lendo página ${i} de ${pageCount}…`,
+    });
+
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const items = (content.items as TextItem[]) ?? [];
+    chunks.push(textContentToString(items).trim());
+    page.cleanup();
+  }
+
+  await pdf.cleanup();
+  onProgress?.({ percent: 100, message: 'Concluído!' });
+  return formatPageBlocks(chunks, pageCount);
+}
+
+/**
+ * Renderiza uma página do PDF em canvas off-screen (escala 2× para OCR).
+ */
+async function renderPageToCanvas(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  page: any,
+  scale = 2
+): Promise<HTMLCanvasElement> {
+  const viewport = page.getViewport({ scale });
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.floor(viewport.width));
+  canvas.height = Math.max(1, Math.floor(viewport.height));
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) {
+    throw new Error('Não foi possível criar o canvas para OCR.');
+  }
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  await page.render({
+    canvasContext: ctx,
+    viewport,
+    canvas,
+  }).promise;
+
+  return canvas;
+}
+
+/**
+ * OCR de PDF escaneado: cada página → canvas → Tesseract.recognize(..., 'por').
+ */
+export async function extractOcrTextFromPdf(
+  file: File,
+  onProgress?: ExtractProgressCallback
+): Promise<string> {
+  if (!isPdfFile(file)) {
+    throw new Error('Envie um arquivo PDF para o OCR.');
+  }
+
+  onProgress?.({ percent: 1, message: 'Carregando PDF…' });
+
+  const pdfjs = await loadPdfJs();
+  const data = new Uint8Array(await file.arrayBuffer());
+  const pdf = await pdfjs.getDocument({ data }).promise;
+  const pageCount = pdf.numPages;
+
+  if (pageCount < 1) {
+    throw new Error('O PDF não contém páginas legíveis.');
+  }
+
+  onProgress?.({
+    percent: 3,
+    message: 'Iniciando OCR (português)… Na 1ª vez o modelo pode ser baixado.',
+  });
+
   const { createWorker } = await import('tesseract.js');
-
   let worker: Awaited<ReturnType<typeof createWorker>> | null = null;
 
-  try {
-    onProgress?.({ percent: 5, message: 'Iniciando worker (português)…' });
+  /** Página em OCR no momento (para o logger do Tesseract) */
+  let currentPage = 1;
 
+  try {
     worker = await createWorker('por', undefined, {
       logger: (m) => {
-        onProgress?.(mapTesseractProgress(m as LoggerMessage));
+        const msg = m as LoggerMessage;
+        const p =
+          typeof msg.progress === 'number' && Number.isFinite(msg.progress)
+            ? Math.min(1, Math.max(0, msg.progress))
+            : 0;
+        const status = (msg.status || '').toLowerCase();
+
+        // Ainda carregando o worker (antes do loop de páginas)
+        if (currentPage === 0 || status.includes('loading') || status.includes('initializ')) {
+          onProgress?.({
+            percent: Math.min(8, Math.round(p * 8)),
+            message: `Preparando OCR… ${msg.status || ''}`.trim(),
+            status: msg.status,
+          });
+          return;
+        }
+
+        const pageBase = ((currentPage - 1) / pageCount) * 100;
+        const pageSpan = 100 / pageCount;
+        // metade da fatia = render já feito; OCR usa o restante
+        const ocrStart = 0.35;
+        const percent = Math.min(
+          99,
+          Math.round(pageBase + pageSpan * (ocrStart + p * (1 - ocrStart)))
+        );
+
+        onProgress?.({
+          percent,
+          message: `Lendo página ${currentPage} de ${pageCount}… OCR em andamento…`,
+          status: msg.status,
+        });
       },
     });
 
-    onProgress?.({
-      percent: 45,
-      message: 'Lendo a imagem…',
-      status: 'recognizing text',
-    });
+    const chunks: string[] = [];
 
-    const {
-      data: { text },
-    } = await worker.recognize(file);
+    for (let i = 1; i <= pageCount; i++) {
+      currentPage = i;
 
-    const cleaned = (text ?? '').replace(/\r\n/g, '\n').trim();
+      onProgress?.({
+        percent: Math.round(((i - 1) / pageCount) * 100),
+        message: `Lendo página ${i} de ${pageCount}… Renderizando…`,
+      });
 
-    onProgress?.({ percent: 100, message: 'Concluído!' });
+      const page = await pdf.getPage(i);
+      const canvas = await renderPageToCanvas(page, 2);
 
-    if (!cleaned) {
-      // Página “vazia” ainda é resultado válido do Tesseract
-      return '';
+      onProgress?.({
+        percent: Math.round(((i - 0.65) / pageCount) * 100),
+        message: `Lendo página ${i} de ${pageCount}… OCR em andamento…`,
+      });
+
+      const {
+        data: { text },
+      } = await worker.recognize(canvas);
+
+      canvas.width = 0;
+      canvas.height = 0;
+      page.cleanup();
+
+      chunks.push((text ?? '').replace(/\r\n/g, '\n').trim());
+
+      onProgress?.({
+        percent: Math.min(99, Math.round((i / pageCount) * 100)),
+        message: `Lendo página ${i} de ${pageCount}… Concluída.`,
+      });
     }
 
-    return cleaned;
+    await pdf.cleanup();
+    onProgress?.({ percent: 100, message: 'Concluído!' });
+    return formatPageBlocks(chunks, pageCount);
   } catch (err) {
     if (err instanceof Error && err.message.startsWith('Envie')) {
       throw err;
     }
     throw new Error(
       err instanceof Error
-        ? `Erro ao ler imagem: ${err.message}`
-        : 'Erro ao ler imagem. Tente outro arquivo ou uma foto mais nítida.'
+        ? `Erro no OCR do PDF: ${err.message}`
+        : 'Erro no OCR do PDF. Tente outro arquivo ou desative o OCR se o PDF tiver texto selecionável.'
     );
   } finally {
-    // Gestão de memória: libera RAM do navegador imediatamente
     if (worker) {
       try {
         await worker.terminate();
       } catch {
-        // ignore terminate errors
+        // ignore
       }
     }
   }
+}
+
+/**
+ * Extrai texto de PDF: nativo (pdf.js) ou OCR (canvas + Tesseract 'por').
+ */
+export async function extractTextFromPdf(
+  file: File,
+  options: { forceOcr?: boolean } = {},
+  onProgress?: ExtractProgressCallback
+): Promise<string> {
+  if (options.forceOcr) {
+    return extractOcrTextFromPdf(file, onProgress);
+  }
+  return extractNativeTextFromPdf(file, onProgress);
+}
+
+/**
+ * @deprecated Prefer extractTextFromPdf
+ */
+export async function extractTextFromImage(
+  file: File,
+  onProgress?: ExtractProgressCallback
+): Promise<string> {
+  return extractTextFromPdf(file, { forceOcr: true }, onProgress);
 }

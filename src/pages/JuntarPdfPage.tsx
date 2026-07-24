@@ -7,6 +7,9 @@ import { FileList, type PdfItem } from '../components/merge/FileList';
 import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
+import { ToolSeoContent } from '../components/ToolSeoContent';
+import { getSeoForPath } from '../data/seo';
+import { juntarPdfSeoContent } from '../data/toolSeoContent';
 import { mergePdfFiles } from '../lib/mergePdfs';
 import { downloadBlob } from '../lib/format';
 
@@ -118,29 +121,28 @@ export default function JuntarPdfPage() {
   };
 
   const canMerge = items.length >= 2 && !isProcessing;
+  const seo = getSeoForPath('/juntar-pdf');
 
   return (
     <>
-      <Seo
-        title="Juntar PDF"
-        description="Una vários arquivos PDF em um só, 100% no navegador. Seus arquivos não são enviados para nenhum servidor."
-      />
+      <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
         <header className="space-y-2">
           <p className="text-sm font-medium text-brand-600 dark:text-brand-400">
-            Ferramenta gratuita
+            Ferramenta gratuita · Sem upload
           </p>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Juntar PDF
+            Juntar PDF online e seguro
           </h1>
           <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Combine dois ou mais PDFs em um único arquivo. Reordene a lista
-            antes de mesclar. Todo o processamento usa{' '}
+            Combine dois ou mais PDFs em um único arquivo, grátis e no
+            navegador. Reordene a lista antes de mesclar. Todo o processamento
+            usa{' '}
             <strong className="font-semibold text-slate-800 dark:text-slate-200">
-              pdf-lib no seu navegador
+              pdf-lib no seu dispositivo
             </strong>{' '}
-            — nada é enviado para a nuvem.
+            — zero envio para a nuvem e privacidade total.
           </p>
         </header>
 
@@ -207,19 +209,8 @@ export default function JuntarPdfPage() {
           <AdSlot placement="below-cta" />
         </div>
 
-        <section className="card text-sm text-slate-600 dark:text-slate-400">
-          <h2 className="mb-2 font-semibold text-slate-800 dark:text-slate-200">
-            Como funciona
-          </h2>
-          <ol className="list-decimal space-y-1 pl-5">
-            <li>Arraste ou selecione 2 ou mais arquivos PDF.</li>
-            <li>Reordene com as setas, se necessário.</li>
-            <li>
-              Clique em <em>Juntar</em> — o merge roda localmente com pdf-lib.
-            </li>
-            <li>O PDF unificado é baixado automaticamente no seu dispositivo.</li>
-          </ol>
-        </section>
+        {/* Conteúdo semântico SEO (H2/H3/P) — legível pelo Googlebot */}
+        <ToolSeoContent content={juntarPdfSeoContent} />
 
         <FaqAccordion
           title="Perguntas frequentes sobre Juntar PDF"

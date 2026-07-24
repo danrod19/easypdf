@@ -8,12 +8,15 @@ import {
 } from 'react';
 import { Eraser, Loader2, PenTool, Undo2 } from 'lucide-react';
 import { Seo } from '../components/Seo';
+import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
 import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
+import { ToolSeoContent } from '../components/ToolSeoContent';
+import { desenharPdfSeoContent } from '../data/toolSeoContent';
 import { loadPdfJs } from '../lib/pdfjsLoader';
 import {
   applyDrawingsToPdf,
@@ -504,17 +507,16 @@ export default function DesenharPdfPage() {
   const canSave =
     !!file && strokes.length > 0 && canvasSize.width > 0 && !busy;
 
+  const seo = getSeoForPath('/desenhar-pdf');
+
   return (
     <>
-      <Seo
-        title="Desenhar no PDF"
-        description="Desenhe livremente na primeira página do PDF no navegador. Sem upload — pdf.js + pdf-lib 100% local."
-      />
+      <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
         <header className="space-y-2">
           <p className="text-sm font-medium text-pink-600 dark:text-pink-400">
-            Ferramenta gratuita
+            Ferramenta gratuita · Sem upload
           </p>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Desenhar no PDF
@@ -785,6 +787,8 @@ export default function DesenharPdfPage() {
             </li>
           </ol>
         </section>
+
+        <ToolSeoContent content={desenharPdfSeoContent} />
 
         <FaqAccordion
           items={drawFaqItems}

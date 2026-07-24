@@ -1,16 +1,16 @@
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Lock, ServerOff, Eye } from 'lucide-react';
 import { Seo } from '../components/Seo';
+import { getSeoForPath } from '../data/seo';
 
 const LAST_UPDATED = '22 de julho de 2026';
 
 export default function PrivacidadePage() {
+  const seo = getSeoForPath('/privacidade');
+
   return (
     <>
-      <Seo
-        title="Política de Privacidade"
-        description="Política de Privacidade do Easy PDF. Processamento 100% local no navegador: seus arquivos nunca são enviados a servidores externos."
-      />
+      <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <article className="card mx-auto max-w-3xl">
         <header className="mb-8 border-b border-slate-200 pb-6 dark:border-slate-800">

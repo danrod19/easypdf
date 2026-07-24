@@ -4,7 +4,10 @@ import { Seo } from '../components/Seo';
 export default function NotFoundPage() {
   return (
     <>
-      <Seo title="Página não encontrada" description="A página solicitada não existe." />
+      <Seo
+        title="Página não encontrada | Easy PDF Local"
+        description="A página solicitada não existe no Easy PDF Local. Volte ao início e escolha uma ferramenta de PDF."
+      />
       <div className="card mx-auto max-w-lg text-center">
         <p className="text-6xl font-bold text-slate-300 dark:text-slate-700">404</p>
         <h1 className="mt-2 text-xl font-semibold">Página não encontrada</h1>

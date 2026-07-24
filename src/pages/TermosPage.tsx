@@ -1,15 +1,15 @@
 import { Link } from 'react-router-dom';
 import { Seo } from '../components/Seo';
+import { getSeoForPath } from '../data/seo';
 
 const LAST_UPDATED = '22 de julho de 2026';
 
 export default function TermosPage() {
+  const seo = getSeoForPath('/termos');
+
   return (
     <>
-      <Seo
-        title="Termos de Uso"
-        description="Termos de Uso do Easy PDF (easypdflocal.com.br). Regras de utilização das ferramentas de PDF 100% no navegador."
-      />
+      <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <article className="card mx-auto max-w-3xl">
         <header className="mb-8 border-b border-slate-200 pb-6 dark:border-slate-800">

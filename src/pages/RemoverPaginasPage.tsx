@@ -1,0 +1,477 @@
+import { useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { Loader2, Trash2, X } from 'lucide-react';
+import { Seo } from '../components/Seo';
+import { getSeoForPath } from '../data/seo';
+import { AdSlot } from '../components/AdSlot';
+import { ProgressBar } from '../components/ProgressBar';
+import { DropZone } from '../components/merge/DropZone';
+import { FaqAccordion } from '../components/FaqAccordion';
+import { StickyCta } from '../components/StickyCta';
+import { SuccessAction } from '../components/SuccessAction';
+import { ToolSeoContent } from '../components/ToolSeoContent';
+import { removerPaginasSeoContent } from '../data/toolSeoContent';
+import {
+  generatePageThumbnails,
+  removePagesFromPdf,
+  removedPagesFileName,
+  type PageThumbnail,
+} from '../lib/removePages';
+import { downloadBlob, formatBytes } from '../lib/format';
+import type { FaqItem } from '../data/faq';
+
+const removeFaqItems: FaqItem[] = [
+  {
+    id: 'como-marcar',
+    question: 'Como marco páginas para excluir?',
+    answer:
+      'Após carregar o PDF, as miniaturas aparecem em grade. Clique no X / lixeira de cada página que deseja remover — ela fica destacada em vermelho. Clique de novo para desmarcar. Depois use “Gerar Novo PDF”.',
+  },
+  {
+    id: 'original',
+    question: 'O PDF original é alterado?',
+    answer:
+      'Não. Geramos um arquivo novo com as páginas restantes. O original permanece intacto no seu disco. Você só baixa a versão sem as páginas marcadas.',
+  },
+  {
+    id: 'todas',
+    question: 'Posso remover todas as páginas?',
+    answer:
+      'Não. O PDF final precisa ter ao menos uma página. Desmarque pelo menos uma miniatura antes de gerar o arquivo.',
+  },
+  {
+    id: 'seguro',
+    question: 'É seguro remover páginas aqui?',
+    answer:
+      'Sim. Miniaturas (pdf.js) e remoção (pdf-lib) rodam 100% no navegador. Nada sobe para servidores — o arquivo fica só na memória até o download.',
+  },
+];
+
+/**
+ * Página /remover-paginas — exclui páginas selecionadas via miniaturas.
+ */
+export default function RemoverPaginasPage() {
+  const errorId = useId();
+
+  const [file, setFile] = useState<File | null>(null);
+  const [thumbs, setThumbs] = useState<PageThumbnail[]>([]);
+  /** Índices 0-based marcados para exclusão */
+  const [markedForDelete, setMarkedForDelete] = useState<number[]>([]);
+  const [isLoadingThumbs, setIsLoadingThumbs] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [progressMsg, setProgressMsg] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const markedSet = useMemo(
+    () => new Set(markedForDelete),
+    [markedForDelete]
+  );
+
+  const remainingCount = thumbs.length - markedForDelete.length;
+
+  const resetResult = useCallback(() => {
+    setError(null);
+    setSuccess(null);
+    setProgress(0);
+    setProgressMsg('');
+  }, []);
+
+  const clearFile = useCallback(() => {
+    setFile(null);
+    setThumbs([]);
+    setMarkedForDelete([]);
+    resetResult();
+  }, [resetResult]);
+
+  const handleFiles = useCallback(
+    async (files: File[]) => {
+      const next = files[0];
+      if (!next) return;
+
+      setIsLoadingThumbs(true);
+      resetResult();
+      setFile(next);
+      setThumbs([]);
+      setMarkedForDelete([]);
+
+      try {
+        const generated = await generatePageThumbnails(
+          next,
+          ({ percent, message }) => {
+            setProgress(percent);
+            setProgressMsg(message);
+          }
+        );
+        setThumbs(generated);
+        setProgress(0);
+        setProgressMsg('');
+      } catch (err) {
+        setFile(null);
+        setThumbs([]);
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Não foi possível carregar as miniaturas do PDF.'
+        );
+        setProgress(0);
+        setProgressMsg('');
+      } finally {
+        setIsLoadingThumbs(false);
+      }
+    },
+    [resetResult]
+  );
+
+  const toggleMark = useCallback((index: number) => {
+    setMarkedForDelete((prev) => {
+      if (prev.includes(index)) {
+        return prev.filter((i) => i !== index);
+      }
+      return [...prev, index];
+    });
+    setError(null);
+    setSuccess(null);
+  }, []);
+
+  const clearMarks = useCallback(() => {
+    setMarkedForDelete([]);
+    setError(null);
+    setSuccess(null);
+  }, []);
+
+  const handleGenerate = async () => {
+    if (!file) {
+      setError('Envie um arquivo PDF primeiro.');
+      return;
+    }
+    if (markedForDelete.length === 0) {
+      setError('Marque pelo menos uma página para remover.');
+      return;
+    }
+    if (remainingCount < 1) {
+      setError(
+        'Não é possível remover todas as páginas. Mantenha ao menos uma.'
+      );
+      return;
+    }
+
+    setIsProcessing(true);
+    setError(null);
+    setSuccess(null);
+    setProgress(0);
+    setProgressMsg('Removendo páginas…');
+
+    try {
+      const bytes = await removePagesFromPdf(
+        file,
+        markedForDelete,
+        ({ percent, message }) => {
+          setProgress(percent);
+          setProgressMsg(message);
+        }
+      );
+
+      const blob = new Blob([new Uint8Array(bytes)], {
+        type: 'application/pdf',
+      });
+      downloadBlob(blob, removedPagesFileName(file.name));
+
+      setSuccess(
+        `Novo PDF gerado com ${remainingCount} página${remainingCount === 1 ? '' : 's'}. O download deve ter iniciado.`
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Falha inesperada ao gerar o PDF.'
+      );
+      setProgress(0);
+      setProgressMsg('');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Revoga data URLs grandes ao desmontar / trocar arquivo (best-effort)
+  useEffect(() => {
+    return () => {
+      setThumbs([]);
+    };
+  }, [file]);
+
+  const busy = isProcessing || isLoadingThumbs;
+  const canGenerate =
+    !!file &&
+    thumbs.length > 0 &&
+    markedForDelete.length > 0 &&
+    remainingCount >= 1 &&
+    !busy;
+
+  const seo = getSeoForPath('/remover-paginas');
+
+  return (
+    <>
+      <Seo title={seo.title} description={seo.description} path={seo.path} />
+
+      <div className="space-y-6">
+        <header className="space-y-2">
+          <p className="text-sm font-medium text-brand-600 dark:text-brand-400">
+            Ferramenta gratuita · Sem upload
+          </p>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            Remover Páginas
+          </h1>
+          <p className="max-w-2xl text-slate-600 dark:text-slate-400">
+            Visualize as páginas em miniaturas, marque as que deseja excluir e
+            baixe um novo PDF — tudo com pdf-lib e pdf.js no seu navegador.
+          </p>
+        </header>
+
+        {!file ? (
+          <DropZone
+            onFiles={handleFiles}
+            disabled={busy}
+            multiple={false}
+            labels={{
+              idle: 'Arraste e solte seu PDF',
+              dragging: 'Solte o PDF aqui',
+              hint: 'ou clique para escolher · 1 arquivo · remoção local de páginas',
+              ariaLabel: 'Selecionar PDF para remover páginas',
+            }}
+          />
+        ) : (
+          <div className="card space-y-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  Arquivo carregado
+                </p>
+                <p className="truncate font-semibold text-slate-800 dark:text-slate-100">
+                  {file.name}
+                </p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  {formatBytes(file.size)}
+                  {thumbs.length > 0 && (
+                    <>
+                      {' · '}
+                      <span className="font-medium text-slate-700 dark:text-slate-300">
+                        {thumbs.length} página{thumbs.length === 1 ? '' : 's'}
+                      </span>
+                    </>
+                  )}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn-secondary shrink-0"
+                disabled={busy}
+                onClick={clearFile}
+              >
+                Trocar arquivo
+              </button>
+            </div>
+
+            {isLoadingThumbs && (
+              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                Gerando miniaturas das páginas…
+              </div>
+            )}
+
+            {thumbs.length > 0 && (
+              <div className="space-y-4 border-t border-slate-200 pt-5 dark:border-slate-700">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Clique na lixeira para marcar páginas a remover.
+                    {markedForDelete.length > 0 && (
+                      <>
+                        {' '}
+                        <strong className="font-semibold text-red-600 dark:text-red-400">
+                          {markedForDelete.length} marcada
+                          {markedForDelete.length === 1 ? '' : 's'}
+                        </strong>
+                        {' · '}
+                        restarão {remainingCount}
+                      </>
+                    )}
+                  </p>
+                  {markedForDelete.length > 0 && (
+                    <button
+                      type="button"
+                      className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
+                      disabled={busy}
+                      onClick={clearMarks}
+                    >
+                      Limpar seleção
+                    </button>
+                  )}
+                </div>
+
+                <ul
+                  className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+                  aria-label="Páginas do PDF"
+                >
+                  {thumbs.map((thumb) => {
+                    const marked = markedSet.has(thumb.index);
+                    return (
+                      <li key={thumb.index}>
+                        <div
+                          className={`relative overflow-hidden rounded-xl border bg-slate-50 transition dark:bg-slate-800/50 ${
+                            marked
+                              ? 'border-red-400 ring-2 ring-red-400/60 dark:border-red-500 dark:ring-red-500/50'
+                              : 'border-slate-200 dark:border-slate-700'
+                          }`}
+                        >
+                          <div className="relative aspect-[3/4] w-full">
+                            {thumb.dataUrl ? (
+                              <img
+                                src={thumb.dataUrl}
+                                alt={`Página ${thumb.pageNumber}`}
+                                className={`h-full w-full object-contain object-top ${
+                                  marked ? 'opacity-40' : ''
+                                }`}
+                                draggable={false}
+                              />
+                            ) : (
+                              <div className="flex h-full items-center justify-center text-xs text-slate-400">
+                                Pág. {thumb.pageNumber}
+                              </div>
+                            )}
+
+                            {marked && (
+                              <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-red-500/10">
+                                <span className="rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                                  Remover
+                                </span>
+                              </div>
+                            )}
+
+                            <button
+                              type="button"
+                              className={`absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full shadow-md transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+                                marked
+                                  ? 'bg-red-600 text-white hover:bg-red-700'
+                                  : 'bg-white/95 text-slate-700 hover:bg-red-50 hover:text-red-600 dark:bg-slate-900/90 dark:text-slate-200 dark:hover:bg-red-950 dark:hover:text-red-300'
+                              }`}
+                              disabled={busy}
+                              onClick={() => toggleMark(thumb.index)}
+                              aria-pressed={marked}
+                              aria-label={
+                                marked
+                                  ? `Desmarcar página ${thumb.pageNumber}`
+                                  : `Marcar página ${thumb.pageNumber} para remover`
+                              }
+                              title={
+                                marked
+                                  ? 'Desmarcar remoção'
+                                  : 'Marcar para remover'
+                              }
+                            >
+                              {marked ? (
+                                <X className="h-4 w-4" aria-hidden />
+                              ) : (
+                                <Trash2 className="h-4 w-4" aria-hidden />
+                              )}
+                            </button>
+                          </div>
+                          <p className="border-t border-slate-200 px-2 py-1.5 text-center text-xs font-medium text-slate-600 dark:border-slate-700 dark:text-slate-400">
+                            Página {thumb.pageNumber}
+                          </p>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                <button
+                  type="button"
+                  className="btn-primary w-full sm:w-auto sm:min-w-[220px]"
+                  disabled={!canGenerate}
+                  onClick={() => void handleGenerate()}
+                  aria-describedby={error ? errorId : undefined}
+                  aria-busy={isProcessing}
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                      Gerando PDF…
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4" aria-hidden />
+                      Gerar Novo PDF
+                      {markedForDelete.length > 0 &&
+                        ` (−${markedForDelete.length})`}
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {error && (
+          <div
+            id={errorId}
+            role="alert"
+            className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200"
+          >
+            {error}
+          </div>
+        )}
+
+        {success && <SuccessAction message={success} />}
+
+        <ProgressBar
+          visible={busy || progress === 100}
+          percent={progress}
+          message={
+            progressMsg ||
+            (isLoadingThumbs
+              ? 'Gerando miniaturas…'
+              : 'Processando páginas…')
+          }
+        />
+
+        <div className="lg:hidden">
+          <AdSlot placement="below-cta" />
+        </div>
+
+        <section className="card text-sm text-slate-600 dark:text-slate-400">
+          <h2 className="mb-2 font-semibold text-slate-800 dark:text-slate-200">
+            Como funciona
+          </h2>
+          <ol className="list-decimal space-y-1 pl-5">
+            <li>Envie 1 PDF.</li>
+            <li>
+              As miniaturas são geradas localmente com{' '}
+              <strong className="font-semibold text-slate-800 dark:text-slate-200">
+                pdf.js
+              </strong>
+              .
+            </li>
+            <li>Marque com a lixeira as páginas a excluir.</li>
+            <li>
+              Clique em <em>Gerar Novo PDF</em> —{' '}
+              <strong className="font-semibold text-slate-800 dark:text-slate-200">
+                pdf-lib
+              </strong>{' '}
+              remove as páginas (de trás para frente) e inicia o download.
+            </li>
+          </ol>
+        </section>
+
+        <ToolSeoContent content={removerPaginasSeoContent} />
+
+        <FaqAccordion
+          title="Perguntas frequentes sobre Remover Páginas"
+          subtitle="Seleção, PDF final e privacidade do processamento local."
+          items={removeFaqItems}
+        />
+      </div>
+
+      <StickyCta />
+    </>
+  );
+}

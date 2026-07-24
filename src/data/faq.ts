@@ -37,6 +37,6 @@ export const defaultFaqItems: FaqItem[] = [
     id: 'quais-formatos',
     question: 'Quais formatos são aceitos?',
     answer:
-      "Dependendo da ferramenta: PDF para juntar, dividir, girar, marca d'água e desenhar; DOCX para Word → PDF; JPEG, PNG e WebP para Imagem → PDF e OCR. Tudo com validação no navegador antes do processamento.",
+      "Dependendo da ferramenta: PDF para juntar, dividir, girar, marca d'água, desenhar e extrair texto; DOCX para Word → PDF; JPEG, PNG e WebP para Imagem → PDF. Tudo com validação no navegador antes do processamento.",
   },
 ];

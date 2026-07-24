@@ -313,6 +313,36 @@ function ToolIcon({
           <polyline points="21 15 16 10 5 21" />
         </svg>
       );
+    case 'lock':
+      return (
+        <svg {...common}>
+          <rect x="5" y="11" width="14" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+        </svg>
+      );
+    case 'unlock':
+      return (
+        <svg {...common}>
+          <rect x="5" y="11" width="14" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 0 1 7.9 0.5" />
+        </svg>
+      );
+    case 'trash':
+      return (
+        <svg {...common}>
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+          <path d="M10 11v6M14 11v6" />
+          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+        </svg>
+      );
+    case 'compress':
+      return (
+        <svg {...common}>
+          <path d="M4 14h6v6M20 10h-6V4" />
+          <path d="M14 10l7-7M3 21l7-7" />
+        </svg>
+      );
     case 'ocr':
       return (
         <svg {...common}>

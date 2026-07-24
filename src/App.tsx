@@ -9,6 +9,10 @@ import DesenharPdfPage from './pages/DesenharPdfPage';
 import WordParaPdfPage from './pages/WordParaPdfPage';
 import ImagemParaPdfPage from './pages/ImagemParaPdfPage';
 import ExtrairTextoPage from './pages/ExtrairTextoPage';
+import ProtegerPdfPage from './pages/ProtegerPdfPage';
+import DesbloquearPdfPage from './pages/DesbloquearPdfPage';
+import RemoverPaginasPage from './pages/RemoverPaginasPage';
+import ComprimirPdfPage from './pages/ComprimirPdfPage';
 import PrivacidadePage from './pages/PrivacidadePage';
 import TermosPage from './pages/TermosPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -26,6 +30,10 @@ export default function App() {
         <Route path="word-para-pdf" element={<WordParaPdfPage />} />
         <Route path="imagem-para-pdf" element={<ImagemParaPdfPage />} />
         <Route path="extrair-texto" element={<ExtrairTextoPage />} />
+        <Route path="proteger-pdf" element={<ProtegerPdfPage />} />
+        <Route path="desbloquear-pdf" element={<DesbloquearPdfPage />} />
+        <Route path="remover-paginas" element={<RemoverPaginasPage />} />
+        <Route path="comprimir-pdf" element={<ComprimirPdfPage />} />
         <Route path="privacidade" element={<PrivacidadePage />} />
         <Route path="termos" element={<TermosPage />} />
         <Route path="*" element={<NotFoundPage />} />

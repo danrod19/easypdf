@@ -1,20 +1,13 @@
-import { useEffect } from 'react';
+import { useSEO, type UseSEOOptions } from '../hooks/useSEO';
 
-type SeoProps = {
-  title: string;
-  description: string;
-};
+export type SeoProps = UseSEOOptions;
 
 /**
- * Atualiza title e meta description por rota (SPA).
- * Para SEO avançado em SWA, considere pré-render ou prerender.io no futuro.
+ * Componente fino sobre o hook useSEO.
+ * Preferível em JSX: <Seo title="..." description="..." path="/juntar-pdf" />
+ * Em lógica/hooks customizados, use useSEO() diretamente.
  */
-export function Seo({ title, description }: SeoProps) {
-  useEffect(() => {
-    document.title = `${title} | Easy PDF`;
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute('content', description);
-  }, [title, description]);
-
+export function Seo({ title, description, path, ogType }: SeoProps) {
+  useSEO({ title, description, path, ogType });
   return null;
 }

@@ -1,28 +1,32 @@
 import { useCallback, useEffect, useId, useState } from 'react';
 import { Seo } from '../components/Seo';
+import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
 import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
+import { ToolSeoContent } from '../components/ToolSeoContent';
+import { extrairTextoSeoContent } from '../data/toolSeoContent';
 import {
-  extractTextFromImage,
-  isOcrImageFile,
-  OCR_IMAGE_ACCEPT,
+  extractTextFromPdf,
+  isPdfFile,
+  PDF_EXTRACT_ACCEPT,
 } from '../lib/extractText';
 import { downloadBlob, formatBytes } from '../lib/format';
 
 /**
- * Página /extrair-texto — OCR com tesseract.js (Web Worker + WASM).
- * Processamento 100% no navegador; worker encerrado após cada leitura.
+ * Página /extrair-texto — texto nativo (pdf.js) ou OCR (Tesseract) em PDF.
+ * 100% no navegador; toggle “Forçar OCR” para scans.
  */
 export default function ExtrairTextoPage() {
   const errorId = useId();
   const textareaId = useId();
+  const toggleId = useId();
 
   const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [forceOcr, setForceOcr] = useState(false);
   const [text, setText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -31,81 +35,29 @@ export default function ExtrairTextoPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [hasResult, setHasResult] = useState(false);
 
-  // Preview + cleanup de object URL
-  useEffect(() => {
-    if (!file) {
-      setPreviewUrl(null);
-      return;
-    }
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
-
-  // Auto-dismiss de alertas de sucesso
   useEffect(() => {
     if (!success) return;
     const t = window.setTimeout(() => setSuccess(null), 3500);
     return () => window.clearTimeout(t);
   }, [success]);
 
-  const runOcr = useCallback(async (image: File) => {
-    setIsProcessing(true);
+  const handleFiles = useCallback((files: File[]) => {
+    const next = files[0];
+    if (!next) return;
+
+    if (!isPdfFile(next)) {
+      setError('Apenas 1 arquivo PDF é aceito.');
+      return;
+    }
+
+    setFile(next);
+    setText('');
+    setHasResult(false);
     setError(null);
     setSuccess(null);
-    setHasResult(false);
-    setText('');
     setProgress(0);
-    setProgressMsg('Lendo a imagem…');
-
-    try {
-      const result = await extractTextFromImage(image, ({ percent, message }) => {
-        setProgress(percent);
-        setProgressMsg(message);
-      });
-
-      setText(result);
-      setHasResult(true);
-
-      if (!result) {
-        setSuccess(
-          'OCR concluído, mas nenhum texto foi detectado. Tente uma imagem mais nítida.'
-        );
-      } else {
-        setSuccess('Texto extraído com sucesso! Você pode editar, copiar ou baixar.');
-      }
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : 'Erro ao ler imagem.';
-      setError(message);
-      setProgress(0);
-      setProgressMsg('');
-      setHasResult(false);
-    } finally {
-      setIsProcessing(false);
-    }
+    setProgressMsg('');
   }, []);
-
-  const handleFiles = useCallback(
-    (files: File[]) => {
-      const next = files[0];
-      if (!next) return;
-
-      if (!isOcrImageFile(next)) {
-        setError('Apenas 1 imagem JPEG, PNG ou WebP é aceita.');
-        return;
-      }
-
-      setFile(next);
-      setError(null);
-      setSuccess(null);
-      // Inicia OCR assim que a imagem chega
-      void runOcr(next);
-    },
-    [runOcr]
-  );
 
   const clearFile = useCallback(() => {
     if (isProcessing) return;
@@ -117,6 +69,64 @@ export default function ExtrairTextoPage() {
     setProgress(0);
     setProgressMsg('');
   }, [isProcessing]);
+
+  const handleExtract = async () => {
+    if (!file) {
+      setError('Selecione um arquivo PDF primeiro.');
+      return;
+    }
+
+    setIsProcessing(true);
+    setError(null);
+    setSuccess(null);
+    setHasResult(false);
+    setText('');
+    setProgress(0);
+    setProgressMsg(
+      forceOcr
+        ? 'Iniciando OCR (pode demorar em PDFs longos)…'
+        : 'Extraindo texto nativo do PDF…'
+    );
+
+    try {
+      const result = await extractTextFromPdf(
+        file,
+        { forceOcr },
+        ({ percent, message }) => {
+          setProgress(percent);
+          setProgressMsg(message);
+        }
+      );
+
+      setText(result);
+      setHasResult(true);
+
+      if (!result.trim()) {
+        setSuccess(
+          forceOcr
+            ? 'OCR concluído, mas nenhum texto foi detectado. Tente maior nitidez no scan ou outra página.'
+            : 'Nenhum texto nativo encontrado. Se o PDF for escaneado (só imagem), ative “Forçar OCR” e tente de novo.'
+        );
+      } else {
+        setSuccess(
+          forceOcr
+            ? 'Texto reconhecido por OCR com sucesso! Revise, copie ou baixe.'
+            : 'Texto extraído do PDF com sucesso! Você pode editar, copiar ou baixar.'
+        );
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Falha inesperada ao extrair texto do PDF.';
+      setError(message);
+      setProgress(0);
+      setProgressMsg('');
+      setHasResult(false);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleCopy = async () => {
     if (!text.trim()) {
@@ -141,38 +151,39 @@ export default function ExtrairTextoPage() {
       .toISOString()
       .slice(0, 19)
       .replace(/[:T]/g, '-');
-    const base = file?.name.replace(/\.[^.]+$/i, '') || 'ocr';
+    const base = file?.name.replace(/\.[^.]+$/i, '') || 'pdf';
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    downloadBlob(blob, `${base}-ocr-${stamp}.txt`);
+    downloadBlob(blob, `${base}-texto-${stamp}.txt`);
     setError(null);
     setSuccess('Arquivo .TXT baixado!');
   };
 
+  const seo = getSeoForPath('/extrair-texto');
+  const canExtract = !!file && !isProcessing;
+
   return (
     <>
-      <Seo
-        title="Extrair Texto (OCR)"
-        description="Extraia texto de imagens com Tesseract.js 100% no navegador. Seus arquivos não são enviados para nenhum servidor."
-      />
+      <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
         <header className="space-y-2">
           <p className="text-sm font-medium text-brand-600 dark:text-brand-400">
-            Ferramenta gratuita
+            Ferramenta gratuita · Sem upload
           </p>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Extrair Texto (OCR)
+            Extrair texto de PDF
           </h1>
           <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Reconhecimento óptico de caracteres com{' '}
+            Copie o texto de PDFs digitais com{' '}
             <strong className="font-semibold text-slate-800 dark:text-slate-200">
-              tesseract.js
+              pdf.js
             </strong>{' '}
-            em Web Worker (WASM). Idioma:{' '}
+            ou use OCR com{' '}
             <strong className="font-semibold text-slate-800 dark:text-slate-200">
-              português
-            </strong>
-            . Nada é enviado para a nuvem.
+              Tesseract.js
+            </strong>{' '}
+            (português) em PDFs escaneados. Tudo roda no seu navegador — zero
+            envio para a nuvem.
           </p>
         </header>
 
@@ -180,79 +191,134 @@ export default function ExtrairTextoPage() {
           onFiles={handleFiles}
           disabled={isProcessing}
           multiple={false}
-          accept={OCR_IMAGE_ACCEPT}
-          acceptFile={isOcrImageFile}
-          onReject={() =>
-            setError('Apenas 1 imagem JPEG, PNG ou WebP é aceita.')
-          }
+          accept={PDF_EXTRACT_ACCEPT}
+          acceptFile={isPdfFile}
+          onReject={() => setError('Apenas 1 arquivo PDF é aceito.')}
           labels={{
-            idle: 'Arraste e solte uma imagem',
-            dragging: 'Solte a imagem aqui',
-            hint: 'ou clique para escolher · 1 arquivo · JPEG, PNG ou WebP · OCR local',
-            ariaLabel: 'Selecionar imagem para OCR',
-            rejectMessage: 'Apenas 1 imagem JPEG, PNG ou WebP é aceita.',
+            idle: 'Arraste e solte um PDF',
+            dragging: 'Solte o PDF aqui',
+            hint: 'ou clique para escolher · 1 arquivo · PDF · processamento local',
+            ariaLabel: 'Selecionar PDF para extrair texto',
+            rejectMessage: 'Apenas 1 arquivo PDF é aceito.',
           }}
         />
 
         {file && (
           <div className="card space-y-4">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex min-w-0 items-start gap-3">
-                {previewUrl && (
-                  <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
-                    <img
-                      src={previewUrl}
-                      alt=""
-                      className="h-full w-full object-cover"
-                      draggable={false}
-                    />
-                  </div>
-                )}
-                <div className="min-w-0 space-y-1">
-                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Imagem
-                  </p>
-                  <p className="truncate font-semibold text-slate-800 dark:text-slate-100">
-                    {file.name}
-                  </p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {formatBytes(file.size)}
-                  </p>
-                </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  Arquivo
+                </p>
+                <p className="truncate font-semibold text-slate-800 dark:text-slate-100">
+                  {file.name}
+                </p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  {formatBytes(file.size)}
+                </p>
               </div>
-
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="btn-primary sm:min-w-[180px]"
-                  disabled={isProcessing}
-                  onClick={() => void runOcr(file)}
-                  aria-busy={isProcessing}
-                >
-                  {isProcessing ? (
-                    <>
-                      <Spinner />
-                      Lendo a imagem…
-                    </>
-                  ) : (
-                    <>
-                      <OcrIcon />
-                      {hasResult ? 'Ler novamente' : 'Extrair texto'}
-                    </>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  disabled={isProcessing}
-                  onClick={clearFile}
-                >
-                  Trocar imagem
-                </button>
-              </div>
+              <button
+                type="button"
+                className="btn-secondary shrink-0"
+                disabled={isProcessing}
+                onClick={clearFile}
+              >
+                Trocar PDF
+              </button>
             </div>
           </div>
         )}
+
+        {/* Toggle Forçar OCR */}
+        <div className="card">
+          <div className="flex items-start gap-4">
+            <button
+              type="button"
+              id={toggleId}
+              role="switch"
+              aria-checked={forceOcr}
+              aria-describedby={`${toggleId}-hint`}
+              disabled={isProcessing}
+              onClick={() => setForceOcr((v) => !v)}
+              className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-50 dark:focus-visible:ring-offset-slate-900 ${
+                forceOcr
+                  ? 'bg-amber-500 dark:bg-amber-500'
+                  : 'bg-slate-300 dark:bg-slate-600'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform ${
+                  forceOcr ? 'translate-x-5' : 'translate-x-0'
+                }`}
+                aria-hidden
+              />
+            </button>
+            <div className="min-w-0">
+              <label
+                htmlFor={toggleId}
+                className="cursor-pointer text-sm font-semibold text-slate-900 dark:text-slate-100"
+              >
+                Forçar OCR (Ative apenas para PDFs escaneados. É mais lento)
+              </label>
+              <p
+                id={`${toggleId}-hint`}
+                className="mt-1 text-sm text-slate-600 dark:text-slate-400"
+              >
+                {forceOcr ? (
+                  <>
+                    <span className="font-medium text-amber-700 dark:text-amber-400">
+                      OCR ativo:
+                    </span>{' '}
+                    cada página será renderizada e lida com Tesseract (idioma{' '}
+                    <code className="rounded bg-slate-100 px-1 text-xs dark:bg-slate-800">
+                      por
+                    </code>
+                    ). Use em scans sem texto selecionável.
+                  </>
+                ) : (
+                  <>
+                    <span className="font-medium text-slate-700 dark:text-slate-300">
+                      Modo rápido:
+                    </span>{' '}
+                    extrai texto embutido no PDF com pdf.js (
+                    <code className="rounded bg-slate-100 px-1 text-xs dark:bg-slate-800">
+                      getTextContent
+                    </code>
+                    ). Ideal para PDFs digitais.
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <button
+            type="button"
+            className="btn-primary w-full sm:w-auto sm:min-w-[200px]"
+            disabled={!canExtract}
+            onClick={() => void handleExtract()}
+            aria-busy={isProcessing}
+            aria-describedby={error ? errorId : undefined}
+          >
+            {isProcessing ? (
+              <>
+                <Spinner />
+                Extraindo…
+              </>
+            ) : (
+              <>
+                <ExtractIcon />
+                Extrair Texto
+              </>
+            )}
+          </button>
+          {!file && (
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Selecione um PDF para habilitar a extração.
+            </p>
+          )}
+        </div>
 
         {error && (
           <div
@@ -276,13 +342,14 @@ export default function ExtrairTextoPage() {
         <ProgressBar
           visible={isProcessing || progress === 100}
           percent={progress}
-          message={progressMsg || 'Lendo a imagem…'}
+          message={progressMsg || 'Processando…'}
         />
 
-        {hasResult && (
+        {hasResult && text.trim() && (
           <SuccessAction message="Texto extraído com sucesso!" />
         )}
 
+        {/* Resultado sempre disponível após tentativa bem-sucedida (mesmo vazio editável) */}
         {hasResult && (
           <section className="card space-y-4">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
@@ -291,22 +358,24 @@ export default function ExtrairTextoPage() {
                   Texto extraído
                 </h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Edite o resultado se o OCR falhar em alguma palavra.
+                  {forceOcr
+                    ? 'Revise o OCR — erros em números e nomes são comuns.'
+                    : 'Edite se necessário e copie ou baixe como .txt.'}
                 </p>
               </div>
             </div>
 
             <label htmlFor={textareaId} className="sr-only">
-              Texto extraído pelo OCR
+              Texto extraído do PDF
             </label>
             <textarea
               id={textareaId}
               value={text}
               onChange={(e) => setText(e.target.value)}
-              rows={14}
+              rows={16}
               spellCheck
               className="w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 font-mono text-sm leading-relaxed text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-brand-400"
-              placeholder="O texto reconhecido aparecerá aqui…"
+              placeholder="O texto extraído aparecerá aqui…"
             />
 
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -326,13 +395,12 @@ export default function ExtrairTextoPage() {
                 disabled={!text.trim()}
               >
                 <DownloadIcon />
-                Baixar como .TXT
+                Baixar como .txt
               </button>
             </div>
           </section>
         )}
 
-        {/* Slot AdSense mobile — abaixo do CTA */}
         <div className="lg:hidden">
           <AdSlot placement="below-cta" />
         </div>
@@ -342,16 +410,18 @@ export default function ExtrairTextoPage() {
             Como funciona
           </h2>
           <ol className="list-decimal space-y-1 pl-5">
-            <li>Envie 1 imagem (JPEG, PNG ou WebP).</li>
+            <li>Selecione 1 PDF no seu dispositivo.</li>
             <li>
-              O Tesseract sobe em um Web Worker com o modelo de português e
-              processa a imagem localmente.
+              Deixe o OCR <em>desligado</em> para PDFs com texto selecionável
+              (rápido, pdf.js).
             </li>
             <li>
-              Acompanhe o progresso na barra — a UI permanece responsiva.
+              Ative <em>Forçar OCR</em> só se o PDF for scan/foto de páginas
+              (mais lento, Tesseract em português).
             </li>
             <li>
-              Revise o texto no editor, copie ou baixe como{' '}
+              Clique em <strong>Extrair Texto</strong>, acompanhe o progresso
+              (“Lendo página X de Y…”) e copie ou baixe o{' '}
               <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">
                 .txt
               </code>
@@ -359,15 +429,17 @@ export default function ExtrairTextoPage() {
             </li>
           </ol>
           <p className="mt-3 text-xs text-slate-500">
-            Na primeira execução o navegador pode baixar o modelo de idioma
-            (~alguns MB) e guardá-lo em cache local — ainda assim, a imagem
-            nunca sai do seu dispositivo.
+            No OCR, a primeira execução pode baixar o modelo de idioma (~alguns
+            MB) e guardá-lo em cache — o conteúdo do PDF nunca sobe para a
+            nuvem.
           </p>
         </section>
 
+        <ToolSeoContent content={extrairTextoSeoContent} />
+
         <FaqAccordion
-          title="Perguntas frequentes sobre OCR"
-          subtitle="Privacidade, custo e como o reconhecimento local funciona no navegador."
+          title="Perguntas frequentes sobre Extrair Texto"
+          subtitle="Texto nativo, OCR de scans, privacidade e uso offline."
         />
       </div>
 
@@ -401,7 +473,7 @@ function Spinner() {
   );
 }
 
-function OcrIcon() {
+function ExtractIcon() {
   return (
     <svg
       className="h-4 w-4"
@@ -413,8 +485,11 @@ function OcrIcon() {
       strokeLinejoin="round"
       aria-hidden
     >
-      <circle cx="11" cy="11" r="7" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+      <line x1="10" y1="9" x2="8" y2="9" />
     </svg>
   );
 }

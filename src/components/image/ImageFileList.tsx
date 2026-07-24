@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
-  ChevronLeft,
-  ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Trash2,
   Images,
 } from 'lucide-react';
@@ -16,14 +16,14 @@ type ImageFileListProps = {
   items: ImageItem[];
   disabled?: boolean;
   onRemove: (id: string) => void;
-  /** 'back' = mover para trás (esquerda), 'forward' = para frente (direita) */
-  onMove: (id: string, direction: 'back' | 'forward') => void;
+  /** 'up' = página anterior (sobe na lista), 'down' = próxima página */
+  onMove: (id: string, direction: 'up' | 'down') => void;
   onClear: () => void;
 };
 
 /**
- * Grid responsivo de miniaturas com reordenação e remoção.
- * Ordem da esquerda → direita = ordem das páginas do PDF.
+ * Grid de miniaturas com Subir / Descer / Excluir.
+ * Ordem da esquerda → direita (e cima → baixo) = páginas do PDF.
  */
 export function ImageFileList({
   items,
@@ -57,7 +57,9 @@ export function ImageFileList({
       </div>
 
       <p className="text-xs text-slate-500 dark:text-slate-400">
-        A ordem define as páginas do PDF. Use as setas para reordenar.
+        A ordem define as páginas do PDF. Use <strong>Subir</strong> /{' '}
+        <strong>Descer</strong> para reordenar e o ícone de lixeira para
+        excluir.
       </p>
 
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
@@ -90,22 +92,22 @@ export function ImageFileList({
               <div className="flex items-center justify-between gap-1">
                 <div className="flex gap-0.5">
                   <IconBtn
-                    label="Mover para trás"
+                    label="Subir"
                     disabled={disabled || index === 0}
-                    onClick={() => onMove(item.id, 'back')}
+                    onClick={() => onMove(item.id, 'up')}
                   >
-                    <ChevronLeft className="h-4 w-4" aria-hidden />
+                    <ChevronUp className="h-4 w-4" aria-hidden />
                   </IconBtn>
                   <IconBtn
-                    label="Mover para frente"
+                    label="Descer"
                     disabled={disabled || index === items.length - 1}
-                    onClick={() => onMove(item.id, 'forward')}
+                    onClick={() => onMove(item.id, 'down')}
                   >
-                    <ChevronRight className="h-4 w-4" aria-hidden />
+                    <ChevronDown className="h-4 w-4" aria-hidden />
                   </IconBtn>
                 </div>
                 <IconBtn
-                  label="Remover"
+                  label="Excluir"
                   disabled={disabled}
                   onClick={() => onRemove(item.id)}
                   danger
@@ -122,7 +124,7 @@ export function ImageFileList({
 }
 
 function shortMime(type: string): string {
-  if (type === 'image/jpeg') return 'JPEG';
+  if (type === 'image/jpeg' || type === 'image/jpg') return 'JPEG';
   if (type === 'image/png') return 'PNG';
   if (type === 'image/webp') return 'WebP';
   return type.replace('image/', '').toUpperCase();

@@ -194,7 +194,7 @@ export async function convertDocxToPdf(
 
   onProgress?.({
     percent: 60,
-    message: 'Processando documento… gerando PDF (A4)…',
+    message: 'Gerando PDF…',
   });
 
   try {

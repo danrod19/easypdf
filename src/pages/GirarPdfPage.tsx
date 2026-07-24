@@ -7,12 +7,15 @@ import {
   Undo2,
 } from 'lucide-react';
 import { Seo } from '../components/Seo';
+import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
 import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
+import { ToolSeoContent } from '../components/ToolSeoContent';
+import { girarPdfSeoContent } from '../data/toolSeoContent';
 import {
   applyRotationDelta,
   applyRotationsToPdf,
@@ -261,17 +264,16 @@ export default function GirarPdfPage() {
   const busy = isProcessing || isLoadingMeta;
   const canSave = !!file && pageCount != null && pendingCount > 0 && !busy;
 
+  const seo = getSeoForPath('/girar-pdf');
+
   return (
     <>
-      <Seo
-        title="Girar PDF"
-        description="Gire páginas de um PDF 90° à esquerda ou à direita, todas ou por intervalo, 100% no navegador. Sem upload para servidores."
-      />
+      <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
         <header className="space-y-2">
           <p className="text-sm font-medium text-orange-600 dark:text-orange-400">
-            Ferramenta gratuita
+            Ferramenta gratuita · Sem upload
           </p>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Girar PDF
@@ -593,6 +595,8 @@ export default function GirarPdfPage() {
             </li>
           </ol>
         </section>
+
+        <ToolSeoContent content={girarPdfSeoContent} />
 
         <FaqAccordion
           items={rotateFaqItems}

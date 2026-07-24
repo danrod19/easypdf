@@ -6,7 +6,9 @@ export type ToolAccent =
   | 'amber'
   | 'orange'
   | 'cyan'
-  | 'pink';
+  | 'pink'
+  | 'slate'
+  | 'rose';
 
 export type ToolIconName =
   | 'merge'
@@ -16,7 +18,11 @@ export type ToolIconName =
   | 'ocr'
   | 'rotate'
   | 'watermark'
-  | 'draw';
+  | 'draw'
+  | 'lock'
+  | 'unlock'
+  | 'trash'
+  | 'compress';
 
 export interface ToolMeta {
   path: string;
@@ -89,6 +95,18 @@ export const toolAccentStyles: Record<
     iconText: 'text-pink-600 dark:text-pink-400',
     ring: 'group-hover:border-pink-300 dark:group-hover:border-pink-800',
     badge: 'bg-pink-100 text-pink-800 dark:bg-pink-950 dark:text-pink-300',
+  },
+  slate: {
+    iconBg: 'bg-slate-100 dark:bg-slate-800/80',
+    iconText: 'text-slate-700 dark:text-slate-300',
+    ring: 'group-hover:border-slate-400 dark:group-hover:border-slate-600',
+    badge: 'bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200',
+  },
+  rose: {
+    iconBg: 'bg-rose-50 dark:bg-rose-950/50',
+    iconText: 'text-rose-600 dark:text-rose-400',
+    ring: 'group-hover:border-rose-300 dark:group-hover:border-rose-800',
+    badge: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300',
   },
 };
 
@@ -165,13 +183,53 @@ export const tools: ToolMeta[] = [
   },
   {
     path: '/extrair-texto',
-    title: 'Extrair Texto (OCR)',
-    shortTitle: 'OCR',
+    title: 'Extrair Texto',
+    shortTitle: 'Extrair',
     description:
-      'Extraia texto de imagens (JPEG, PNG, WebP) com Tesseract.js no navegador.',
+      'Copie texto de PDFs digitais (pdf.js) ou use OCR em scans com Tesseract — 100% no navegador.',
     icon: 'ocr',
     status: 'ready',
     accent: 'amber',
+  },
+  {
+    path: '/proteger-pdf',
+    title: 'Proteger PDF',
+    shortTitle: 'Proteger',
+    description:
+      'Criptografe o PDF com senha de abertura — processamento 100% no navegador, sem upload.',
+    icon: 'lock',
+    status: 'ready',
+    accent: 'slate',
+  },
+  {
+    path: '/desbloquear-pdf',
+    title: 'Desbloquear PDF',
+    shortTitle: 'Desbloquear',
+    description:
+      'Remova a senha de abertura quando você já a conhece — 100% no navegador, sem upload.',
+    icon: 'unlock',
+    status: 'ready',
+    accent: 'emerald',
+  },
+  {
+    path: '/remover-paginas',
+    title: 'Remover Páginas',
+    shortTitle: 'Remover',
+    description:
+      'Marque páginas nas miniaturas e gere um PDF novo sem elas — exclusão local com pdf-lib.',
+    icon: 'trash',
+    status: 'ready',
+    accent: 'rose',
+  },
+  {
+    path: '/comprimir-pdf',
+    title: 'Comprimir PDF',
+    shortTitle: 'Comprimir',
+    description:
+      'Reduza o tamanho de PDFs com scans ou fotos — compressão local por rasterização (sem upload).',
+    icon: 'compress',
+    status: 'ready',
+    accent: 'violet',
   },
 ];
 

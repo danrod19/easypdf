@@ -1,0 +1,126 @@
+/**
+ * Metadados SEO On-Page por rota.
+ * Títulos otimizados para intenção de busca + diferencial (local / sem upload).
+ * Descrições ~150–160 caracteres, com CTA implícito de privacidade.
+ */
+
+export type SeoMeta = {
+  /** <title> completo (não concatenar sufixo no hook) */
+  title: string;
+  /** meta name="description" */
+  description: string;
+  /** path canônico, ex: /juntar-pdf (opcional) */
+  path?: string;
+};
+
+export const SITE_ORIGIN = 'https://easypdflocal.com.br';
+export const SITE_NAME = 'Easy PDF Local';
+
+export const seoByPath: Record<string, SeoMeta> = {
+  '/': {
+    title:
+      'Easy PDF Local | Ferramentas de PDF 100% Seguras e Sem Upload',
+    description:
+      'Junte, divida, gire e converta PDFs grátis no navegador. Processamento 100% local — seus arquivos nunca sobem para a nuvem. Sem cadastro.',
+    path: '/',
+  },
+  '/juntar-pdf': {
+    title: 'Juntar PDF Online e Seguro | Sem Upload para a Nuvem',
+    description:
+      'Una vários PDFs em um só arquivo, grátis e no navegador. Merge com pdf-lib no seu dispositivo — zero upload, privacidade total. Sem cadastro.',
+    path: '/juntar-pdf',
+  },
+  '/dividir-pdf': {
+    title: 'Dividir PDF Online Grátis | Processamento Local Seguro',
+    description:
+      'Extraia páginas ou intervalos de um PDF no navegador. Sem envio para servidores: divisão 100% local, rápida e privada. Grátis e sem conta.',
+    path: '/dividir-pdf',
+  },
+  '/girar-pdf': {
+    title: 'Girar PDF Online Grátis | Rotação Local e Segura',
+    description:
+      'Gire páginas de PDF 90° à esquerda ou à direita, todas ou por intervalo. Processamento local no navegador — sem upload e sem perda de qualidade.',
+    path: '/girar-pdf',
+  },
+  '/marca-dagua': {
+    title: "Marca d'água em PDF Online | Texto Local e Privado",
+    description:
+      "Adicione marca d'água de texto (ex.: CONFIDENCIAL) em todas as páginas do PDF. 100% no navegador, sem upload para a nuvem. Grátis e seguro.",
+    path: '/marca-dagua',
+  },
+  '/desenhar-pdf': {
+    title: 'Desenhar e Assinar PDF Online | 100% no Navegador',
+    description:
+      'Assine ou desenhe livremente no PDF direto no navegador. Sem upload de arquivos — processamento local com privacidade total. Grátis.',
+    path: '/desenhar-pdf',
+  },
+  '/word-para-pdf': {
+    title: 'Word para PDF Online Grátis | Conversão Local Segura',
+    description:
+      'Converta DOCX em PDF no navegador, sem enviar o documento para servidores. Conversão client-side, privada e gratuita. Sem cadastro.',
+    path: '/word-para-pdf',
+  },
+  '/imagem-para-pdf': {
+    title: 'Imagem para PDF Online Grátis | JPG/PNG sem Upload',
+    description:
+      'Transforme JPG, PNG ou WebP em PDF no navegador. Várias imagens em um arquivo, ordem personalizada, zero envio para a nuvem.',
+    path: '/imagem-para-pdf',
+  },
+  '/extrair-texto': {
+    title: 'Extrair Texto de PDF Online | Nativo e OCR Local Seguro',
+    description:
+      'Extraia texto de PDF no navegador com pdf.js ou OCR (Tesseract) em scans. 100% local, sem upload. Português, grátis e sem cadastro.',
+    path: '/extrair-texto',
+  },
+  '/proteger-pdf': {
+    title: 'Proteger PDF com Senha Online | Criptografia Local Segura',
+    description:
+      'Bloqueie PDF com senha no navegador, sem upload. Criptografia client-side, grátis e privada — seus arquivos não sobem para a nuvem.',
+    path: '/proteger-pdf',
+  },
+  '/desbloquear-pdf': {
+    title: 'Desbloquear PDF Online | Remover Senha Local e Seguro',
+    description:
+      'Remova a senha de um PDF no navegador quando você já a conhece. Sem upload, grátis e privado — desbloqueio 100% local.',
+    path: '/desbloquear-pdf',
+  },
+  '/remover-paginas': {
+    title: 'Remover Páginas de PDF Online | Exclusão Local Grátis',
+    description:
+      'Apague páginas indesejadas do PDF com miniaturas no navegador. Sem upload: remoção 100% local com pdf-lib. Grátis e sem cadastro.',
+    path: '/remover-paginas',
+  },
+  '/comprimir-pdf': {
+    title: 'Comprimir PDF Online Grátis | Reduzir Tamanho Local Seguro',
+    description:
+      'Comprima PDF no navegador sem upload. Ideal para scans e fotos pesadas — escolha o nível e baixe um arquivo mais leve, privado e grátis.',
+    path: '/comprimir-pdf',
+  },
+  '/privacidade': {
+    title: 'Política de Privacidade | Easy PDF Local',
+    description:
+      'Como o Easy PDF Local protege seus dados: processamento 100% no navegador, sem upload de documentos e sem armazenamento de arquivos.',
+    path: '/privacidade',
+  },
+  '/termos': {
+    title: 'Termos de Uso | Easy PDF Local',
+    description:
+      'Termos de uso do Easy PDF Local — ferramentas de PDF gratuitas com processamento local no navegador.',
+    path: '/termos',
+  },
+};
+
+export const defaultSeo: SeoMeta = {
+  title: 'Easy PDF Local | Ferramentas de PDF 100% Seguras e Sem Upload',
+  description:
+    'Uma suíte completa e segura para manipular PDFs direto no seu navegador. Nenhuma imagem ou documento é enviado para a nuvem. 100% gratuito e privado.',
+  path: '/',
+};
+
+export function getSeoForPath(pathname: string): SeoMeta {
+  const normalized =
+    pathname.length > 1 && pathname.endsWith('/')
+      ? pathname.slice(0, -1)
+      : pathname || '/';
+  return seoByPath[normalized] ?? defaultSeo;
+}
