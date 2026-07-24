@@ -8,6 +8,7 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { wordParaPdfSeoContent } from '../data/toolSeoContent';
 import {
   convertDocxToPdf,
@@ -15,6 +16,15 @@ import {
   isDocxFile,
 } from '../lib/wordToPdf';
 import { downloadBlob, formatBytes } from '../lib/format';
+
+function buildConvertedFileName(originalName: string) {
+  const stamp = new Date()
+    .toISOString()
+    .slice(0, 19)
+    .replace(/[:T]/g, '-');
+  const baseName = originalName.replace(/\.docx$/i, '') || 'documento';
+  return `${baseName}-convertido-${stamp}.pdf`;
+}
 
 /**
  * Página /word-para-pdf — DOCX → PDF 100% no navegador (mammoth + html2pdf.js).
@@ -29,12 +39,23 @@ export default function WordParaPdfPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
+  const [previewFileName, setPreviewFileName] = useState('');
+
+  const resetPreview = useCallback(() => {
+    setIsModalOpen(false);
+    setPreviewBytes(null);
+    setPreviewFileName('');
+  }, []);
+
   const resetResult = useCallback(() => {
     setError(null);
     setSuccess(null);
     setProgress(0);
     setProgressMsg('');
-  }, []);
+    resetPreview();
+  }, [resetPreview]);
 
   const clearFile = useCallback(() => {
     setFile(null);
@@ -70,6 +91,7 @@ export default function WordParaPdfPage() {
     setSuccess(null);
     setProgress(0);
     setProgressMsg('Processando documento…');
+    resetPreview();
 
     try {
       const bytes = await convertDocxToPdf(file, ({ percent, message }) => {
@@ -77,18 +99,14 @@ export default function WordParaPdfPage() {
         setProgressMsg(message);
       });
 
-      const blob = new Blob([new Uint8Array(bytes)], {
-        type: 'application/pdf',
-      });
-      const stamp = new Date()
-        .toISOString()
-        .slice(0, 19)
-        .replace(/[:T]/g, '-');
-      const baseName = file.name.replace(/\.docx$/i, '') || 'documento';
-      downloadBlob(blob, `${baseName}-convertido-${stamp}.pdf`);
+      const stableBytes = new Uint8Array(bytes);
+      const fileName = buildConvertedFileName(file.name);
 
+      setPreviewBytes(stableBytes);
+      setPreviewFileName(fileName);
+      setIsModalOpen(true);
       setSuccess(
-        'PDF gerado com sucesso. O download deve ter iniciado.'
+        'PDF gerado com sucesso. Confira a pré-visualização e baixe quando quiser.'
       );
     } catch (err) {
       const message =
@@ -102,6 +120,20 @@ export default function WordParaPdfPage() {
       setIsProcessing(false);
     }
   };
+
+  const handleClosePreview = useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
+
+  const handleDownloadFromPreview = useCallback(() => {
+    if (!previewBytes) return;
+    const blob = new Blob([new Uint8Array(previewBytes)], {
+      type: 'application/pdf',
+    });
+    downloadBlob(blob, previewFileName || 'documento-convertido.pdf');
+    setIsModalOpen(false);
+    setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
+  }, [previewBytes, previewFileName]);
 
   const canConvert = !!file && !isProcessing;
 
@@ -177,7 +209,7 @@ export default function WordParaPdfPage() {
               </button>
             </div>
 
-            <div className="border-t border-slate-200 pt-5 dark:border-slate-700">
+            <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center dark:border-slate-700">
               <button
                 type="button"
                 className="btn-primary w-full sm:w-auto sm:min-w-[220px]"
@@ -198,6 +230,15 @@ export default function WordParaPdfPage() {
                   </>
                 )}
               </button>
+              {previewBytes && !isModalOpen && (
+                <button
+                  type="button"
+                  className="btn-secondary w-full sm:w-auto"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  Ver pré-visualização
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -243,7 +284,7 @@ export default function WordParaPdfPage() {
               elementos ocultos no React.
             </li>
             <li>
-              O PDF é baixado como{' '}
+              O PDF abre em pré-visualização e, ao baixar, usa o nome{' '}
               <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">
                 nome-convertido-timestamp.pdf
               </code>
@@ -266,6 +307,14 @@ export default function WordParaPdfPage() {
       </div>
 
       <StickyCta />
+
+      <PdfPreviewModal
+        isOpen={isModalOpen}
+        pdfBytes={previewBytes}
+        fileName={previewFileName}
+        onClose={handleClosePreview}
+        onDownload={handleDownloadFromPreview}
+      />
     </>
   );
 }

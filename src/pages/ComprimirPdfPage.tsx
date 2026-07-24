@@ -9,6 +9,7 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { comprimirPdfSeoContent } from '../data/toolSeoContent';
 import {
   COMPRESSION_PRESETS,
@@ -68,13 +69,24 @@ export default function ComprimirPdfPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [result, setResult] = useState<CompressPdfResult | null>(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
+  const [previewFileName, setPreviewFileName] = useState('');
+
+  const resetPreview = useCallback(() => {
+    setIsModalOpen(false);
+    setPreviewBytes(null);
+    setPreviewFileName('');
+  }, []);
+
   const resetResult = useCallback(() => {
     setError(null);
     setSuccess(null);
     setProgress(0);
     setProgressMsg('');
     setResult(null);
-  }, []);
+    resetPreview();
+  }, [resetPreview]);
 
   const clearFile = useCallback(() => {
     setFile(null);
@@ -103,6 +115,7 @@ export default function ComprimirPdfPage() {
     setResult(null);
     setProgress(0);
     setProgressMsg('Iniciando compressão…');
+    resetPreview();
 
     try {
       const out = await compressPdf(file, level, ({ percent, message }) => {
@@ -112,10 +125,12 @@ export default function ComprimirPdfPage() {
 
       setResult(out);
 
-      const blob = new Blob([new Uint8Array(out.bytes)], {
-        type: 'application/pdf',
-      });
-      downloadBlob(blob, compressedFileName(file.name, level));
+      const stableBytes = new Uint8Array(out.bytes);
+      const fileName = compressedFileName(file.name, level);
+
+      setPreviewBytes(stableBytes);
+      setPreviewFileName(fileName);
+      setIsModalOpen(true);
 
       const reductionLabel =
         out.reductionPercent > 0
@@ -125,7 +140,7 @@ export default function ComprimirPdfPage() {
             : 'Tamanho praticamente igual ao original.';
 
       setSuccess(
-        `PDF comprimido com sucesso. ${reductionLabel} O download deve ter iniciado.`
+        `PDF comprimido com sucesso. ${reductionLabel} Confira a pré-visualização e baixe quando quiser.`
       );
     } catch (err) {
       setError(
@@ -140,6 +155,20 @@ export default function ComprimirPdfPage() {
       setIsProcessing(false);
     }
   };
+
+  const handleClosePreview = useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
+
+  const handleDownloadFromPreview = useCallback(() => {
+    if (!previewBytes) return;
+    const blob = new Blob([new Uint8Array(previewBytes)], {
+      type: 'application/pdf',
+    });
+    downloadBlob(blob, previewFileName || 'pdf-comprimido.pdf');
+    setIsModalOpen(false);
+    setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
+  }, [previewBytes, previewFileName]);
 
   const canCompress = !!file && !isProcessing;
   const seo = getSeoForPath('/comprimir-pdf');
@@ -260,26 +289,37 @@ export default function ComprimirPdfPage() {
                 arquivo gerado.
               </p>
 
-              <button
-                type="button"
-                className="btn-primary w-full sm:w-auto sm:min-w-[220px]"
-                disabled={!canCompress}
-                onClick={() => void handleCompress()}
-                aria-describedby={error ? errorId : undefined}
-                aria-busy={isProcessing}
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                    Comprimindo…
-                  </>
-                ) : (
-                  <>
-                    <Minimize2 className="h-4 w-4" aria-hidden />
-                    Comprimir PDF
-                  </>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <button
+                  type="button"
+                  className="btn-primary w-full sm:w-auto sm:min-w-[220px]"
+                  disabled={!canCompress}
+                  onClick={() => void handleCompress()}
+                  aria-describedby={error ? errorId : undefined}
+                  aria-busy={isProcessing}
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                      Comprimindo…
+                    </>
+                  ) : (
+                    <>
+                      <Minimize2 className="h-4 w-4" aria-hidden />
+                      Comprimir PDF
+                    </>
+                  )}
+                </button>
+                {previewBytes && !isModalOpen && (
+                  <button
+                    type="button"
+                    className="btn-secondary w-full sm:w-auto"
+                    onClick={() => setIsModalOpen(true)}
+                  >
+                    Ver pré-visualização
+                  </button>
                 )}
-              </button>
+              </div>
             </div>
           </div>
         )}
@@ -353,22 +393,17 @@ export default function ComprimirPdfPage() {
               </div>
             </dl>
 
-            <button
-              type="button"
-              className="btn-secondary w-full sm:w-auto"
-              onClick={() => {
-                const blob = new Blob([new Uint8Array(result.bytes)], {
-                  type: 'application/pdf',
-                });
-                downloadBlob(
-                  blob,
-                  compressedFileName(file?.name || 'documento.pdf', result.level)
-                );
-              }}
-            >
-              <Download className="h-4 w-4" aria-hidden />
-              Baixar novamente
-            </button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                className="btn-secondary w-full sm:w-auto"
+                onClick={() => setIsModalOpen(true)}
+                disabled={!previewBytes}
+              >
+                <Download className="h-4 w-4" aria-hidden />
+                Ver pré-visualização / Baixar
+              </button>
+            </div>
           </div>
         )}
 
@@ -399,7 +434,8 @@ export default function ComprimirPdfPage() {
               a pdf-lib monta um PDF novo com JPEGs.
             </li>
             <li>
-              Veja o tamanho final e a % de redução e baixe a cópia comprimida.
+              Veja o tamanho final e a % de redução, confira a pré-visualização e
+              baixe a cópia comprimida.
             </li>
           </ol>
         </section>
@@ -414,6 +450,14 @@ export default function ComprimirPdfPage() {
       </div>
 
       <StickyCta />
+
+      <PdfPreviewModal
+        isOpen={isModalOpen}
+        pdfBytes={previewBytes}
+        fileName={previewFileName}
+        onClose={handleClosePreview}
+        onDownload={handleDownloadFromPreview}
+      />
     </>
   );
 }

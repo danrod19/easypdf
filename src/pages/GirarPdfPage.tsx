@@ -15,6 +15,7 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { girarPdfSeoContent } from '../data/toolSeoContent';
 import {
   applyRotationDelta,
@@ -83,13 +84,23 @@ export default function GirarPdfPage() {
   const [progressMsg, setProgressMsg] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  /** true apenas após download do PDF rotacionado (não em rotações intermediárias) */
+  /** true apenas após gerar o PDF rotacionado (não em rotações intermediárias) */
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
+  const [previewFileName, setPreviewFileName] = useState('');
 
   const pendingCount = useMemo(
     () => countPendingRotations(rotations),
     [rotations]
   );
+
+  const resetPreview = useCallback(() => {
+    setIsModalOpen(false);
+    setPreviewBytes(null);
+    setPreviewFileName('');
+  }, []);
 
   const resetResult = useCallback(() => {
     setError(null);
@@ -97,7 +108,8 @@ export default function GirarPdfPage() {
     setDownloadSuccess(false);
     setProgress(0);
     setProgressMsg('');
-  }, []);
+    resetPreview();
+  }, [resetPreview]);
 
   const clearFile = useCallback(() => {
     setFile(null);
@@ -152,6 +164,10 @@ export default function GirarPdfPage() {
         setRotations(next);
         setError(null);
         setDownloadSuccess(false);
+        // Prévia anterior deixa de refletir o estado pendente
+        setIsModalOpen(false);
+        setPreviewBytes(null);
+        setPreviewFileName('');
         const n = indices.length;
         setSuccess(
           n === pageCount
@@ -217,6 +233,7 @@ export default function GirarPdfPage() {
     setDownloadSuccess(false);
     setProgress(0);
     setProgressMsg('Preparando…');
+    resetPreview();
 
     try {
       const bytes = await applyRotationsToPdf(
@@ -229,12 +246,12 @@ export default function GirarPdfPage() {
       );
 
       const outName = rotatedFileName(file.name);
-      const blob = new Blob([new Uint8Array(bytes)], {
+      const stableBytes = new Uint8Array(bytes);
+      const blob = new Blob([new Uint8Array(stableBytes)], {
         type: 'application/pdf',
       });
-      downloadBlob(blob, outName);
 
-      // O blob baixado vira a nova base — próximas rotações empilham sobre ele
+      // A nova base já reflete as rotações — próximas giros empilham sobre ela
       setFile(
         new File([blob], outName, {
           type: 'application/pdf',
@@ -243,8 +260,12 @@ export default function GirarPdfPage() {
       );
       setRotations(createZeroRotations(pageCount));
 
+      setPreviewBytes(stableBytes);
+      setPreviewFileName(outName);
+      setIsModalOpen(true);
+
       setSuccess(
-        `PDF rotacionado salvo (${pendingCount} página${pendingCount === 1 ? '' : 's'} alterada${pendingCount === 1 ? '' : 's'}). O download deve ter iniciado.`
+        `PDF rotacionado gerado (${pendingCount} página${pendingCount === 1 ? '' : 's'} alterada${pendingCount === 1 ? '' : 's'}). Confira a pré-visualização e baixe quando quiser.`
       );
       setDownloadSuccess(true);
     } catch (err) {
@@ -260,6 +281,21 @@ export default function GirarPdfPage() {
       setIsProcessing(false);
     }
   };
+
+  const handleClosePreview = useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
+
+  const handleDownloadFromPreview = useCallback(() => {
+    if (!previewBytes) return;
+    const blob = new Blob([new Uint8Array(previewBytes)], {
+      type: 'application/pdf',
+    });
+    downloadBlob(blob, previewFileName || 'pdf-rotacionado.pdf');
+    setIsModalOpen(false);
+    setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
+    setDownloadSuccess(true);
+  }, [previewBytes, previewFileName]);
 
   const busy = isProcessing || isLoadingMeta;
   const canSave = !!file && pageCount != null && pendingCount > 0 && !busy;
@@ -529,7 +565,16 @@ export default function GirarPdfPage() {
                   </>
                 )}
               </button>
-              {file && pendingCount === 0 && !isProcessing && (
+              {previewBytes && !isModalOpen && (
+                <button
+                  type="button"
+                  className="btn-secondary w-full sm:w-auto"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  Ver pré-visualização
+                </button>
+              )}
+              {file && pendingCount === 0 && !isProcessing && !previewBytes && (
                 <p className="text-sm text-slate-500 dark:text-slate-400">
                   Gire ao menos uma página para habilitar o salvamento.
                 </p>
@@ -587,7 +632,7 @@ export default function GirarPdfPage() {
             </li>
             <li>
               Clique em <em>Salvar PDF Rotacionado</em> — o pdf-lib aplica os
-              ângulos e o download inicia como{' '}
+              ângulos e a pré-visualização abre antes do download como{' '}
               <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">
                 nome-rotacionado.pdf
               </code>
@@ -606,6 +651,14 @@ export default function GirarPdfPage() {
       </div>
 
       <StickyCta />
+
+      <PdfPreviewModal
+        isOpen={isModalOpen}
+        pdfBytes={previewBytes}
+        fileName={previewFileName}
+        onClose={handleClosePreview}
+        onDownload={handleDownloadFromPreview}
+      />
     </>
   );
 }

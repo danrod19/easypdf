@@ -16,6 +16,7 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { desenharPdfSeoContent } from '../data/toolSeoContent';
 import { loadPdfJs } from '../lib/pdfjsLoader';
 import {
@@ -89,6 +90,10 @@ export default function DesenharPdfPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
+  const [previewFileName, setPreviewFileName] = useState('');
+
   const [color, setColor] = useState<DrawColorName>('red');
   const [brush, setBrush] = useState<BrushSizeName>('medium');
   const [strokes, setStrokes] = useState<DrawStroke[]>([]);
@@ -112,12 +117,19 @@ export default function DesenharPdfPage() {
     brushRef.current = brush;
   }, [brush]);
 
+  const resetPreview = useCallback(() => {
+    setIsModalOpen(false);
+    setPreviewBytes(null);
+    setPreviewFileName('');
+  }, []);
+
   const resetMessages = useCallback(() => {
     setError(null);
     setSuccess(null);
     setProgress(0);
     setProgressMsg('');
-  }, []);
+    resetPreview();
+  }, [resetPreview]);
 
   const clearFile = useCallback(() => {
     setFile(null);
@@ -433,6 +445,10 @@ export default function DesenharPdfPage() {
     setStrokes((prev) => [...prev, stroke]);
     setSuccess(null);
     setError(null);
+    // Traços novos invalidam a prévia anterior
+    setIsModalOpen(false);
+    setPreviewBytes(null);
+    setPreviewFileName('');
   };
 
   const handleUndo = () => {
@@ -441,11 +457,17 @@ export default function DesenharPdfPage() {
       return prev.slice(0, -1);
     });
     setSuccess(null);
+    setIsModalOpen(false);
+    setPreviewBytes(null);
+    setPreviewFileName('');
   };
 
   const handleClear = () => {
     setStrokes([]);
     setSuccess(null);
+    setIsModalOpen(false);
+    setPreviewBytes(null);
+    setPreviewFileName('');
   };
 
   const handleSave = async () => {
@@ -462,11 +484,16 @@ export default function DesenharPdfPage() {
       return;
     }
 
+    // Encerra traço em andamento e libera o pointer capture do canvas
+    drawingRef.current = false;
+    currentStrokeRef.current = null;
+
     setIsProcessing(true);
     setError(null);
     setSuccess(null);
     setProgress(0);
     setProgressMsg('Preparando…');
+    resetPreview();
 
     try {
       const bytes = await applyDrawingsToPdf(
@@ -482,13 +509,14 @@ export default function DesenharPdfPage() {
       );
 
       const outName = drawnFileName(file.name);
-      const blob = new Blob([new Uint8Array(bytes)], {
-        type: 'application/pdf',
-      });
-      downloadBlob(blob, outName);
+      const stableBytes = new Uint8Array(bytes);
+
+      setPreviewBytes(stableBytes);
+      setPreviewFileName(outName);
+      setIsModalOpen(true);
 
       setSuccess(
-        `PDF salvo com ${strokes.length} traço${strokes.length === 1 ? '' : 's'} na página 1. Download de ${outName} iniciado.`
+        `PDF gerado com ${strokes.length} traço${strokes.length === 1 ? '' : 's'} na página 1. Confira a pré-visualização e baixe quando quiser.`
       );
     } catch (err) {
       setError(
@@ -502,6 +530,20 @@ export default function DesenharPdfPage() {
       setIsProcessing(false);
     }
   };
+
+  const handleClosePreview = useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
+
+  const handleDownloadFromPreview = useCallback(() => {
+    if (!previewBytes) return;
+    const blob = new Blob([new Uint8Array(previewBytes)], {
+      type: 'application/pdf',
+    });
+    downloadBlob(blob, previewFileName || 'pdf-desenhado.pdf');
+    setIsModalOpen(false);
+    setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
+  }, [previewBytes, previewFileName]);
 
   const busy = isLoadingPdf || isProcessing;
   const canSave =
@@ -726,11 +768,20 @@ export default function DesenharPdfPage() {
                 ) : (
                   <>
                     <PenTool className="h-4 w-4" aria-hidden />
-                    Salvar e Baixar
+                    Salvar PDF
                   </>
                 )}
               </button>
-              {file && strokes.length === 0 && !isProcessing && (
+              {previewBytes && !isModalOpen && (
+                <button
+                  type="button"
+                  className="btn-secondary w-full sm:w-auto"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  Ver pré-visualização
+                </button>
+              )}
+              {file && strokes.length === 0 && !isProcessing && !previewBytes && (
                 <p className="text-sm text-slate-500 dark:text-slate-400">
                   Desenhe na página acima para habilitar o salvamento.
                 </p>
@@ -774,16 +825,15 @@ export default function DesenharPdfPage() {
               espessura; use Desfazer se precisar.
             </li>
             <li>
-              Clique em <em>Salvar e Baixar</em> — as coordenadas Y são
-              convertidas (canvas topo-esq → PDF base-esq) e injetadas com
-              pdf-lib.
+              Clique em <em>Salvar PDF</em> — as coordenadas Y são convertidas
+              (canvas topo-esq → PDF base-esq) e injetadas com pdf-lib.
             </li>
             <li>
               O arquivo{' '}
               <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">
                 nome-desenhado.pdf
               </code>{' '}
-              é baixado automaticamente.
+              abre em pré-visualização antes do download.
             </li>
           </ol>
         </section>
@@ -798,6 +848,14 @@ export default function DesenharPdfPage() {
       </div>
 
       <StickyCta />
+
+      <PdfPreviewModal
+        isOpen={isModalOpen}
+        pdfBytes={previewBytes}
+        fileName={previewFileName}
+        onClose={handleClosePreview}
+        onDownload={handleDownloadFromPreview}
+      />
     </>
   );
 }

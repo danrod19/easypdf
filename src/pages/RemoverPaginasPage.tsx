@@ -9,6 +9,7 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { removerPaginasSeoContent } from '../data/toolSeoContent';
 import {
   generatePageThumbnails,
@@ -63,6 +64,10 @@ export default function RemoverPaginasPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
+  const [previewFileName, setPreviewFileName] = useState('');
+
   const markedSet = useMemo(
     () => new Set(markedForDelete),
     [markedForDelete]
@@ -70,12 +75,19 @@ export default function RemoverPaginasPage() {
 
   const remainingCount = thumbs.length - markedForDelete.length;
 
+  const resetPreview = useCallback(() => {
+    setIsModalOpen(false);
+    setPreviewBytes(null);
+    setPreviewFileName('');
+  }, []);
+
   const resetResult = useCallback(() => {
     setError(null);
     setSuccess(null);
     setProgress(0);
     setProgressMsg('');
-  }, []);
+    resetPreview();
+  }, [resetPreview]);
 
   const clearFile = useCallback(() => {
     setFile(null);
@@ -161,6 +173,7 @@ export default function RemoverPaginasPage() {
     setSuccess(null);
     setProgress(0);
     setProgressMsg('Removendo páginas…');
+    resetPreview();
 
     try {
       const bytes = await removePagesFromPdf(
@@ -172,13 +185,14 @@ export default function RemoverPaginasPage() {
         }
       );
 
-      const blob = new Blob([new Uint8Array(bytes)], {
-        type: 'application/pdf',
-      });
-      downloadBlob(blob, removedPagesFileName(file.name));
+      const stableBytes = new Uint8Array(bytes);
+      const fileName = removedPagesFileName(file.name);
 
+      setPreviewBytes(stableBytes);
+      setPreviewFileName(fileName);
+      setIsModalOpen(true);
       setSuccess(
-        `Novo PDF gerado com ${remainingCount} página${remainingCount === 1 ? '' : 's'}. O download deve ter iniciado.`
+        `Novo PDF gerado com ${remainingCount} página${remainingCount === 1 ? '' : 's'}. Confira a pré-visualização e baixe quando quiser.`
       );
     } catch (err) {
       setError(
@@ -192,6 +206,20 @@ export default function RemoverPaginasPage() {
       setIsProcessing(false);
     }
   };
+
+  const handleClosePreview = useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
+
+  const handleDownloadFromPreview = useCallback(() => {
+    if (!previewBytes) return;
+    const blob = new Blob([new Uint8Array(previewBytes)], {
+      type: 'application/pdf',
+    });
+    downloadBlob(blob, previewFileName || 'pdf-sem-paginas.pdf');
+    setIsModalOpen(false);
+    setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
+  }, [previewBytes, previewFileName]);
 
   // Revoga data URLs grandes ao desmontar / trocar arquivo (best-effort)
   useEffect(() => {
@@ -384,28 +412,39 @@ export default function RemoverPaginasPage() {
                   })}
                 </ul>
 
-                <button
-                  type="button"
-                  className="btn-primary w-full sm:w-auto sm:min-w-[220px]"
-                  disabled={!canGenerate}
-                  onClick={() => void handleGenerate()}
-                  aria-describedby={error ? errorId : undefined}
-                  aria-busy={isProcessing}
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                      Gerando PDF…
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="h-4 w-4" aria-hidden />
-                      Gerar Novo PDF
-                      {markedForDelete.length > 0 &&
-                        ` (−${markedForDelete.length})`}
-                    </>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <button
+                    type="button"
+                    className="btn-primary w-full sm:w-auto sm:min-w-[220px]"
+                    disabled={!canGenerate}
+                    onClick={() => void handleGenerate()}
+                    aria-describedby={error ? errorId : undefined}
+                    aria-busy={isProcessing}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                        Gerando PDF…
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-4 w-4" aria-hidden />
+                        Gerar Novo PDF
+                        {markedForDelete.length > 0 &&
+                          ` (−${markedForDelete.length})`}
+                      </>
+                    )}
+                  </button>
+                  {previewBytes && !isModalOpen && (
+                    <button
+                      type="button"
+                      className="btn-secondary w-full sm:w-auto"
+                      onClick={() => setIsModalOpen(true)}
+                    >
+                      Ver pré-visualização
+                    </button>
                   )}
-                </button>
+                </div>
               </div>
             )}
           </div>
@@ -457,7 +496,8 @@ export default function RemoverPaginasPage() {
               <strong className="font-semibold text-slate-800 dark:text-slate-200">
                 pdf-lib
               </strong>{' '}
-              remove as páginas (de trás para frente) e inicia o download.
+              remove as páginas (de trás para frente) e abre a pré-visualização
+              antes do download.
             </li>
           </ol>
         </section>
@@ -472,6 +512,14 @@ export default function RemoverPaginasPage() {
       </div>
 
       <StickyCta />
+
+      <PdfPreviewModal
+        isOpen={isModalOpen}
+        pdfBytes={previewBytes}
+        fileName={previewFileName}
+        onClose={handleClosePreview}
+        onDownload={handleDownloadFromPreview}
+      />
     </>
   );
 }

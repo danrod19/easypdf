@@ -8,6 +8,7 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { getSeoForPath } from '../data/seo';
 import { juntarPdfSeoContent } from '../data/toolSeoContent';
 import { mergePdfFiles } from '../lib/mergePdfs';
@@ -17,9 +18,18 @@ function createId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function buildMergedFileName() {
+  const stamp = new Date()
+    .toISOString()
+    .slice(0, 19)
+    .replace(/[:T]/g, '-');
+  return `pdf-unido-${stamp}.pdf`;
+}
+
 /**
  * Página /juntar-pdf — merge real com pdf-lib + drag-and-drop.
  * Nenhum arquivo é enviado a servidor; tudo roda no navegador.
+ * Após o merge, abre pré-visualização antes do download.
  */
 export default function JuntarPdfPage() {
   const errorId = useId();
@@ -29,6 +39,17 @@ export default function JuntarPdfPage() {
   const [progressMsg, setProgressMsg] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Pré-visualização do PDF gerado (em vez de download automático)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
+  const [previewFileName, setPreviewFileName] = useState('');
+
+  const resetPreview = useCallback(() => {
+    setIsModalOpen(false);
+    setPreviewBytes(null);
+    setPreviewFileName('');
+  }, []);
 
   const addFiles = useCallback((files: File[]) => {
     setError(null);
@@ -74,7 +95,8 @@ export default function JuntarPdfPage() {
     setSuccess(null);
     setProgress(0);
     setProgressMsg('');
-  }, []);
+    resetPreview();
+  }, [resetPreview]);
 
   const handleMerge = async () => {
     if (items.length < 2) {
@@ -87,6 +109,8 @@ export default function JuntarPdfPage() {
     setSuccess(null);
     setProgress(0);
     setProgressMsg('Iniciando…');
+    // Fecha prévia anterior se o usuário juntar de novo
+    resetPreview();
 
     try {
       const files = items.map((i) => i.file);
@@ -95,17 +119,15 @@ export default function JuntarPdfPage() {
         setProgressMsg(message);
       });
 
-      const blob = new Blob([new Uint8Array(bytes)], {
-        type: 'application/pdf',
-      });
-      const stamp = new Date()
-        .toISOString()
-        .slice(0, 19)
-        .replace(/[:T]/g, '-');
-      downloadBlob(blob, `pdf-unido-${stamp}.pdf`);
+      // Cópia estável para o estado (evita buffer detach do pdf.js / pdf-lib)
+      const stableBytes = new Uint8Array(bytes);
+      const fileName = buildMergedFileName();
 
+      setPreviewBytes(stableBytes);
+      setPreviewFileName(fileName);
+      setIsModalOpen(true);
       setSuccess(
-        `PDF gerado com sucesso (${items.length} arquivos). O download deve ter iniciado.`
+        `PDF gerado com sucesso (${items.length} arquivos). Confira a pré-visualização e baixe quando quiser.`
       );
     } catch (err) {
       const message =
@@ -119,6 +141,21 @@ export default function JuntarPdfPage() {
       setIsProcessing(false);
     }
   };
+
+  const handleClosePreview = useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
+
+  const handleDownloadFromPreview = useCallback(() => {
+    if (!previewBytes) return;
+
+    const blob = new Blob([new Uint8Array(previewBytes)], {
+      type: 'application/pdf',
+    });
+    downloadBlob(blob, previewFileName || buildMergedFileName());
+    setIsModalOpen(false);
+    setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
+  }, [previewBytes, previewFileName]);
 
   const canMerge = items.length >= 2 && !isProcessing;
   const seo = getSeoForPath('/juntar-pdf');
@@ -202,6 +239,16 @@ export default function JuntarPdfPage() {
               Adicione pelo menos mais 1 PDF para mesclar.
             </p>
           )}
+
+          {previewBytes && !isModalOpen && (
+            <button
+              type="button"
+              className="btn-secondary w-full sm:w-auto"
+              onClick={() => setIsModalOpen(true)}
+            >
+              Ver pré-visualização
+            </button>
+          )}
         </div>
 
         {/* Slot AdSense mobile — abaixo do CTA */}
@@ -219,6 +266,14 @@ export default function JuntarPdfPage() {
       </div>
 
       <StickyCta />
+
+      <PdfPreviewModal
+        isOpen={isModalOpen}
+        pdfBytes={previewBytes}
+        fileName={previewFileName}
+        onClose={handleClosePreview}
+        onDownload={handleDownloadFromPreview}
+      />
     </>
   );
 }

@@ -8,6 +8,7 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { dividirPdfSeoContent } from '../data/toolSeoContent';
 import {
   extractPdfPages,
@@ -16,9 +17,18 @@ import {
 } from '../lib/splitPdf';
 import { downloadBlob, formatBytes } from '../lib/format';
 
+function buildExtractedFileName(originalName: string) {
+  const stamp = new Date()
+    .toISOString()
+    .slice(0, 19)
+    .replace(/[:T]/g, '-');
+  const baseName = originalName.replace(/\.pdf$/i, '') || 'documento';
+  return `${baseName}-paginas-${stamp}.pdf`;
+}
+
 /**
  * Página /dividir-pdf — extrai páginas por intervalo de texto com pdf-lib.
- * Nenhum arquivo é enviado a servidor; tudo roda no navegador.
+ * Gera um único PDF (não ZIP) → pré-visualização no modal antes do download.
  */
 export default function DividirPdfPage() {
   const errorId = useId();
@@ -34,12 +44,23 @@ export default function DividirPdfPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
+  const [previewFileName, setPreviewFileName] = useState('');
+
+  const resetPreview = useCallback(() => {
+    setIsModalOpen(false);
+    setPreviewBytes(null);
+    setPreviewFileName('');
+  }, []);
+
   const resetResult = useCallback(() => {
     setError(null);
     setSuccess(null);
     setProgress(0);
     setProgressMsg('');
-  }, []);
+    resetPreview();
+  }, [resetPreview]);
 
   const clearFile = useCallback(() => {
     setFile(null);
@@ -88,6 +109,7 @@ export default function DividirPdfPage() {
     setSuccess(null);
     setProgress(0);
     setProgressMsg('Validando intervalo…');
+    resetPreview();
 
     try {
       const indices = parsePageRange(rangeInput, pageCount);
@@ -97,18 +119,14 @@ export default function DividirPdfPage() {
         setProgressMsg(message);
       });
 
-      const blob = new Blob([new Uint8Array(bytes)], {
-        type: 'application/pdf',
-      });
-      const stamp = new Date()
-        .toISOString()
-        .slice(0, 19)
-        .replace(/[:T]/g, '-');
-      const baseName = file.name.replace(/\.pdf$/i, '') || 'documento';
-      downloadBlob(blob, `${baseName}-paginas-${stamp}.pdf`);
+      const stableBytes = new Uint8Array(bytes);
+      const fileName = buildExtractedFileName(file.name);
 
+      setPreviewBytes(stableBytes);
+      setPreviewFileName(fileName);
+      setIsModalOpen(true);
       setSuccess(
-        `PDF gerado com ${indices.length} página${indices.length === 1 ? '' : 's'}. O download deve ter iniciado.`
+        `PDF gerado com ${indices.length} página${indices.length === 1 ? '' : 's'}. Confira a pré-visualização e baixe quando quiser.`
       );
     } catch (err) {
       const message =
@@ -122,6 +140,20 @@ export default function DividirPdfPage() {
       setIsProcessing(false);
     }
   };
+
+  const handleClosePreview = useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
+
+  const handleDownloadFromPreview = useCallback(() => {
+    if (!previewBytes) return;
+    const blob = new Blob([new Uint8Array(previewBytes)], {
+      type: 'application/pdf',
+    });
+    downloadBlob(blob, previewFileName || 'paginas-extraidas.pdf');
+    setIsModalOpen(false);
+    setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
+  }, [previewBytes, previewFileName]);
 
   const busy = isProcessing || isLoadingMeta;
   const canExtract =
@@ -245,24 +277,35 @@ export default function DividirPdfPage() {
                   </p>
                 </div>
 
-                <button
-                  type="submit"
-                  className="btn-primary w-full sm:w-auto sm:min-w-[200px]"
-                  disabled={!canExtract}
-                  aria-describedby={error ? errorId : undefined}
-                >
-                  {isProcessing ? (
-                    <>
-                      <Spinner />
-                      Extraindo…
-                    </>
-                  ) : (
-                    <>
-                      <SplitIcon />
-                      Extrair Páginas
-                    </>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <button
+                    type="submit"
+                    className="btn-primary w-full sm:w-auto sm:min-w-[200px]"
+                    disabled={!canExtract}
+                    aria-describedby={error ? errorId : undefined}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Spinner />
+                        Extraindo…
+                      </>
+                    ) : (
+                      <>
+                        <SplitIcon />
+                        Extrair Páginas
+                      </>
+                    )}
+                  </button>
+                  {previewBytes && !isModalOpen && (
+                    <button
+                      type="button"
+                      className="btn-secondary w-full sm:w-auto"
+                      onClick={() => setIsModalOpen(true)}
+                    >
+                      Ver pré-visualização
+                    </button>
                   )}
-                </button>
+                </div>
               </form>
             )}
           </div>
@@ -307,8 +350,8 @@ export default function DividirPdfPage() {
               pdf-lib.
             </li>
             <li>
-              O novo PDF (somente as páginas escolhidas) é baixado
-              automaticamente.
+              O novo PDF (somente as páginas escolhidas) abre em pré-visualização
+              antes do download.
             </li>
           </ol>
         </section>
@@ -322,6 +365,14 @@ export default function DividirPdfPage() {
       </div>
 
       <StickyCta />
+
+      <PdfPreviewModal
+        isOpen={isModalOpen}
+        pdfBytes={previewBytes}
+        fileName={previewFileName}
+        onClose={handleClosePreview}
+        onDownload={handleDownloadFromPreview}
+      />
     </>
   );
 }

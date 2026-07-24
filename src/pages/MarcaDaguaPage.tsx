@@ -9,6 +9,7 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { marcaDaguaSeoContent } from '../data/toolSeoContent';
 import {
   applyWatermarkToPdf,
@@ -99,12 +100,23 @@ export default function MarcaDaguaPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
+  const [previewFileName, setPreviewFileName] = useState('');
+
+  const resetPreview = useCallback(() => {
+    setIsModalOpen(false);
+    setPreviewBytes(null);
+    setPreviewFileName('');
+  }, []);
+
   const resetResult = useCallback(() => {
     setError(null);
     setSuccess(null);
     setProgress(0);
     setProgressMsg('');
-  }, []);
+    resetPreview();
+  }, [resetPreview]);
 
   const clearFile = useCallback(() => {
     setFile(null);
@@ -157,6 +169,7 @@ export default function MarcaDaguaPage() {
     setSuccess(null);
     setProgress(0);
     setProgressMsg('Preparando…');
+    resetPreview();
 
     try {
       const bytes = await applyWatermarkToPdf(
@@ -169,15 +182,16 @@ export default function MarcaDaguaPage() {
       );
 
       const outName = watermarkedFileName(file.name);
-      const blob = new Blob([new Uint8Array(bytes)], {
-        type: 'application/pdf',
-      });
-      downloadBlob(blob, outName);
+      const stableBytes = new Uint8Array(bytes);
+
+      setPreviewBytes(stableBytes);
+      setPreviewFileName(outName);
+      setIsModalOpen(true);
 
       setSuccess(
         `Marca d'água aplicada em ${pageCount ?? 'todas as'} página${
           pageCount === 1 ? '' : 's'
-        }. O download de ${outName} deve ter iniciado.`
+        }. Confira a pré-visualização e baixe quando quiser.`
       );
     } catch (err) {
       const message =
@@ -191,6 +205,20 @@ export default function MarcaDaguaPage() {
       setIsProcessing(false);
     }
   };
+
+  const handleClosePreview = useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
+
+  const handleDownloadFromPreview = useCallback(() => {
+    if (!previewBytes) return;
+    const blob = new Blob([new Uint8Array(previewBytes)], {
+      type: 'application/pdf',
+    });
+    downloadBlob(blob, previewFileName || 'pdf-marcado.pdf');
+    setIsModalOpen(false);
+    setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
+  }, [previewBytes, previewFileName]);
 
   const busy = isProcessing || isLoadingMeta;
   const canApply =
@@ -446,7 +474,7 @@ export default function MarcaDaguaPage() {
                     </div>
                   </div>
 
-                  <div className="border-t border-slate-200 pt-5 dark:border-slate-700">
+                  <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center dark:border-slate-700">
                     <button
                       type="button"
                       className="btn-primary w-full sm:w-auto sm:min-w-[240px] !bg-cyan-600 hover:!bg-cyan-700 focus-visible:!ring-cyan-500"
@@ -469,6 +497,15 @@ export default function MarcaDaguaPage() {
                         </>
                       )}
                     </button>
+                    {previewBytes && !isModalOpen && (
+                      <button
+                        type="button"
+                        className="btn-secondary w-full sm:w-auto"
+                        onClick={() => setIsModalOpen(true)}
+                      >
+                        Ver pré-visualização
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -557,7 +594,7 @@ export default function MarcaDaguaPage() {
               <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">
                 nome-marcado.pdf
               </code>{' '}
-              é baixado automaticamente.
+              abre em pré-visualização antes do download.
             </li>
           </ol>
         </section>
@@ -572,6 +609,14 @@ export default function MarcaDaguaPage() {
       </div>
 
       <StickyCta />
+
+      <PdfPreviewModal
+        isOpen={isModalOpen}
+        pdfBytes={previewBytes}
+        fileName={previewFileName}
+        onClose={handleClosePreview}
+        onDownload={handleDownloadFromPreview}
+      />
     </>
   );
 }

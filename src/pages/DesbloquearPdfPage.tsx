@@ -9,6 +9,7 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { desbloquearPdfSeoContent } from '../data/toolSeoContent';
 import {
   unlockPdfWithPassword,
@@ -60,12 +61,23 @@ export default function DesbloquearPdfPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
+  const [previewFileName, setPreviewFileName] = useState('');
+
+  const resetPreview = useCallback(() => {
+    setIsModalOpen(false);
+    setPreviewBytes(null);
+    setPreviewFileName('');
+  }, []);
+
   const resetResult = useCallback(() => {
     setError(null);
     setSuccess(null);
     setProgress(0);
     setProgressMsg('');
-  }, []);
+    resetPreview();
+  }, [resetPreview]);
 
   const clearFile = useCallback(() => {
     setFile(null);
@@ -100,6 +112,7 @@ export default function DesbloquearPdfPage() {
     setSuccess(null);
     setProgress(0);
     setProgressMsg('Iniciando…');
+    resetPreview();
 
     try {
       const bytes = await unlockPdfWithPassword(
@@ -111,13 +124,15 @@ export default function DesbloquearPdfPage() {
         }
       );
 
-      const blob = new Blob([new Uint8Array(bytes)], {
-        type: 'application/pdf',
-      });
-      downloadBlob(blob, unlockedFileName(file.name));
+      const stableBytes = new Uint8Array(bytes);
+      const fileName = unlockedFileName(file.name);
+
+      setPreviewBytes(stableBytes);
+      setPreviewFileName(fileName);
+      setIsModalOpen(true);
 
       setSuccess(
-        'PDF desbloqueado com sucesso. O download deve ter iniciado — abra o arquivo sem senha.'
+        'PDF desbloqueado com sucesso. Confira a pré-visualização (sem cadeado) e baixe quando quiser.'
       );
       setPassword('');
     } catch (err) {
@@ -132,6 +147,20 @@ export default function DesbloquearPdfPage() {
       setIsProcessing(false);
     }
   };
+
+  const handleClosePreview = useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
+
+  const handleDownloadFromPreview = useCallback(() => {
+    if (!previewBytes) return;
+    const blob = new Blob([new Uint8Array(previewBytes)], {
+      type: 'application/pdf',
+    });
+    downloadBlob(blob, previewFileName || 'pdf-desbloqueado.pdf');
+    setIsModalOpen(false);
+    setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
+  }, [previewBytes, previewFileName]);
 
   const canUnlock = !!file && password.trim().length > 0 && !isProcessing;
   const seo = getSeoForPath('/desbloquear-pdf');
@@ -245,26 +274,37 @@ export default function DesbloquearPdfPage() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                className="btn-primary w-full sm:w-auto sm:min-w-[260px]"
-                disabled={!canUnlock}
-                onClick={() => void handleUnlock()}
-                aria-describedby={error ? errorId : undefined}
-                aria-busy={isProcessing}
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                    Removendo senha…
-                  </>
-                ) : (
-                  <>
-                    <Unlock className="h-4 w-4" aria-hidden />
-                    Remover Senha e Baixar
-                  </>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <button
+                  type="button"
+                  className="btn-primary w-full sm:w-auto sm:min-w-[260px]"
+                  disabled={!canUnlock}
+                  onClick={() => void handleUnlock()}
+                  aria-describedby={error ? errorId : undefined}
+                  aria-busy={isProcessing}
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                      Removendo senha…
+                    </>
+                  ) : (
+                    <>
+                      <Unlock className="h-4 w-4" aria-hidden />
+                      Remover Senha
+                    </>
+                  )}
+                </button>
+                {previewBytes && !isModalOpen && (
+                  <button
+                    type="button"
+                    className="btn-secondary w-full sm:w-auto"
+                    onClick={() => setIsModalOpen(true)}
+                  >
+                    Ver pré-visualização
+                  </button>
                 )}
-              </button>
+              </div>
             </div>
           </div>
         )}
@@ -299,11 +339,12 @@ export default function DesbloquearPdfPage() {
             <li>Envie o PDF protegido por senha.</li>
             <li>Digite a senha de abertura correta.</li>
             <li>
-              Clique em <em>Remover Senha e Baixar</em> — a validação e a
-              geração do arquivo sem proteção ocorrem no navegador.
+              Clique em <em>Remover Senha</em> — a validação e a geração do
+              arquivo sem proteção ocorrem no navegador.
             </li>
             <li>
-              Baixe{' '}
+              Confira a pré-visualização (prova visual de que o cadeado saiu) e
+              baixe{' '}
               <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">
                 nome-desbloqueado-….pdf
               </code>
@@ -322,6 +363,14 @@ export default function DesbloquearPdfPage() {
       </div>
 
       <StickyCta />
+
+      <PdfPreviewModal
+        isOpen={isModalOpen}
+        pdfBytes={previewBytes}
+        fileName={previewFileName}
+        onClose={handleClosePreview}
+        onDownload={handleDownloadFromPreview}
+      />
     </>
   );
 }

@@ -10,15 +10,18 @@ import { StickyCta } from '../components/StickyCta';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { imagemParaPdfSeoContent } from '../data/toolSeoContent';
 import { SuccessAction } from '../components/SuccessAction';
+import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import {
   ImageFileList,
   type ImageItem,
 } from '../components/image/ImageFileList';
 import {
-  convertAndDownloadImagesToPdf,
+  convertImagesToPdf,
   getImageAcceptAttr,
+  imagesToPdfFileName,
   isSupportedImageFile,
 } from '../lib/imageToPdf';
+import { downloadBlob } from '../lib/format';
 import type { FaqItem } from '../data/faq';
 
 function createId() {
@@ -69,11 +72,21 @@ export default function ImagemParaPdfPage() {
   const [progress, setProgress] = useState(0);
   const [progressMsg, setProgressMsg] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
+  const [previewFileName, setPreviewFileName] = useState('');
+
+  const resetPreview = useCallback(() => {
+    setIsModalOpen(false);
+    setPreviewBytes(null);
+    setPreviewFileName('');
+  }, []);
 
   const addFiles = useCallback((files: File[]) => {
     setError(null);
-    setSuccess(false);
+    setSuccess(null);
     setItems((prev) => {
       const next = [...prev];
       for (const file of files) {
@@ -93,7 +106,7 @@ export default function ImagemParaPdfPage() {
   const removeItem = useCallback((id: string) => {
     setItems((prev) => prev.filter((i) => i.id !== id));
     setError(null);
-    setSuccess(false);
+    setSuccess(null);
   }, []);
 
   const moveItem = useCallback((id: string, direction: 'up' | 'down') => {
@@ -112,10 +125,11 @@ export default function ImagemParaPdfPage() {
   const clearAll = useCallback(() => {
     setItems([]);
     setError(null);
-    setSuccess(false);
+    setSuccess(null);
     setProgress(0);
     setProgressMsg('');
-  }, []);
+    resetPreview();
+  }, [resetPreview]);
 
   const handleConvert = async () => {
     if (items.length < 1) {
@@ -125,19 +139,28 @@ export default function ImagemParaPdfPage() {
 
     setIsProcessing(true);
     setError(null);
-    setSuccess(false);
+    setSuccess(null);
     setProgress(0);
     setProgressMsg('Iniciando…');
+    resetPreview();
 
     try {
       // Ordem da lista = ordem das páginas
       const files = items.map((i) => i.file);
-      await convertAndDownloadImagesToPdf(files, ({ percent, message }) => {
+      const bytes = await convertImagesToPdf(files, ({ percent, message }) => {
         setProgress(percent);
         setProgressMsg(message);
       });
 
-      setSuccess(true);
+      const stableBytes = new Uint8Array(bytes);
+      const fileName = imagesToPdfFileName();
+
+      setPreviewBytes(stableBytes);
+      setPreviewFileName(fileName);
+      setIsModalOpen(true);
+      setSuccess(
+        `PDF gerado com ${items.length} imagem${items.length === 1 ? '' : 'ns'}. Confira a pré-visualização e baixe quando quiser.`
+      );
     } catch (err) {
       const message =
         err instanceof Error
@@ -150,6 +173,20 @@ export default function ImagemParaPdfPage() {
       setIsProcessing(false);
     }
   };
+
+  const handleClosePreview = useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
+
+  const handleDownloadFromPreview = useCallback(() => {
+    if (!previewBytes) return;
+    const blob = new Blob([new Uint8Array(previewBytes)], {
+      type: 'application/pdf',
+    });
+    downloadBlob(blob, previewFileName || imagesToPdfFileName());
+    setIsModalOpen(false);
+    setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
+  }, [previewBytes, previewFileName]);
 
   const canConvert = items.length >= 1 && !isProcessing;
   const seo = getSeoForPath('/imagem-para-pdf');
@@ -216,9 +253,7 @@ export default function ImagemParaPdfPage() {
           </div>
         )}
 
-        {success && (
-          <SuccessAction message="Arquivo processado e baixado com sucesso!" />
-        )}
+        {success && <SuccessAction message={success} />}
 
         <ProgressBar
           visible={isProcessing || progress === 100}
@@ -249,17 +284,27 @@ export default function ImagemParaPdfPage() {
             )}
           </button>
 
+          {previewBytes && !isModalOpen && (
+            <button
+              type="button"
+              className="btn-secondary w-full sm:w-auto"
+              onClick={() => setIsModalOpen(true)}
+            >
+              Ver pré-visualização
+            </button>
+          )}
+
           {items.length === 0 && (
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Adicione uma ou várias imagens para habilitar a conversão.
             </p>
           )}
-          {items.length === 1 && !isProcessing && (
+          {items.length === 1 && !isProcessing && !previewBytes && (
             <p className="text-sm text-slate-500 dark:text-slate-400">
               1 imagem → PDF de 1 página. Adicione mais para juntar.
             </p>
           )}
-          {items.length > 1 && !isProcessing && (
+          {items.length > 1 && !isProcessing && !previewBytes && (
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {items.length} imagens serão mescladas em um único PDF, na ordem
               da lista.
@@ -298,7 +343,7 @@ export default function ImagemParaPdfPage() {
               <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">
                 imagens-convertidas.pdf
               </code>{' '}
-              é baixado automaticamente no seu dispositivo.
+              abre em pré-visualização antes do download no seu dispositivo.
             </li>
           </ol>
         </section>
@@ -313,6 +358,14 @@ export default function ImagemParaPdfPage() {
       </div>
 
       <StickyCta />
+
+      <PdfPreviewModal
+        isOpen={isModalOpen}
+        pdfBytes={previewBytes}
+        fileName={previewFileName}
+        onClose={handleClosePreview}
+        onDownload={handleDownloadFromPreview}
+      />
     </>
   );
 }
