@@ -4,6 +4,7 @@ import { Heart } from 'lucide-react';
 import { tools, type ToolIconName } from '../data/tools';
 import { useTheme } from '../context/ThemeContext';
 import { DonationModal } from './DonationModal';
+import { InstallPwaButton } from './InstallPwaButton';
 
 type SidebarProps = {
   /** Fecha o drawer mobile ao navegar / clicar no overlay. */
@@ -94,8 +95,10 @@ export function Sidebar({
         ))}
       </nav>
 
-      {/* Apoio + tema + rodapé do menu */}
+      {/* Apoio + PWA + tema + rodapé do menu */}
       <div className="shrink-0 space-y-2 border-t border-slate-200 p-3 dark:border-slate-800">
+        <InstallPwaButton onNavigate={onNavigate} />
+
         <button
           type="button"
           onClick={() => setDonateOpen(true)}
