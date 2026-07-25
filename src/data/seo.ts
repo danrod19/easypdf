@@ -108,6 +108,18 @@ export const seoByPath: Record<string, SeoMeta> = {
       'Termos de uso do Easy PDF Local — ferramentas de PDF gratuitas com processamento local no navegador.',
     path: '/termos',
   },
+  '/sobre': {
+    title: 'Sobre o Easy PDF Local | Nossa Missão de Privacidade',
+    description:
+      'Idealizado por profissional brasileiro de TI, redes e telecom. PDF 100% no navegador, sem upload — compromisso com privacidade pessoal e corporativa.',
+    path: '/sobre',
+  },
+  '/contato': {
+    title: 'Contato | Easy PDF Local — Feedback e Suporte',
+    description:
+      'Envie feedback, reporte bugs ou fale sobre parcerias. A comunidade ajuda a melhorar o Easy PDF Local. Contato por e-mail, resposta humana.',
+    path: '/contato',
+  },
 };
 
 export const defaultSeo: SeoMeta = {

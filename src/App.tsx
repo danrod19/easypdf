@@ -15,6 +15,8 @@ import RemoverPaginasPage from './pages/RemoverPaginasPage';
 import ComprimirPdfPage from './pages/ComprimirPdfPage';
 import PrivacidadePage from './pages/PrivacidadePage';
 import TermosPage from './pages/TermosPage';
+import SobrePage from './pages/SobrePage';
+import ContatoPage from './pages/ContatoPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 export default function App() {
@@ -36,6 +38,8 @@ export default function App() {
         <Route path="comprimir-pdf" element={<ComprimirPdfPage />} />
         <Route path="privacidade" element={<PrivacidadePage />} />
         <Route path="termos" element={<TermosPage />} />
+        <Route path="sobre" element={<SobrePage />} />
+        <Route path="contato" element={<ContatoPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

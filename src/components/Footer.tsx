@@ -36,12 +36,18 @@ export function Footer() {
           >
             Termos de Uso
           </Link>
-          <a
-            href="mailto:easypdf19@gmail.com?subject=Feedback%20-%20Easy%20PDF"
-            className="rounded-md text-slate-500 transition hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-slate-400 dark:hover:text-brand-400"
+          <Link
+            to="/sobre"
+            className="hover:text-brand-600 dark:hover:text-brand-400"
           >
-            💡 Sugestões ou Relatar Falha
-          </a>
+            Sobre Nós
+          </Link>
+          <Link
+            to="/contato"
+            className="hover:text-brand-600 dark:hover:text-brand-400"
+          >
+            Contato
+          </Link>
         </div>
       </div>
     </footer>

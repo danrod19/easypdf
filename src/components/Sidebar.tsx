@@ -135,12 +135,39 @@ export function Sidebar({
           </span>
         </button>
 
-        <a
-          href="mailto:easypdf19@gmail.com?subject=Feedback%20-%20Easy%20PDF"
-          className="block rounded-lg px-1 py-1 text-center text-[11px] leading-snug text-slate-400 transition hover:text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-slate-500 dark:hover:text-brand-400"
+        <nav
+          className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-1 text-center text-[11px] leading-snug text-slate-400 dark:text-slate-500"
+          aria-label="Informações legais"
         >
-          💡 Sugestões ou Relatar Falha
-        </a>
+          <Link
+            to="/privacidade"
+            onClick={onNavigate}
+            className="transition hover:text-brand-600 dark:hover:text-brand-400"
+          >
+            Privacidade
+          </Link>
+          <Link
+            to="/termos"
+            onClick={onNavigate}
+            className="transition hover:text-brand-600 dark:hover:text-brand-400"
+          >
+            Termos
+          </Link>
+          <Link
+            to="/sobre"
+            onClick={onNavigate}
+            className="transition hover:text-brand-600 dark:hover:text-brand-400"
+          >
+            Sobre Nós
+          </Link>
+          <Link
+            to="/contato"
+            onClick={onNavigate}
+            className="transition hover:text-brand-600 dark:hover:text-brand-400"
+          >
+            Contato
+          </Link>
+        </nav>
 
         <p className="px-1 text-center text-[11px] leading-snug text-slate-400 dark:text-slate-500">
           Processamento 100% no dispositivo
