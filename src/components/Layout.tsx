@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { Suspense, useEffect, useId, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { PrivacyBanner } from './PrivacyBanner';
 import { CookieConsent } from './CookieConsent';
@@ -6,6 +6,7 @@ import { Footer } from './Footer';
 import { AdSlot } from './AdSlot';
 import { AdBanner } from './AdBanner';
 import { Sidebar } from './Sidebar';
+import { ErrorBoundary } from './ErrorBoundary';
 
 /**
  * Layout global: sidebar fixa (desktop) + drawer off-canvas (mobile)
@@ -129,7 +130,29 @@ export function Layout() {
               </aside>
 
               <main className="min-w-0 flex-1">
-                <Outlet />
+                {/* Boundary + Suspense no Outlet: Sidebar/shell permanecem visíveis */}
+                <ErrorBoundary compact>
+                  <Suspense
+                    fallback={
+                      <div
+                        className="flex min-h-[40vh] flex-col items-center justify-center gap-3 py-16"
+                        role="status"
+                        aria-live="polite"
+                        aria-busy="true"
+                      >
+                        <span
+                          className="h-9 w-9 animate-spin rounded-full border-2 border-brand-200 border-t-brand-600 dark:border-slate-700 dark:border-t-brand-400"
+                          aria-hidden
+                        />
+                        <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                          Carregando ferramenta…
+                        </p>
+                      </div>
+                    }
+                  >
+                    <Outlet />
+                  </Suspense>
+                </ErrorBoundary>
               </main>
 
               <aside className="hidden w-36 shrink-0 2xl:block" aria-hidden>
