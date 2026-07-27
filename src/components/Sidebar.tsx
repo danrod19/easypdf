@@ -157,6 +157,13 @@ export function Sidebar({
             Termos
           </Link>
           <Link
+            to="/blog"
+            onClick={onNavigate}
+            className="transition hover:text-brand-600 dark:hover:text-brand-400"
+          >
+            Blog
+          </Link>
+          <Link
             to="/sobre"
             onClick={onNavigate}
             className="transition hover:text-brand-600 dark:hover:text-brand-400"

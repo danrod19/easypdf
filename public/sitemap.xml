@@ -68,4 +68,12 @@
     <loc>https://easypdflocal.com.br/contato</loc>
     <priority>0.6</priority>
   </url>
+  <url>
+    <loc>https://easypdflocal.com.br/blog</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://easypdflocal.com.br/blog/infraestrutura-nuvem-vs-local</loc>
+    <priority>0.7</priority>
+  </url>
 </urlset>

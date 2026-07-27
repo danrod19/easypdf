@@ -32,7 +32,7 @@ export function AnalyticsTracker() {
     if (isGaPlaceholder) {
       if (import.meta.env.DEV) {
         console.info(
-          '[Analytics] GA4 placeholder (G-XXXXXXXXXX). Defina VITE_GA_MEASUREMENT_ID no .env. Consent Mode defaults = denied.'
+          '[Analytics] GA4 ID inválido/placeholder. Defina VITE_GA_MEASUREMENT_ID no .env. Consent Mode defaults = denied.'
         );
       }
       return;

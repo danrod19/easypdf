@@ -37,6 +37,12 @@ export function Footer() {
             Termos de Uso
           </Link>
           <Link
+            to="/blog"
+            className="hover:text-brand-600 dark:hover:text-brand-400"
+          >
+            Blog
+          </Link>
+          <Link
             to="/sobre"
             className="hover:text-brand-600 dark:hover:text-brand-400"
           >

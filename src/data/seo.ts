@@ -120,6 +120,12 @@ export const seoByPath: Record<string, SeoMeta> = {
       'Envie feedback, reporte bugs ou fale sobre parcerias. A comunidade ajuda a melhorar o Easy PDF Local. Contato por e-mail, resposta humana.',
     path: '/contato',
   },
+  '/blog': {
+    title: 'Blog | Easy PDF Local — Privacidade e PDF Local',
+    description:
+      'Artigos sobre processamento de PDF no navegador, segurança de documentos, LGPD e produtividade sem upload para a nuvem.',
+    path: '/blog',
+  },
 };
 
 export const defaultSeo: SeoMeta = {

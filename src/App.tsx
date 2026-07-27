@@ -20,6 +20,8 @@ const PrivacidadePage = lazy(() => import('./pages/PrivacidadePage'));
 const TermosPage = lazy(() => import('./pages/TermosPage'));
 const SobrePage = lazy(() => import('./pages/SobrePage'));
 const ContatoPage = lazy(() => import('./pages/ContatoPage'));
+const BlogPage = lazy(() => import('./pages/BlogPage'));
+const BlogPostPage = lazy(() => import('./pages/BlogPostPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function RouteFallback() {
@@ -64,6 +66,8 @@ export default function App() {
             <Route path="termos" element={<TermosPage />} />
             <Route path="sobre" element={<SobrePage />} />
             <Route path="contato" element={<ContatoPage />} />
+            <Route path="blog" element={<BlogPage />} />
+            <Route path="blog/:slug" element={<BlogPostPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

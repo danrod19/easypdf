@@ -4,10 +4,10 @@
  * Pageviews SPA: RouteTracker. Eventos custom: logEvent (ex.: affiliate_click).
  */
 
-/** Measurement ID — env de produção ou placeholder temporário */
+/** Measurement ID — preferir VITE_GA_MEASUREMENT_ID no .env */
 export const GA_MEASUREMENT_ID =
   (import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined)?.trim() ||
-  'G-XXXXXXXXXX';
+  'G-S7MTF3EX46';
 
 export const isGaPlaceholder =
   !GA_MEASUREMENT_ID ||
