@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useId, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { PrivacyBanner } from './PrivacyBanner';
-import { CookieConsent } from './CookieConsent';
+import { CookieBanner } from './CookieBanner';
 import { Footer } from './Footer';
 import { AdSlot } from './AdSlot';
 import { AdBanner } from './AdBanner';
@@ -192,7 +192,7 @@ export function Layout() {
         </div>
       </div>
 
-      <CookieConsent />
+      <CookieBanner />
     </div>
   );
 }

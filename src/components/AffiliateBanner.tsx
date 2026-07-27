@@ -4,62 +4,116 @@ import { affiliateLinks, type AffiliateLink } from '../data/affiliateLinks';
 import { logEvent } from '../utils/analytics';
 
 /**
- * Banner de afiliado “nativo” — sorteia um link por montagem.
+ * Banner de afiliado “nativo” — sorteia 2 links distintos por montagem.
  * Renderizado como HTML normal (não é AdSense), o que reduz bloqueio por AdBlock.
  */
 export function AffiliateBanner() {
-  const [ad, setAd] = useState<AffiliateLink | null>(null);
+  const [ads, setAds] = useState<AffiliateLink[]>([]);
 
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * affiliateLinks.length);
-    setAd(affiliateLinks[randomIndex] ?? null);
+    const shuffled = [...affiliateLinks].sort(() => 0.5 - Math.random());
+    setAds(shuffled.slice(0, 2));
   }, []);
 
-  if (!ad) return null;
+  if (ads.length === 0) return null;
+
+  const handleAdClick = (ad: AffiliateLink) => {
+    logEvent('affiliate_click', {
+      link_id: ad.id,
+      platform: ad.platform,
+      link_url: ad.url,
+      link_title: ad.title,
+      placement: 'banner_duo',
+    });
+  };
 
   return (
-    <aside
-      className="mt-8 rounded-xl border border-red-100 bg-gradient-to-r from-red-50 to-orange-50 p-5 shadow-sm transition-all hover:shadow-md dark:border-red-900/40 dark:from-red-950/40 dark:to-orange-950/30"
-      aria-label="Conteúdo patrocinado"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <div className="mb-2 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700 dark:bg-red-900/50 dark:text-red-200">
-              <Star className="h-3 w-3" aria-hidden />
-              {ad.badge}
-            </span>
-            <span className="text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              Patrocinado
-            </span>
+    <div className="mt-8 w-full">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {ads.map((ad) => (
+          <div
+            key={ad.id}
+            className="flex flex-col items-center gap-4 rounded-xl border border-red-100 bg-gradient-to-r from-red-50 to-orange-50 p-4 shadow-sm transition-all hover:shadow-md sm:flex-row dark:border-gray-700 dark:from-gray-800 dark:to-gray-800/80"
+          >
+            {/* Imagem do Produto */}
+            <div className="flex h-28 w-full flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-100 bg-white p-2 sm:w-28 dark:border-gray-600">
+              <img
+                src={ad.imageUrl}
+                alt={ad.title}
+                className="max-h-full max-w-full object-contain"
+                loading="lazy"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+
+            {/* Conteúdo */}
+            <div className="flex h-full w-full flex-1 flex-col justify-between text-left">
+              <div>
+                <div className="mb-1 flex flex-wrap items-center gap-2">
+                  <span className="flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                    <Star className="h-3 w-3" aria-hidden />
+                    {ad.badge}
+                  </span>
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                    Patrocinado
+                  </span>
+                </div>
+
+                <h4 className="mb-1 line-clamp-2 text-base font-bold leading-tight text-gray-900 dark:text-gray-100">
+                  {ad.title}
+                </h4>
+
+                {ad.price && (
+                  <div className="mb-2 flex items-baseline gap-2">
+                    <span className="text-lg font-extrabold text-green-600 dark:text-green-400">
+                      {ad.price}
+                    </span>
+                    {ad.originalPrice && (
+                      <span className="text-xs font-medium text-gray-400 line-through">
+                        {ad.originalPrice}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <a
+                href={ad.url}
+                target="_blank"
+                rel="noopener noreferrer sponsored"
+                onClick={() => handleAdClick(ad)}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500"
+              >
+                {ad.ctaText}
+                <ExternalLink className="h-3 w-3" aria-hidden />
+              </a>
+            </div>
           </div>
-          <h4 className="mb-1 text-lg font-bold leading-tight text-slate-900 dark:text-slate-50">
-            {ad.title}
-          </h4>
-          <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-            {ad.description}
-          </p>
-        </div>
-        <div className="w-full sm:w-auto">
+        ))}
+      </div>
+
+      {/* Mensagem de Apoio ao Site */}
+      <div className="mt-4 text-center">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Faça suas compras no mercado livre a partir dos nossos links e ajude
+          na manutenção do site.{' '}
           <a
-            href={ad.url}
+            href="https://meli.la/1GK6w1X"
             target="_blank"
             rel="noopener noreferrer sponsored"
             onClick={() =>
               logEvent('affiliate_click', {
-                link_id: ad.id,
-                platform: ad.platform,
-                link_url: ad.url,
-                link_title: ad.title,
+                link_id: 'lista-ml-apoio',
+                platform: 'ml',
+                placement: 'banner_footer',
               })
             }
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-red-300 sm:w-auto dark:bg-red-600 dark:hover:bg-red-500 dark:focus-visible:ring-red-800"
+            className="font-bold text-red-600 hover:underline dark:text-red-400"
           >
-            {ad.ctaText}
-            <ExternalLink className="h-4 w-4" aria-hidden />
+            Acessar Lista ML
           </a>
-        </div>
+        </p>
       </div>
-    </aside>
+    </div>
   );
 }

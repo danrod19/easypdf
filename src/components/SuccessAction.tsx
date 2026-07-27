@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { affiliateConfig } from '../data/monetization';
 import { DonationModal } from './DonationModal';
+import { PostDownloadAd } from './PostDownloadAd';
 
 type SuccessActionProps = {
   /** Mensagem principal de sucesso (opcional) */
@@ -14,16 +15,20 @@ type SuccessActionProps = {
   className?: string;
   /** Esconde o botão de afiliado */
   hideAffiliate?: boolean;
+  /** Esconde o anúncio pós-download */
+  hidePostDownloadAd?: boolean;
 };
 
 /**
  * Alerta de sucesso expandido com CTAs de doação e afiliado.
  * Renderize após o processamento bem-sucedido de um arquivo.
+ * Inclui PostDownloadAd no “momento de alívio” (máximo CTR).
  */
 export function SuccessAction({
   message = 'Arquivo processado e baixado com sucesso!',
   className = '',
   hideAffiliate = false,
+  hidePostDownloadAd = false,
 }: SuccessActionProps) {
   const [donateOpen, setDonateOpen] = useState(false);
   const affiliate = affiliateConfig.mercadoLivre;
@@ -83,6 +88,8 @@ export function SuccessAction({
           </div>
         </div>
       </div>
+
+      {!hidePostDownloadAd && <PostDownloadAd />}
 
       <DonationModal open={donateOpen} onClose={() => setDonateOpen(false)} />
     </>

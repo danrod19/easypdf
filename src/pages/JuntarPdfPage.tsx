@@ -11,7 +11,7 @@ import { ToolSeoContent } from '../components/ToolSeoContent';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { getSeoForPath } from '../data/seo';
 import { juntarPdfSeoContent } from '../data/toolSeoContent';
-import { mergePdfFiles } from '../lib/mergePdfs';
+import { mergePdfFilesPreferWorker } from '../lib/mergePdfsWorker';
 import { downloadBlob } from '../lib/format';
 
 function createId() {
@@ -27,7 +27,7 @@ function buildMergedFileName() {
 }
 
 /**
- * Página /juntar-pdf — merge real com pdf-lib + drag-and-drop.
+ * Página /juntar-pdf — merge com pdf-lib em Web Worker (fallback na UI thread).
  * Nenhum arquivo é enviado a servidor; tudo roda no navegador.
  * Após o merge, abre pré-visualização antes do download.
  */
@@ -114,10 +114,14 @@ export default function JuntarPdfPage() {
 
     try {
       const files = items.map((i) => i.file);
-      const bytes = await mergePdfFiles(files, ({ percent, message }) => {
-        setProgress(percent);
-        setProgressMsg(message);
-      });
+      // pdf-lib no Worker — evita travar a UI com arquivos grandes
+      const bytes = await mergePdfFilesPreferWorker(
+        files,
+        ({ percent, message }) => {
+          setProgress(percent);
+          setProgressMsg(message);
+        }
+      );
 
       // Cópia estável para o estado (evita buffer detach do pdf.js / pdf-lib)
       const stableBytes = new Uint8Array(bytes);
