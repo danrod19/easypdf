@@ -2,7 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -18,20 +18,25 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-/** Chave canônica pedida pelo produto. */
-const STORAGE_KEY = 'theme';
+/** Chave canônica em localStorage. */
+export const THEME_STORAGE_KEY = 'theme';
 /** Chave legada — migrada no primeiro load. */
 const LEGACY_STORAGE_KEY = 'pdf-local-theme';
+
+function applyThemeClass(theme: Theme): void {
+  if (typeof document === 'undefined') return;
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+}
 
 function getInitialTheme(): Theme {
   if (typeof window === 'undefined') return 'light';
   try {
-    const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
+    const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
     if (stored === 'light' || stored === 'dark') return stored;
 
     const legacy = localStorage.getItem(LEGACY_STORAGE_KEY) as Theme | null;
     if (legacy === 'light' || legacy === 'dark') {
-      localStorage.setItem(STORAGE_KEY, legacy);
+      localStorage.setItem(THEME_STORAGE_KEY, legacy);
       return legacy;
     }
   } catch {
@@ -43,13 +48,18 @@ function getInitialTheme(): Theme {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
+  const [theme, setThemeState] = useState<Theme>(() => {
+    const initial = getInitialTheme();
+    // Aplica de imediato no 1º render (além do script inline do index.html)
+    applyThemeClass(initial);
+    return initial;
+  });
 
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.toggle('dark', theme === 'dark');
+  // Sincroniza DOM + localStorage sem esperar paint (useLayoutEffect)
+  useLayoutEffect(() => {
+    applyThemeClass(theme);
     try {
-      localStorage.setItem(STORAGE_KEY, theme);
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch {
       // ignore
     }

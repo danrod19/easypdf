@@ -6,6 +6,8 @@ import { DonationModal } from './DonationModal';
 import { InstallPwaButton } from './InstallPwaButton';
 import { ThemeToggle } from './ThemeToggle';
 import { BrandLogo } from './BrandLogo';
+import { MONETIZATION_POSITIONS } from '../data/toolNames';
+import { trackDonationClick } from '../utils/gaEvents';
 
 type SidebarProps = {
   /** Fecha o drawer mobile ao navegar / clicar no overlay. */
@@ -34,13 +36,15 @@ export function Sidebar({
       id={id}
       className={`flex h-full w-64 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 ${className}`}
     >
-      {/* Logo: símbolo (img) + marca (texto dark-mode) */}
-      <div className="flex h-16 shrink-0 items-center gap-2 border-b border-slate-200 px-3 dark:border-slate-800">
+      {/* Logo + dark mode (sempre visível no topo da sidebar) */}
+      <div className="flex h-16 shrink-0 items-center gap-1.5 border-b border-slate-200 px-2 dark:border-slate-800 sm:px-3">
         <BrandLogo
           onClick={onNavigate}
           size="default"
           className="min-w-0 flex-1"
         />
+        {/* Desktop: toggle ao lado do logo (sem precisar rolar o menu) */}
+        <ThemeToggle variant="icon" className="hidden lg:inline-flex" />
         {onClose && (
           <button
             type="button"
@@ -96,7 +100,10 @@ export function Sidebar({
 
         <button
           type="button"
-          onClick={() => setDonateOpen(true)}
+          onClick={() => {
+            trackDonationClick('site', MONETIZATION_POSITIONS.SIDEBAR);
+            setDonateOpen(true);
+          }}
           className="flex w-full items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm font-semibold text-rose-800 transition hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200 dark:hover:bg-rose-950/70"
         >
           <Heart className="h-5 w-5 shrink-0 text-rose-500" aria-hidden />

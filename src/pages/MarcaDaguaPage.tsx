@@ -11,6 +11,8 @@ import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { marcaDaguaSeoContent } from '../data/toolSeoContent';
+import { TOOL_NAMES } from '../data/toolNames';
+import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import {
   applyWatermarkToPdf,
   DEFAULT_WATERMARK_OPTIONS,
@@ -87,6 +89,7 @@ export default function MarcaDaguaPage() {
   const textId = useId();
   const opacityId = useId();
   const fontSizeId = useId();
+  const ga = useToolAnalytics(TOOL_NAMES.MARCA_DAGUA);
 
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number | null>(null);
@@ -143,6 +146,7 @@ export default function MarcaDaguaPage() {
       try {
         const count = await getPdfPageCount(next);
         setPageCount(count);
+        ga.trackUpload([next]);
       } catch (err) {
         setFile(null);
         setPageCount(null);
@@ -155,7 +159,7 @@ export default function MarcaDaguaPage() {
         setIsLoadingMeta(false);
       }
     },
-    [resetResult]
+    [ga, resetResult]
   );
 
   const handleApply = async () => {
@@ -170,6 +174,8 @@ export default function MarcaDaguaPage() {
     setProgress(0);
     setProgressMsg('Preparando…');
     resetPreview();
+
+    const startedAt = ga.startProcess(1);
 
     try {
       const bytes = await applyWatermarkToPdf(
@@ -193,6 +199,7 @@ export default function MarcaDaguaPage() {
           pageCount === 1 ? '' : 's'
         }. Confira a pré-visualização e baixe quando quiser.`
       );
+      ga.endProcess(true, startedAt);
     } catch (err) {
       const message =
         err instanceof Error
@@ -201,6 +208,7 @@ export default function MarcaDaguaPage() {
       setError(message);
       setProgress(0);
       setProgressMsg('');
+      ga.endProcess(false, startedAt);
     } finally {
       setIsProcessing(false);
     }
@@ -212,13 +220,15 @@ export default function MarcaDaguaPage() {
 
   const handleDownloadFromPreview = useCallback(() => {
     if (!previewBytes) return;
+    const name = previewFileName || 'pdf-marcado.pdf';
     const blob = new Blob([new Uint8Array(previewBytes)], {
       type: 'application/pdf',
     });
-    downloadBlob(blob, previewFileName || 'pdf-marcado.pdf');
+    downloadBlob(blob, name);
+    ga.trackDownload(name);
     setIsModalOpen(false);
     setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
-  }, [previewBytes, previewFileName]);
+  }, [previewBytes, previewFileName, ga]);
 
   const busy = isProcessing || isLoadingMeta;
   const canApply =
@@ -562,7 +572,7 @@ export default function MarcaDaguaPage() {
         )}
 
         {success && (
-          <SuccessAction message={success} />
+          <SuccessAction message={success} toolName={TOOL_NAMES.MARCA_DAGUA} />
         )}
 
         <ProgressBar
@@ -616,6 +626,7 @@ export default function MarcaDaguaPage() {
         fileName={previewFileName}
         onClose={handleClosePreview}
         onDownload={handleDownloadFromPreview}
+        toolName={TOOL_NAMES.MARCA_DAGUA}
       />
     </>
   );

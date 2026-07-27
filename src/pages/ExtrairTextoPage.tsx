@@ -9,6 +9,8 @@ import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { extrairTextoSeoContent } from '../data/toolSeoContent';
+import { TOOL_NAMES } from '../data/toolNames';
+import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import {
   extractTextFromPdf,
   isPdfFile,
@@ -24,6 +26,7 @@ export default function ExtrairTextoPage() {
   const errorId = useId();
   const textareaId = useId();
   const toggleId = useId();
+  const ga = useToolAnalytics(TOOL_NAMES.EXTRAIR_TEXTO);
 
   const [file, setFile] = useState<File | null>(null);
   const [forceOcr, setForceOcr] = useState(false);
@@ -41,23 +44,27 @@ export default function ExtrairTextoPage() {
     return () => window.clearTimeout(t);
   }, [success]);
 
-  const handleFiles = useCallback((files: File[]) => {
-    const next = files[0];
-    if (!next) return;
+  const handleFiles = useCallback(
+    (files: File[]) => {
+      const next = files[0];
+      if (!next) return;
 
-    if (!isPdfFile(next)) {
-      setError('Apenas 1 arquivo PDF é aceito.');
-      return;
-    }
+      if (!isPdfFile(next)) {
+        setError('Apenas 1 arquivo PDF é aceito.');
+        return;
+      }
 
-    setFile(next);
-    setText('');
-    setHasResult(false);
-    setError(null);
-    setSuccess(null);
-    setProgress(0);
-    setProgressMsg('');
-  }, []);
+      setFile(next);
+      setText('');
+      setHasResult(false);
+      setError(null);
+      setSuccess(null);
+      setProgress(0);
+      setProgressMsg('');
+      ga.trackUpload([next]);
+    },
+    [ga]
+  );
 
   const clearFile = useCallback(() => {
     if (isProcessing) return;
@@ -88,6 +95,8 @@ export default function ExtrairTextoPage() {
         : 'Extraindo texto nativo do PDF…'
     );
 
+    const startedAt = ga.startProcess(1);
+
     try {
       const result = await extractTextFromPdf(
         file,
@@ -114,6 +123,7 @@ export default function ExtrairTextoPage() {
             : 'Texto extraído do PDF com sucesso! Você pode editar, copiar ou baixar.'
         );
       }
+      ga.endProcess(true, startedAt);
     } catch (err) {
       const message =
         err instanceof Error
@@ -123,6 +133,7 @@ export default function ExtrairTextoPage() {
       setProgress(0);
       setProgressMsg('');
       setHasResult(false);
+      ga.endProcess(false, startedAt);
     } finally {
       setIsProcessing(false);
     }
@@ -152,8 +163,10 @@ export default function ExtrairTextoPage() {
       .slice(0, 19)
       .replace(/[:T]/g, '-');
     const base = file?.name.replace(/\.[^.]+$/i, '') || 'pdf';
+    const fileName = `${base}-texto-${stamp}.txt`;
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    downloadBlob(blob, `${base}-texto-${stamp}.txt`);
+    downloadBlob(blob, fileName);
+    ga.trackDownload(fileName);
     setError(null);
     setSuccess('Arquivo .TXT baixado!');
   };
@@ -346,7 +359,10 @@ export default function ExtrairTextoPage() {
         />
 
         {hasResult && text.trim() && (
-          <SuccessAction message="Texto extraído com sucesso!" />
+          <SuccessAction
+            message="Texto extraído com sucesso!"
+            toolName={TOOL_NAMES.EXTRAIR_TEXTO}
+          />
         )}
 
         {/* Resultado sempre disponível após tentativa bem-sucedida (mesmo vazio editável) */}

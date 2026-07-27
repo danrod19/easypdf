@@ -11,6 +11,8 @@ import { ToolSeoContent } from '../components/ToolSeoContent';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { getSeoForPath } from '../data/seo';
 import { juntarPdfSeoContent } from '../data/toolSeoContent';
+import { TOOL_NAMES } from '../data/toolNames';
+import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { mergePdfFilesPreferWorker } from '../lib/mergePdfsWorker';
 import { downloadBlob } from '../lib/format';
 
@@ -33,6 +35,7 @@ function buildMergedFileName() {
  */
 export default function JuntarPdfPage() {
   const errorId = useId();
+  const ga = useToolAnalytics(TOOL_NAMES.JUNTAR_PDF);
   const [items, setItems] = useState<PdfItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -51,24 +54,32 @@ export default function JuntarPdfPage() {
     setPreviewFileName('');
   }, []);
 
-  const addFiles = useCallback((files: File[]) => {
-    setError(null);
-    setSuccess(null);
-    setItems((prev) => {
-      const next = [...prev];
-      for (const file of files) {
-        // evita duplicata por nome + tamanho + lastModified
-        const exists = next.some(
-          (p) =>
-            p.file.name === file.name &&
-            p.file.size === file.size &&
-            p.file.lastModified === file.lastModified
-        );
-        if (!exists) next.push({ id: createId(), file });
-      }
-      return next;
-    });
-  }, []);
+  const addFiles = useCallback(
+    (files: File[]) => {
+      setError(null);
+      setSuccess(null);
+      setItems((prev) => {
+        const next = [...prev];
+        const accepted: File[] = [];
+        for (const file of files) {
+          // evita duplicata por nome + tamanho + lastModified
+          const exists = next.some(
+            (p) =>
+              p.file.name === file.name &&
+              p.file.size === file.size &&
+              p.file.lastModified === file.lastModified
+          );
+          if (!exists) {
+            next.push({ id: createId(), file });
+            accepted.push(file);
+          }
+        }
+        if (accepted.length) ga.trackUpload(accepted);
+        return next;
+      });
+    },
+    [ga]
+  );
 
   const removeItem = useCallback((id: string) => {
     setItems((prev) => prev.filter((i) => i.id !== id));
@@ -112,6 +123,8 @@ export default function JuntarPdfPage() {
     // Fecha prévia anterior se o usuário juntar de novo
     resetPreview();
 
+    const startedAt = ga.startProcess(items.length);
+
     try {
       const files = items.map((i) => i.file);
       // pdf-lib no Worker — evita travar a UI com arquivos grandes
@@ -133,6 +146,7 @@ export default function JuntarPdfPage() {
       setSuccess(
         `PDF gerado com sucesso (${items.length} arquivos). Confira a pré-visualização e baixe quando quiser.`
       );
+      ga.endProcess(true, startedAt);
     } catch (err) {
       const message =
         err instanceof Error
@@ -141,6 +155,7 @@ export default function JuntarPdfPage() {
       setError(message);
       setProgress(0);
       setProgressMsg('');
+      ga.endProcess(false, startedAt);
     } finally {
       setIsProcessing(false);
     }
@@ -153,13 +168,15 @@ export default function JuntarPdfPage() {
   const handleDownloadFromPreview = useCallback(() => {
     if (!previewBytes) return;
 
+    const name = previewFileName || buildMergedFileName();
     const blob = new Blob([new Uint8Array(previewBytes)], {
       type: 'application/pdf',
     });
-    downloadBlob(blob, previewFileName || buildMergedFileName());
+    downloadBlob(blob, name);
+    ga.trackDownload(name);
     setIsModalOpen(false);
     setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
-  }, [previewBytes, previewFileName]);
+  }, [previewBytes, previewFileName, ga]);
 
   const canMerge = items.length >= 2 && !isProcessing;
   const seo = getSeoForPath('/juntar-pdf');
@@ -208,7 +225,7 @@ export default function JuntarPdfPage() {
         )}
 
         {success && (
-          <SuccessAction message={success} />
+          <SuccessAction message={success} toolName={TOOL_NAMES.JUNTAR_PDF} />
         )}
 
         <ProgressBar
@@ -277,6 +294,7 @@ export default function JuntarPdfPage() {
         fileName={previewFileName}
         onClose={handleClosePreview}
         onDownload={handleDownloadFromPreview}
+        toolName={TOOL_NAMES.JUNTAR_PDF}
       />
     </>
   );

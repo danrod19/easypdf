@@ -10,6 +10,8 @@ import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { dividirPdfSeoContent } from '../data/toolSeoContent';
+import { TOOL_NAMES } from '../data/toolNames';
+import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import {
   extractPdfPages,
   getPdfPageCount,
@@ -33,6 +35,7 @@ function buildExtractedFileName(originalName: string) {
 export default function DividirPdfPage() {
   const errorId = useId();
   const rangeId = useId();
+  const ga = useToolAnalytics(TOOL_NAMES.DIVIDIR_PDF);
 
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number | null>(null);
@@ -83,6 +86,7 @@ export default function DividirPdfPage() {
       try {
         const count = await getPdfPageCount(next);
         setPageCount(count);
+        ga.trackUpload([next]);
       } catch (err) {
         setFile(null);
         setPageCount(null);
@@ -95,7 +99,7 @@ export default function DividirPdfPage() {
         setIsLoadingMeta(false);
       }
     },
-    [resetResult]
+    [ga, resetResult]
   );
 
   const handleExtract = async () => {
@@ -110,6 +114,8 @@ export default function DividirPdfPage() {
     setProgress(0);
     setProgressMsg('Validando intervalo…');
     resetPreview();
+
+    const startedAt = ga.startProcess(1);
 
     try {
       const indices = parsePageRange(rangeInput, pageCount);
@@ -128,6 +134,7 @@ export default function DividirPdfPage() {
       setSuccess(
         `PDF gerado com ${indices.length} página${indices.length === 1 ? '' : 's'}. Confira a pré-visualização e baixe quando quiser.`
       );
+      ga.endProcess(true, startedAt);
     } catch (err) {
       const message =
         err instanceof Error
@@ -136,6 +143,7 @@ export default function DividirPdfPage() {
       setError(message);
       setProgress(0);
       setProgressMsg('');
+      ga.endProcess(false, startedAt);
     } finally {
       setIsProcessing(false);
     }
@@ -147,13 +155,15 @@ export default function DividirPdfPage() {
 
   const handleDownloadFromPreview = useCallback(() => {
     if (!previewBytes) return;
+    const name = previewFileName || 'paginas-extraidas.pdf';
     const blob = new Blob([new Uint8Array(previewBytes)], {
       type: 'application/pdf',
     });
-    downloadBlob(blob, previewFileName || 'paginas-extraidas.pdf');
+    downloadBlob(blob, name);
+    ga.trackDownload(name);
     setIsModalOpen(false);
     setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
-  }, [previewBytes, previewFileName]);
+  }, [previewBytes, previewFileName, ga]);
 
   const busy = isProcessing || isLoadingMeta;
   const canExtract =
@@ -322,7 +332,7 @@ export default function DividirPdfPage() {
         )}
 
         {success && (
-          <SuccessAction message={success} />
+          <SuccessAction message={success} toolName={TOOL_NAMES.DIVIDIR_PDF} />
         )}
 
         <ProgressBar
@@ -372,6 +382,7 @@ export default function DividirPdfPage() {
         fileName={previewFileName}
         onClose={handleClosePreview}
         onDownload={handleDownloadFromPreview}
+        toolName={TOOL_NAMES.DIVIDIR_PDF}
       />
     </>
   );

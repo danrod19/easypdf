@@ -9,6 +9,8 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { imagemParaPdfSeoContent } from '../data/toolSeoContent';
+import { TOOL_NAMES } from '../data/toolNames';
+import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { SuccessAction } from '../components/SuccessAction';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import {
@@ -67,6 +69,7 @@ const imagePdfFaqItems: FaqItem[] = [
  */
 export default function ImagemParaPdfPage() {
   const errorId = useId();
+  const ga = useToolAnalytics(TOOL_NAMES.IMAGEM_PARA_PDF);
   const [items, setItems] = useState<ImageItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -84,24 +87,32 @@ export default function ImagemParaPdfPage() {
     setPreviewFileName('');
   }, []);
 
-  const addFiles = useCallback((files: File[]) => {
-    setError(null);
-    setSuccess(null);
-    setItems((prev) => {
-      const next = [...prev];
-      for (const file of files) {
-        if (!isSupportedImageFile(file)) continue;
-        const exists = next.some(
-          (p) =>
-            p.file.name === file.name &&
-            p.file.size === file.size &&
-            p.file.lastModified === file.lastModified
-        );
-        if (!exists) next.push({ id: createId(), file });
-      }
-      return next;
-    });
-  }, []);
+  const addFiles = useCallback(
+    (files: File[]) => {
+      setError(null);
+      setSuccess(null);
+      setItems((prev) => {
+        const next = [...prev];
+        const accepted: File[] = [];
+        for (const file of files) {
+          if (!isSupportedImageFile(file)) continue;
+          const exists = next.some(
+            (p) =>
+              p.file.name === file.name &&
+              p.file.size === file.size &&
+              p.file.lastModified === file.lastModified
+          );
+          if (!exists) {
+            next.push({ id: createId(), file });
+            accepted.push(file);
+          }
+        }
+        if (accepted.length) ga.trackUpload(accepted);
+        return next;
+      });
+    },
+    [ga]
+  );
 
   const removeItem = useCallback((id: string) => {
     setItems((prev) => prev.filter((i) => i.id !== id));
@@ -144,6 +155,8 @@ export default function ImagemParaPdfPage() {
     setProgressMsg('Iniciando…');
     resetPreview();
 
+    const startedAt = ga.startProcess(items.length);
+
     try {
       // Ordem da lista = ordem das páginas
       const files = items.map((i) => i.file);
@@ -161,6 +174,7 @@ export default function ImagemParaPdfPage() {
       setSuccess(
         `PDF gerado com ${items.length} imagem${items.length === 1 ? '' : 'ns'}. Confira a pré-visualização e baixe quando quiser.`
       );
+      ga.endProcess(true, startedAt);
     } catch (err) {
       const message =
         err instanceof Error
@@ -169,6 +183,7 @@ export default function ImagemParaPdfPage() {
       setError(message);
       setProgress(0);
       setProgressMsg('');
+      ga.endProcess(false, startedAt);
     } finally {
       setIsProcessing(false);
     }
@@ -180,13 +195,15 @@ export default function ImagemParaPdfPage() {
 
   const handleDownloadFromPreview = useCallback(() => {
     if (!previewBytes) return;
+    const name = previewFileName || imagesToPdfFileName();
     const blob = new Blob([new Uint8Array(previewBytes)], {
       type: 'application/pdf',
     });
-    downloadBlob(blob, previewFileName || imagesToPdfFileName());
+    downloadBlob(blob, name);
+    ga.trackDownload(name);
     setIsModalOpen(false);
     setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
-  }, [previewBytes, previewFileName]);
+  }, [previewBytes, previewFileName, ga]);
 
   const canConvert = items.length >= 1 && !isProcessing;
   const seo = getSeoForPath('/imagem-para-pdf');
@@ -253,7 +270,9 @@ export default function ImagemParaPdfPage() {
           </div>
         )}
 
-        {success && <SuccessAction message={success} />}
+        {success && (
+          <SuccessAction message={success} toolName={TOOL_NAMES.IMAGEM_PARA_PDF} />
+        )}
 
         <ProgressBar
           visible={isProcessing || progress === 100}
@@ -365,6 +384,7 @@ export default function ImagemParaPdfPage() {
         fileName={previewFileName}
         onClose={handleClosePreview}
         onDownload={handleDownloadFromPreview}
+        toolName={TOOL_NAMES.IMAGEM_PARA_PDF}
       />
     </>
   );

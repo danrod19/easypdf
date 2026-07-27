@@ -6,6 +6,14 @@ import {
   ShoppingCart,
 } from 'lucide-react';
 import { affiliateConfig } from '../data/monetization';
+import {
+  MONETIZATION_POSITIONS,
+  type ToolName,
+} from '../data/toolNames';
+import {
+  trackAffiliateClick,
+  trackDonationClick,
+} from '../utils/gaEvents';
 import { DonationModal } from './DonationModal';
 import { PostDownloadAd } from './PostDownloadAd';
 
@@ -17,21 +25,37 @@ type SuccessActionProps = {
   hideAffiliate?: boolean;
   /** Esconde o anúncio pós-download */
   hidePostDownloadAd?: boolean;
+  /** Nome canônico da ferramenta (GA4) */
+  toolName?: ToolName | string;
 };
 
 /**
  * Alerta de sucesso expandido com CTAs de doação e afiliado.
- * Renderize após o processamento bem-sucedido de um arquivo.
- * Inclui PostDownloadAd no “momento de alívio” (máximo CTR).
+ * Renderize apenas após processamento bem-sucedido.
  */
 export function SuccessAction({
   message = 'Arquivo processado e baixado com sucesso!',
   className = '',
   hideAffiliate = false,
   hidePostDownloadAd = false,
+  toolName = 'unknown',
 }: SuccessActionProps) {
   const [donateOpen, setDonateOpen] = useState(false);
   const affiliate = affiliateConfig.mercadoLivre;
+
+  const handleDonationClick = () => {
+    trackDonationClick(toolName, MONETIZATION_POSITIONS.SUCCESS_MODAL);
+    setDonateOpen(true);
+  };
+
+  const handleAffiliateClick = () => {
+    trackAffiliateClick({
+      toolName,
+      affiliateNetwork: 'ml',
+      affiliateProduct: 'mercado_livre_lista',
+      position: MONETIZATION_POSITIONS.SUCCESS_MODAL,
+    });
+  };
 
   return (
     <>
@@ -57,7 +81,7 @@ export function SuccessAction({
             <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
               <button
                 type="button"
-                onClick={() => setDonateOpen(true)}
+                onClick={handleDonationClick}
                 className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-emerald-300/80 bg-white px-3 py-2.5 text-sm font-medium text-emerald-900 shadow-sm transition hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-900 dark:text-emerald-100 dark:hover:bg-slate-800"
               >
                 <Heart className="h-3.5 w-3.5 shrink-0 text-rose-500" aria-hidden />
@@ -69,6 +93,7 @@ export function SuccessAction({
                   href={affiliate.href}
                   target="_blank"
                   rel={affiliate.rel}
+                  onClick={handleAffiliateClick}
                   className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-brand-300 hover:text-brand-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-brand-600 dark:hover:text-brand-300"
                 >
                   <ShoppingCart
@@ -89,7 +114,9 @@ export function SuccessAction({
         </div>
       </div>
 
-      {!hidePostDownloadAd && <PostDownloadAd />}
+      {!hidePostDownloadAd && (
+        <PostDownloadAd toolName={toolName} />
+      )}
 
       <DonationModal open={donateOpen} onClose={() => setDonateOpen(false)} />
     </>

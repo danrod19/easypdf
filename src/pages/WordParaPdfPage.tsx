@@ -10,6 +10,8 @@ import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { wordParaPdfSeoContent } from '../data/toolSeoContent';
+import { TOOL_NAMES } from '../data/toolNames';
+import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import {
   convertDocxToPdf,
   DOCX_MIME,
@@ -31,6 +33,7 @@ function buildConvertedFileName(originalName: string) {
  */
 export default function WordParaPdfPage() {
   const errorId = useId();
+  const ga = useToolAnalytics(TOOL_NAMES.WORD_PARA_PDF);
 
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -76,8 +79,9 @@ export default function WordParaPdfPage() {
 
       resetResult();
       setFile(next);
+      ga.trackUpload([next]);
     },
-    [resetResult]
+    [ga, resetResult]
   );
 
   const handleConvert = async () => {
@@ -92,6 +96,8 @@ export default function WordParaPdfPage() {
     setProgress(0);
     setProgressMsg('Processando documento…');
     resetPreview();
+
+    const startedAt = ga.startProcess(1);
 
     try {
       const bytes = await convertDocxToPdf(file, ({ percent, message }) => {
@@ -108,6 +114,7 @@ export default function WordParaPdfPage() {
       setSuccess(
         'PDF gerado com sucesso. Confira a pré-visualização e baixe quando quiser.'
       );
+      ga.endProcess(true, startedAt);
     } catch (err) {
       const message =
         err instanceof Error
@@ -116,6 +123,7 @@ export default function WordParaPdfPage() {
       setError(message);
       setProgress(0);
       setProgressMsg('');
+      ga.endProcess(false, startedAt);
     } finally {
       setIsProcessing(false);
     }
@@ -127,13 +135,15 @@ export default function WordParaPdfPage() {
 
   const handleDownloadFromPreview = useCallback(() => {
     if (!previewBytes) return;
+    const name = previewFileName || 'documento-convertido.pdf';
     const blob = new Blob([new Uint8Array(previewBytes)], {
       type: 'application/pdf',
     });
-    downloadBlob(blob, previewFileName || 'documento-convertido.pdf');
+    downloadBlob(blob, name);
+    ga.trackDownload(name);
     setIsModalOpen(false);
     setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
-  }, [previewBytes, previewFileName]);
+  }, [previewBytes, previewFileName, ga]);
 
   const canConvert = !!file && !isProcessing;
 
@@ -254,7 +264,7 @@ export default function WordParaPdfPage() {
         )}
 
         {success && (
-          <SuccessAction message={success} />
+          <SuccessAction message={success} toolName={TOOL_NAMES.WORD_PARA_PDF} />
         )}
 
         <ProgressBar
@@ -314,6 +324,7 @@ export default function WordParaPdfPage() {
         fileName={previewFileName}
         onClose={handleClosePreview}
         onDownload={handleDownloadFromPreview}
+        toolName={TOOL_NAMES.WORD_PARA_PDF}
       />
     </>
   );

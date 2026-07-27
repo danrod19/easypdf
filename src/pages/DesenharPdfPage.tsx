@@ -18,6 +18,8 @@ import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { desenharPdfSeoContent } from '../data/toolSeoContent';
+import { TOOL_NAMES } from '../data/toolNames';
+import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { loadPdfJs } from '../lib/pdfjsLoader';
 import {
   applyDrawingsToPdf,
@@ -77,6 +79,7 @@ const BRUSH_ORDER: { id: BrushSizeName; label: string }[] = [
  */
 export default function DesenharPdfPage() {
   const errorId = useId();
+  const ga = useToolAnalytics(TOOL_NAMES.DESENHAR_PDF);
   const containerRef = useRef<HTMLDivElement>(null);
   const bgCanvasRef = useRef<HTMLCanvasElement>(null);
   const drawCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -276,6 +279,7 @@ export default function DesenharPdfPage() {
 
         const count = await renderPageOne(copy.slice(0), containerW);
         setPageCount(count);
+        ga.trackUpload([next]);
       } catch (err) {
         clearFile();
         setError(
@@ -287,7 +291,7 @@ export default function DesenharPdfPage() {
         setIsLoadingPdf(false);
       }
     },
-    [clearFile, renderPageOne, resetMessages]
+    [clearFile, ga, renderPageOne, resetMessages]
   );
 
   // Redesenha quando strokes mudam
@@ -495,6 +499,8 @@ export default function DesenharPdfPage() {
     setProgressMsg('Preparando…');
     resetPreview();
 
+    const startedAt = ga.startProcess(1);
+
     try {
       const bytes = await applyDrawingsToPdf(
         file,
@@ -518,6 +524,7 @@ export default function DesenharPdfPage() {
       setSuccess(
         `PDF gerado com ${strokes.length} traço${strokes.length === 1 ? '' : 's'} na página 1. Confira a pré-visualização e baixe quando quiser.`
       );
+      ga.endProcess(true, startedAt);
     } catch (err) {
       setError(
         err instanceof Error
@@ -526,6 +533,7 @@ export default function DesenharPdfPage() {
       );
       setProgress(0);
       setProgressMsg('');
+      ga.endProcess(false, startedAt);
     } finally {
       setIsProcessing(false);
     }
@@ -537,13 +545,15 @@ export default function DesenharPdfPage() {
 
   const handleDownloadFromPreview = useCallback(() => {
     if (!previewBytes) return;
+    const name = previewFileName || 'pdf-desenhado.pdf';
     const blob = new Blob([new Uint8Array(previewBytes)], {
       type: 'application/pdf',
     });
-    downloadBlob(blob, previewFileName || 'pdf-desenhado.pdf');
+    downloadBlob(blob, name);
+    ga.trackDownload(name);
     setIsModalOpen(false);
     setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
-  }, [previewBytes, previewFileName]);
+  }, [previewBytes, previewFileName, ga]);
 
   const busy = isLoadingPdf || isProcessing;
   const canSave =
@@ -801,7 +811,7 @@ export default function DesenharPdfPage() {
         )}
 
         {success && (
-          <SuccessAction message={success} />
+          <SuccessAction message={success} toolName={TOOL_NAMES.DESENHAR_PDF} />
         )}
 
         <ProgressBar
@@ -855,6 +865,7 @@ export default function DesenharPdfPage() {
         fileName={previewFileName}
         onClose={handleClosePreview}
         onDownload={handleDownloadFromPreview}
+        toolName={TOOL_NAMES.DESENHAR_PDF}
       />
     </>
   );

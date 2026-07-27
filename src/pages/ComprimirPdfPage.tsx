@@ -11,6 +11,8 @@ import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { comprimirPdfSeoContent } from '../data/toolSeoContent';
+import { TOOL_NAMES } from '../data/toolNames';
+import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import {
   COMPRESSION_PRESETS,
   DEFAULT_COMPRESSION_LEVEL,
@@ -57,6 +59,7 @@ const compressFaqItems: FaqItem[] = [
 export default function ComprimirPdfPage() {
   const errorId = useId();
   const levelGroupId = useId();
+  const ga = useToolAnalytics(TOOL_NAMES.COMPRIMIR_PDF);
 
   const [file, setFile] = useState<File | null>(null);
   const [level, setLevel] = useState<CompressionLevel>(
@@ -99,8 +102,9 @@ export default function ComprimirPdfPage() {
       if (!next) return;
       resetResult();
       setFile(next);
+      ga.trackUpload([next]);
     },
-    [resetResult]
+    [ga, resetResult]
   );
 
   const handleCompress = async () => {
@@ -116,6 +120,8 @@ export default function ComprimirPdfPage() {
     setProgress(0);
     setProgressMsg('Iniciando compressão…');
     resetPreview();
+
+    const startedAt = ga.startProcess(1);
 
     try {
       const out = await compressPdf(file, level, ({ percent, message }) => {
@@ -142,6 +148,7 @@ export default function ComprimirPdfPage() {
       setSuccess(
         `PDF comprimido com sucesso. ${reductionLabel} Confira a pré-visualização e baixe quando quiser.`
       );
+      ga.endProcess(true, startedAt);
     } catch (err) {
       setError(
         err instanceof Error
@@ -151,6 +158,7 @@ export default function ComprimirPdfPage() {
       setProgress(0);
       setProgressMsg('');
       setResult(null);
+      ga.endProcess(false, startedAt);
     } finally {
       setIsProcessing(false);
     }
@@ -162,13 +170,15 @@ export default function ComprimirPdfPage() {
 
   const handleDownloadFromPreview = useCallback(() => {
     if (!previewBytes) return;
+    const name = previewFileName || 'pdf-comprimido.pdf';
     const blob = new Blob([new Uint8Array(previewBytes)], {
       type: 'application/pdf',
     });
-    downloadBlob(blob, previewFileName || 'pdf-comprimido.pdf');
+    downloadBlob(blob, name);
+    ga.trackDownload(name);
     setIsModalOpen(false);
     setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
-  }, [previewBytes, previewFileName]);
+  }, [previewBytes, previewFileName, ga]);
 
   const canCompress = !!file && !isProcessing;
   const seo = getSeoForPath('/comprimir-pdf');
@@ -407,7 +417,9 @@ export default function ComprimirPdfPage() {
           </div>
         )}
 
-        {success && <SuccessAction message={success} />}
+        {success && (
+          <SuccessAction message={success} toolName={TOOL_NAMES.COMPRIMIR_PDF} />
+        )}
 
         <ProgressBar
           visible={isProcessing || progress === 100}
@@ -457,6 +469,7 @@ export default function ComprimirPdfPage() {
         fileName={previewFileName}
         onClose={handleClosePreview}
         onDownload={handleDownloadFromPreview}
+        toolName={TOOL_NAMES.COMPRIMIR_PDF}
       />
     </>
   );

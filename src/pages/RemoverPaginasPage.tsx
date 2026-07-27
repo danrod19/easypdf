@@ -11,6 +11,8 @@ import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { removerPaginasSeoContent } from '../data/toolSeoContent';
+import { TOOL_NAMES } from '../data/toolNames';
+import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import {
   generatePageThumbnails,
   removePagesFromPdf,
@@ -52,6 +54,7 @@ const removeFaqItems: FaqItem[] = [
  */
 export default function RemoverPaginasPage() {
   const errorId = useId();
+  const ga = useToolAnalytics(TOOL_NAMES.REMOVER_PAGINAS);
 
   const [file, setFile] = useState<File | null>(null);
   const [thumbs, setThumbs] = useState<PageThumbnail[]>([]);
@@ -118,6 +121,7 @@ export default function RemoverPaginasPage() {
         setThumbs(generated);
         setProgress(0);
         setProgressMsg('');
+        ga.trackUpload([next]);
       } catch (err) {
         setFile(null);
         setThumbs([]);
@@ -132,7 +136,7 @@ export default function RemoverPaginasPage() {
         setIsLoadingThumbs(false);
       }
     },
-    [resetResult]
+    [ga, resetResult]
   );
 
   const toggleMark = useCallback((index: number) => {
@@ -175,6 +179,8 @@ export default function RemoverPaginasPage() {
     setProgressMsg('Removendo páginas…');
     resetPreview();
 
+    const startedAt = ga.startProcess(1);
+
     try {
       const bytes = await removePagesFromPdf(
         file,
@@ -194,6 +200,7 @@ export default function RemoverPaginasPage() {
       setSuccess(
         `Novo PDF gerado com ${remainingCount} página${remainingCount === 1 ? '' : 's'}. Confira a pré-visualização e baixe quando quiser.`
       );
+      ga.endProcess(true, startedAt);
     } catch (err) {
       setError(
         err instanceof Error
@@ -202,6 +209,7 @@ export default function RemoverPaginasPage() {
       );
       setProgress(0);
       setProgressMsg('');
+      ga.endProcess(false, startedAt);
     } finally {
       setIsProcessing(false);
     }
@@ -213,13 +221,15 @@ export default function RemoverPaginasPage() {
 
   const handleDownloadFromPreview = useCallback(() => {
     if (!previewBytes) return;
+    const name = previewFileName || 'pdf-sem-paginas.pdf';
     const blob = new Blob([new Uint8Array(previewBytes)], {
       type: 'application/pdf',
     });
-    downloadBlob(blob, previewFileName || 'pdf-sem-paginas.pdf');
+    downloadBlob(blob, name);
+    ga.trackDownload(name);
     setIsModalOpen(false);
     setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
-  }, [previewBytes, previewFileName]);
+  }, [previewBytes, previewFileName, ga]);
 
   // Revoga data URLs grandes ao desmontar / trocar arquivo (best-effort)
   useEffect(() => {
@@ -460,7 +470,12 @@ export default function RemoverPaginasPage() {
           </div>
         )}
 
-        {success && <SuccessAction message={success} />}
+        {success && (
+          <SuccessAction
+            message={success}
+            toolName={TOOL_NAMES.REMOVER_PAGINAS}
+          />
+        )}
 
         <ProgressBar
           visible={busy || progress === 100}
@@ -519,6 +534,7 @@ export default function RemoverPaginasPage() {
         fileName={previewFileName}
         onClose={handleClosePreview}
         onDownload={handleDownloadFromPreview}
+        toolName={TOOL_NAMES.REMOVER_PAGINAS}
       />
     </>
   );

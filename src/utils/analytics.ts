@@ -1,7 +1,9 @@
 /**
  * Utilitários GA4 (gtag.js).
  * O script base + consent defaults ficam no index.html.
- * Pageviews SPA: RouteTracker. Eventos custom: logEvent (ex.: affiliate_click).
+ * Pageviews SPA: RouteTracker (logPageView).
+ * Eventos de produto: preferir helpers tipados em `gaEvents.ts`
+ * (tool_view, file_uploaded, process_*, affiliate_click, etc.).
  */
 
 /** Measurement ID — preferir VITE_GA_MEASUREMENT_ID no .env */

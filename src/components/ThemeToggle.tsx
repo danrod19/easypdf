@@ -2,16 +2,16 @@ import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 type ThemeToggleProps = {
-  /** `icon` = botão compacto (header); `full` = linha com label (sidebar) */
+  /** `icon` = botão compacto (header/logo); `full` = linha com label (rodapé da sidebar) */
   variant?: 'icon' | 'full';
   className?: string;
 };
 
 /**
- * Alterna light/dark via ThemeContext:
- * - persiste em localStorage (`theme`, com migração da chave legada)
- * - aplica/remove a classe `dark` em <html>
- * - fallback inicial: prefers-color-scheme
+ * Alterna light/dark:
+ * - classe `dark` em <html>
+ * - localStorage.theme = "light" | "dark"
+ * - ícones lucide: Moon (claro) / Sun (escuro)
  */
 export function ThemeToggle({
   variant = 'icon',
@@ -26,14 +26,17 @@ export function ThemeToggle({
       <button
         type="button"
         onClick={toggleTheme}
-        className={`flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 ${className}`}
+        className={`flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-red-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:focus-visible:ring-red-900 ${className}`}
         aria-label={label}
         title={label}
       >
         {isDark ? (
           <Sun className="h-5 w-5 shrink-0 text-amber-400" aria-hidden />
         ) : (
-          <Moon className="h-5 w-5 shrink-0 text-slate-600 dark:text-slate-300" aria-hidden />
+          <Moon
+            className="h-5 w-5 shrink-0 text-slate-600 dark:text-slate-300"
+            aria-hidden
+          />
         )}
         <span className="flex-1 text-left">
           {isDark ? 'Modo claro' : 'Modo escuro'}
@@ -58,14 +61,14 @@ export function ThemeToggle({
     <button
       type="button"
       onClick={toggleTheme}
-      className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-red-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:focus-visible:ring-red-900 ${className}`}
+      className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-red-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:focus-visible:ring-red-900 ${className}`}
       aria-label={label}
       title={label}
     >
       {isDark ? (
         <Sun className="h-5 w-5 text-amber-400" aria-hidden />
       ) : (
-        <Moon className="h-5 w-5" aria-hidden />
+        <Moon className="h-5 w-5 text-slate-600" aria-hidden />
       )}
     </button>
   );

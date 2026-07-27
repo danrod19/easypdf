@@ -11,6 +11,8 @@ import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { desbloquearPdfSeoContent } from '../data/toolSeoContent';
+import { TOOL_NAMES } from '../data/toolNames';
+import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import {
   unlockPdfWithPassword,
   unlockedFileName,
@@ -51,6 +53,7 @@ const unlockFaqItems: FaqItem[] = [
 export default function DesbloquearPdfPage() {
   const errorId = useId();
   const passwordId = useId();
+  const ga = useToolAnalytics(TOOL_NAMES.DESBLOQUEAR_PDF);
 
   const [file, setFile] = useState<File | null>(null);
   const [password, setPassword] = useState('');
@@ -93,8 +96,9 @@ export default function DesbloquearPdfPage() {
       resetResult();
       setFile(next);
       setPassword('');
+      ga.trackUpload([next]);
     },
-    [resetResult]
+    [ga, resetResult]
   );
 
   const handleUnlock = async () => {
@@ -113,6 +117,8 @@ export default function DesbloquearPdfPage() {
     setProgress(0);
     setProgressMsg('Iniciando…');
     resetPreview();
+
+    const startedAt = ga.startProcess(1);
 
     try {
       const bytes = await unlockPdfWithPassword(
@@ -135,6 +141,7 @@ export default function DesbloquearPdfPage() {
         'PDF desbloqueado com sucesso. Confira a pré-visualização (sem cadeado) e baixe quando quiser.'
       );
       setPassword('');
+      ga.endProcess(true, startedAt);
     } catch (err) {
       setError(
         err instanceof Error
@@ -143,6 +150,7 @@ export default function DesbloquearPdfPage() {
       );
       setProgress(0);
       setProgressMsg('');
+      ga.endProcess(false, startedAt);
     } finally {
       setIsProcessing(false);
     }
@@ -154,13 +162,15 @@ export default function DesbloquearPdfPage() {
 
   const handleDownloadFromPreview = useCallback(() => {
     if (!previewBytes) return;
+    const name = previewFileName || 'pdf-desbloqueado.pdf';
     const blob = new Blob([new Uint8Array(previewBytes)], {
       type: 'application/pdf',
     });
-    downloadBlob(blob, previewFileName || 'pdf-desbloqueado.pdf');
+    downloadBlob(blob, name);
+    ga.trackDownload(name);
     setIsModalOpen(false);
     setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
-  }, [previewBytes, previewFileName]);
+  }, [previewBytes, previewFileName, ga]);
 
   const canUnlock = !!file && password.trim().length > 0 && !isProcessing;
   const seo = getSeoForPath('/desbloquear-pdf');
@@ -319,7 +329,12 @@ export default function DesbloquearPdfPage() {
           </div>
         )}
 
-        {success && <SuccessAction message={success} />}
+        {success && (
+          <SuccessAction
+            message={success}
+            toolName={TOOL_NAMES.DESBLOQUEAR_PDF}
+          />
+        )}
 
         <ProgressBar
           visible={isProcessing || progress === 100}
@@ -370,6 +385,7 @@ export default function DesbloquearPdfPage() {
         fileName={previewFileName}
         onClose={handleClosePreview}
         onDownload={handleDownloadFromPreview}
+        toolName={TOOL_NAMES.DESBLOQUEAR_PDF}
       />
     </>
   );

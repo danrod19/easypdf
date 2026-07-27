@@ -17,6 +17,8 @@ import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { girarPdfSeoContent } from '../data/toolSeoContent';
+import { TOOL_NAMES } from '../data/toolNames';
+import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import {
   applyRotationDelta,
   applyRotationsToPdf,
@@ -71,6 +73,7 @@ type Mode = 'all' | 'specific';
 export default function GirarPdfPage() {
   const errorId = useId();
   const rangeId = useId();
+  const ga = useToolAnalytics(TOOL_NAMES.GIRAR_PDF);
 
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number | null>(null);
@@ -136,6 +139,7 @@ export default function GirarPdfPage() {
         const count = await getPdfPageCount(next);
         setPageCount(count);
         setRotations(createZeroRotations(count));
+        ga.trackUpload([next]);
       } catch (err) {
         setFile(null);
         setPageCount(null);
@@ -149,7 +153,7 @@ export default function GirarPdfPage() {
         setIsLoadingMeta(false);
       }
     },
-    [resetResult]
+    [ga, resetResult]
   );
 
   const rotatePages = useCallback(
@@ -235,6 +239,8 @@ export default function GirarPdfPage() {
     setProgressMsg('Preparando…');
     resetPreview();
 
+    const startedAt = ga.startProcess(1);
+
     try {
       const bytes = await applyRotationsToPdf(
         file,
@@ -268,6 +274,7 @@ export default function GirarPdfPage() {
         `PDF rotacionado gerado (${pendingCount} página${pendingCount === 1 ? '' : 's'} alterada${pendingCount === 1 ? '' : 's'}). Confira a pré-visualização e baixe quando quiser.`
       );
       setDownloadSuccess(true);
+      ga.endProcess(true, startedAt);
     } catch (err) {
       const message =
         err instanceof Error
@@ -277,6 +284,7 @@ export default function GirarPdfPage() {
       setDownloadSuccess(false);
       setProgress(0);
       setProgressMsg('');
+      ga.endProcess(false, startedAt);
     } finally {
       setIsProcessing(false);
     }
@@ -288,14 +296,16 @@ export default function GirarPdfPage() {
 
   const handleDownloadFromPreview = useCallback(() => {
     if (!previewBytes) return;
+    const name = previewFileName || 'pdf-rotacionado.pdf';
     const blob = new Blob([new Uint8Array(previewBytes)], {
       type: 'application/pdf',
     });
-    downloadBlob(blob, previewFileName || 'pdf-rotacionado.pdf');
+    downloadBlob(blob, name);
+    ga.trackDownload(name);
     setIsModalOpen(false);
     setSuccess('Download iniciado. O arquivo permanece só no seu dispositivo.');
     setDownloadSuccess(true);
-  }, [previewBytes, previewFileName]);
+  }, [previewBytes, previewFileName, ga]);
 
   const busy = isProcessing || isLoadingMeta;
   const canSave = !!file && pageCount != null && pendingCount > 0 && !busy;
@@ -594,7 +604,7 @@ export default function GirarPdfPage() {
         )}
 
         {success && downloadSuccess && (
-          <SuccessAction message={success} />
+          <SuccessAction message={success} toolName={TOOL_NAMES.GIRAR_PDF} />
         )}
 
         {success && !downloadSuccess && (
@@ -658,6 +668,7 @@ export default function GirarPdfPage() {
         fileName={previewFileName}
         onClose={handleClosePreview}
         onDownload={handleDownloadFromPreview}
+        toolName={TOOL_NAMES.GIRAR_PDF}
       />
     </>
   );

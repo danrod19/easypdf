@@ -1,13 +1,19 @@
 import { useState, useEffect } from 'react';
 import { ExternalLink, Star } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { affiliateLinks, type AffiliateLink } from '../data/affiliateLinks';
-import { logEvent } from '../utils/analytics';
+import {
+  getToolNameFromPath,
+  MONETIZATION_POSITIONS,
+} from '../data/toolNames';
+import { trackAffiliateClick } from '../utils/gaEvents';
 
 /**
  * Banner de afiliado “nativo” — sorteia 2 links distintos por montagem.
- * Renderizado como HTML normal (não é AdSense), o que reduz bloqueio por AdBlock.
  */
 export function AffiliateBanner() {
+  const location = useLocation();
+  const toolName = getToolNameFromPath(location.pathname) ?? 'site';
   const [ads, setAds] = useState<AffiliateLink[]>([]);
 
   useEffect(() => {
@@ -18,12 +24,11 @@ export function AffiliateBanner() {
   if (ads.length === 0) return null;
 
   const handleAdClick = (ad: AffiliateLink) => {
-    logEvent('affiliate_click', {
-      link_id: ad.id,
-      platform: ad.platform,
-      link_url: ad.url,
-      link_title: ad.title,
-      placement: 'banner_duo',
+    trackAffiliateClick({
+      toolName,
+      affiliateNetwork: ad.platform === 'ml' ? 'ml' : 'amazon',
+      affiliateProduct: ad.id,
+      position: MONETIZATION_POSITIONS.BANNER_DUO,
     });
   };
 
@@ -35,7 +40,6 @@ export function AffiliateBanner() {
             key={ad.id}
             className="flex flex-col items-center gap-4 rounded-xl border border-red-100 bg-gradient-to-r from-red-50 to-orange-50 p-4 shadow-sm transition-all hover:shadow-md sm:flex-row dark:border-gray-700 dark:from-gray-800 dark:to-gray-800/80"
           >
-            {/* Imagem do Produto */}
             <div className="flex h-28 w-full flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-100 bg-white p-2 sm:w-28 dark:border-gray-600">
               <img
                 src={ad.imageUrl}
@@ -46,7 +50,6 @@ export function AffiliateBanner() {
               />
             </div>
 
-            {/* Conteúdo */}
             <div className="flex h-full w-full flex-1 flex-col justify-between text-left">
               <div>
                 <div className="mb-1 flex flex-wrap items-center gap-2">
@@ -92,7 +95,6 @@ export function AffiliateBanner() {
         ))}
       </div>
 
-      {/* Mensagem de Apoio ao Site */}
       <div className="mt-4 text-center">
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Faça suas compras no mercado livre a partir dos nossos links e ajude
@@ -102,10 +104,11 @@ export function AffiliateBanner() {
             target="_blank"
             rel="noopener noreferrer sponsored"
             onClick={() =>
-              logEvent('affiliate_click', {
-                link_id: 'lista-ml-apoio',
-                platform: 'ml',
-                placement: 'banner_footer',
+              trackAffiliateClick({
+                toolName,
+                affiliateNetwork: 'ml',
+                affiliateProduct: 'mercado_livre_lista',
+                position: MONETIZATION_POSITIONS.BANNER_FOOTER,
               })
             }
             className="font-bold text-red-600 hover:underline dark:text-red-400"

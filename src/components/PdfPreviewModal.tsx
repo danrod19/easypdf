@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Download, FileText, Loader2, X } from 'lucide-react';
 import { loadPdfJs } from '../lib/pdfjsLoader';
+import { trackPreviewOpened } from '../utils/gaEvents';
+import type { ToolName } from '../data/toolNames';
 
 export type PdfPreviewModalProps = {
   isOpen: boolean;
@@ -10,6 +12,8 @@ export type PdfPreviewModalProps = {
   onClose: () => void;
   /** Dispara o download real do arquivo. */
   onDownload: () => void;
+  /** Nome da ferramenta para evento preview_opened */
+  toolName?: ToolName | string;
 };
 
 /**
@@ -22,6 +26,7 @@ export function PdfPreviewModal({
   fileName,
   onClose,
   onDownload,
+  toolName,
 }: PdfPreviewModalProps) {
   const titleId = useId();
   const descId = useId();
@@ -46,6 +51,12 @@ export function PdfPreviewModal({
       window.clearTimeout(t);
     };
   }, [isOpen]);
+
+  // GA4: preview_opened (uma vez por abertura)
+  useEffect(() => {
+    if (!isOpen || !toolName) return;
+    trackPreviewOpened(toolName);
+  }, [isOpen, toolName]);
 
   // Escape fecha o modal
   useEffect(() => {

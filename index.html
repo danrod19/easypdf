@@ -2,6 +2,27 @@
 <html lang="pt-BR">
   <head>
     <!--
+      Tema dark/light o mais cedo possível (evita flash).
+      Chave: localStorage.theme = "light" | "dark"
+      Fallback: prefers-color-scheme
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var theme =
+            stored === 'dark' || stored === 'light'
+              ? stored
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+          document.documentElement.classList.toggle('dark', theme === 'dark');
+        } catch (e) {
+          /* ignore */
+        }
+      })();
+    </script>
+    <!--
       Google Consent Mode v2 — defaults DENIED antes de qualquer tag Google
       (AdSense / GA4). A CMP oficial do AdSense (Funding Choices) atualiza
       para granted após o usuário aceitar. Não remova este bloco nem o mova
@@ -54,15 +75,39 @@
     />
     <meta name="theme-color" content="#ef4444" />
     <meta name="apple-mobile-web-app-title" content="Easy PDF Local" />
-    <meta property="og:site_name" content="Easy PDF Local" />
+    <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:locale" content="pt_BR" />
-    <meta property="og:image" content="https://easypdflocal.com.br/og-image.png" />
+    <meta property="og:url" content="https://easypdflocal.com.br/" />
+    <meta
+      property="og:title"
+      content="Easy PDF Local — Ferramentas de PDF 100% no navegador"
+    />
+    <meta
+      property="og:description"
+      content="Junte, divida, converta e edite PDFs sem enviar arquivos para nenhum servidor. Privacidade total."
+    />
+    <meta
+      property="og:image"
+      content="https://easypdflocal.com.br/og-image.png"
+    />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Easy PDF Local — ferramentas de PDF 100% no navegador" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="Easy PDF Local" />
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://easypdflocal.com.br/og-image.png" />
+    <meta
+      name="twitter:title"
+      content="Easy PDF Local — Ferramentas de PDF 100% no navegador"
+    />
+    <meta
+      name="twitter:description"
+      content="Junte, divida, converta e edite PDFs sem enviar arquivos para nenhum servidor. Privacidade total."
+    />
+    <meta
+      name="twitter:image"
+      content="https://easypdflocal.com.br/og-image.png"
+    />
     <link rel="canonical" href="https://easypdflocal.com.br/" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

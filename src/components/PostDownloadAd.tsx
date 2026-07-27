@@ -1,13 +1,21 @@
 import { useState, useEffect } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { affiliateLinks, type AffiliateLink } from '../data/affiliateLinks';
-import { logEvent } from '../utils/analytics';
+import {
+  MONETIZATION_POSITIONS,
+  type ToolName,
+} from '../data/toolNames';
+import { trackAffiliateClick } from '../utils/gaEvents';
+
+type PostDownloadAdProps = {
+  toolName?: ToolName | string;
+};
 
 /**
- * Anúncio em destaque no “momento de alívio” pós-download.
- * Exibe um único produto aleatório para maximizar CTR.
+ * Anúncio em destaque no “momento de alívio” pós-sucesso.
+ * Só deve ser montado após processamento bem-sucedido.
  */
-export function PostDownloadAd() {
+export function PostDownloadAd({ toolName = 'unknown' }: PostDownloadAdProps) {
   const [ad, setAd] = useState<AffiliateLink | null>(null);
 
   useEffect(() => {
@@ -18,12 +26,11 @@ export function PostDownloadAd() {
   if (!ad) return null;
 
   const handleAdClick = () => {
-    logEvent('affiliate_click', {
-      link_id: ad.id,
-      platform: ad.platform,
-      link_url: ad.url,
-      link_title: ad.title,
-      placement: 'post_download',
+    trackAffiliateClick({
+      toolName,
+      affiliateNetwork: ad.platform === 'ml' ? 'ml' : 'amazon',
+      affiliateProduct: ad.id,
+      position: MONETIZATION_POSITIONS.POST_DOWNLOAD,
     });
   };
 

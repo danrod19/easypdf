@@ -10,6 +10,8 @@ import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { protegerPdfSeoContent } from '../data/toolSeoContent';
+import { TOOL_NAMES } from '../data/toolNames';
+import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import {
   protectPdfWithPassword,
   protectedFileName,
@@ -53,6 +55,7 @@ export default function ProtegerPdfPage() {
   const errorId = useId();
   const passwordId = useId();
   const confirmId = useId();
+  const ga = useToolAnalytics(TOOL_NAMES.PROTEGER_PDF);
 
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number | null>(null);
@@ -97,6 +100,7 @@ export default function ProtegerPdfPage() {
       try {
         const count = await getPdfPageCount(next);
         setPageCount(count);
+        ga.trackUpload([next]);
       } catch (err) {
         setFile(null);
         setPageCount(null);
@@ -109,7 +113,7 @@ export default function ProtegerPdfPage() {
         setIsLoadingMeta(false);
       }
     },
-    [resetResult]
+    [ga, resetResult]
   );
 
   const handleProtect = async () => {
@@ -132,6 +136,8 @@ export default function ProtegerPdfPage() {
     setProgress(0);
     setProgressMsg('Iniciando criptografia…');
 
+    const startedAt = ga.startProcess(1);
+
     try {
       const bytes = await protectPdfWithPassword(
         file,
@@ -143,10 +149,13 @@ export default function ProtegerPdfPage() {
         }
       );
 
+      const outName = protectedFileName(file.name);
       const blob = new Blob([new Uint8Array(bytes)], {
         type: 'application/pdf',
       });
-      downloadBlob(blob, protectedFileName(file.name));
+      downloadBlob(blob, outName);
+      ga.trackDownload(outName);
+      ga.endProcess(true, startedAt);
 
       setSuccess(
         'PDF criptografado com sucesso. O download deve ter iniciado. Guarde a senha com segurança.'
@@ -162,6 +171,7 @@ export default function ProtegerPdfPage() {
       );
       setProgress(0);
       setProgressMsg('');
+      ga.endProcess(false, startedAt);
     } finally {
       setIsProcessing(false);
     }
@@ -354,7 +364,9 @@ export default function ProtegerPdfPage() {
           </div>
         )}
 
-        {success && <SuccessAction message={success} />}
+        {success && (
+          <SuccessAction message={success} toolName={TOOL_NAMES.PROTEGER_PDF} />
+        )}
 
         <ProgressBar
           visible={isProcessing || progress === 100}
