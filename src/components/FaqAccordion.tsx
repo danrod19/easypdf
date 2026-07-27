@@ -13,7 +13,7 @@ type FaqAccordionProps = {
 
 /**
  * FAQ sanfona reutilizável — rodapé de ferramentas e Home.
- * Transições suaves com Tailwind; acessível (aria-expanded / region).
+ * Inclui microdados Schema.org FAQPage para rich results do Google.
  */
 export function FaqAccordion({
   items = defaultFaqItems,
@@ -34,6 +34,8 @@ export function FaqAccordion({
       id={id}
       className={`scroll-mt-8 ${className}`}
       aria-labelledby={`${baseId}-heading`}
+      itemScope
+      itemType="https://schema.org/FAQPage"
     >
       <div className="mb-6 max-w-2xl">
         <h2
@@ -56,7 +58,13 @@ export function FaqAccordion({
           const buttonId = `${baseId}-btn-${item.id}`;
 
           return (
-            <div key={item.id} className="group">
+            <div
+              key={item.id}
+              className="group"
+              itemScope
+              itemProp="mainEntity"
+              itemType="https://schema.org/Question"
+            >
               <h3 className="m-0">
                 <button
                   type="button"
@@ -73,7 +81,10 @@ export function FaqAccordion({
                     >
                       {index + 1}
                     </span>
-                    <span className="text-sm font-semibold text-slate-900 sm:text-base dark:text-slate-100">
+                    <span
+                      className="text-sm font-semibold text-slate-900 sm:text-base dark:text-slate-100"
+                      itemProp="name"
+                    >
                       {item.question}
                     </span>
                   </span>
@@ -86,6 +97,10 @@ export function FaqAccordion({
                 </button>
               </h3>
 
+              {/*
+                Resposta sempre no DOM (grid-rows) para microdados FAQ válidos,
+                mesmo com painel visualmente recolhido.
+              */}
               <div
                 id={panelId}
                 role="region"
@@ -93,9 +108,15 @@ export function FaqAccordion({
                 className={`grid transition-[grid-template-rows] duration-300 ease-out ${
                   isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
                 }`}
+                itemScope
+                itemProp="acceptedAnswer"
+                itemType="https://schema.org/Answer"
               >
                 <div className="overflow-hidden">
-                  <div className="px-5 pb-5 pl-[3.25rem] text-sm leading-relaxed text-slate-600 sm:px-6 sm:pb-6 sm:pl-[3.5rem] dark:text-slate-400">
+                  <div
+                    className="px-5 pb-5 pl-[3.25rem] text-sm leading-relaxed text-slate-600 sm:px-6 sm:pb-6 sm:pl-[3.5rem] dark:text-slate-400"
+                    itemProp="text"
+                  >
                     {item.answer}
                   </div>
                 </div>

@@ -1,4 +1,7 @@
+import { useLocation } from 'react-router-dom';
 import type { ToolSeoBlock } from '../data/toolSeoContent';
+import { buildHowToSchema } from '../data/schema';
+import { JsonLd } from './JsonLd';
 
 type ToolSeoContentProps = {
   content: ToolSeoBlock;
@@ -7,12 +10,13 @@ type ToolSeoContentProps = {
 
 /**
  * Bloco de texto semântico para SEO On-Page (abaixo da UI da ferramenta).
- * Usa H2 (passo a passo), H3 (benefícios e FAQ) e parágrafos legíveis pelo Googlebot.
+ * Injeta JSON-LD HowTo automaticamente a partir dos steps (rich snippet).
  */
 export function ToolSeoContent({
   content,
   className = '',
 }: ToolSeoContentProps) {
+  const location = useLocation();
   const {
     howToTitle,
     howToIntro,
@@ -24,11 +28,23 @@ export function ToolSeoContent({
     faqs,
   } = content;
 
+  const howToSchema = buildHowToSchema({
+    name: howToTitle,
+    description: howToIntro,
+    steps,
+    path: location.pathname,
+  });
+
+  // ID estável por rota para limpar JSON-LD ao navegar
+  const howToId = `howto-${location.pathname.replace(/\//g, '-') || 'home'}`;
+
   return (
     <div
       className={`space-y-10 border-t border-slate-200 pt-10 dark:border-slate-800 ${className}`}
     >
-      {/* Passo a passo */}
+      <JsonLd id={howToId} data={howToSchema} />
+
+      {/* Passo a passo — espelha o HowTo schema */}
       <section className="space-y-4" aria-labelledby="seo-howto-heading">
         <h2
           id="seo-howto-heading"
@@ -42,8 +58,12 @@ export function ToolSeoContent({
           </p>
         )}
         <ol className="list-decimal space-y-3 pl-5 text-sm leading-relaxed text-slate-600 sm:text-base dark:text-slate-400">
-          {steps.map((step) => (
-            <li key={step.title} className="pl-1">
+          {steps.map((step, index) => (
+            <li
+              key={step.title}
+              id={`passo-${index + 1}`}
+              className="scroll-mt-8 pl-1"
+            >
               <strong className="font-semibold text-slate-800 dark:text-slate-200">
                 {step.title}.
               </strong>{' '}

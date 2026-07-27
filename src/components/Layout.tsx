@@ -7,6 +7,10 @@ import { AdSlot } from './AdSlot';
 import { AdBanner } from './AdBanner';
 import { Sidebar } from './Sidebar';
 import { ErrorBoundary } from './ErrorBoundary';
+import { TrustBadges } from './TrustBadges';
+import { AffiliateBanner } from './AffiliateBanner';
+import { JsonLd } from './JsonLd';
+import { buildSoftwareApplicationSchema } from '../data/schema';
 
 /**
  * Layout global: sidebar fixa (desktop) + drawer off-canvas (mobile)
@@ -16,6 +20,11 @@ export function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const sidebarId = useId();
+  const softwareAppSchema = buildSoftwareApplicationSchema();
+
+  // Sem afiliados em páginas legais (transparência / AdSense)
+  const hideBannerRoutes = ['/privacidade', '/termos'];
+  const showBanner = !hideBannerRoutes.includes(location.pathname);
 
   // Fecha o drawer ao mudar de rota
   useEffect(() => {
@@ -46,6 +55,9 @@ export function Layout() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-slate-50 dark:bg-slate-950">
+      {/* JSON-LD global: SoftwareApplication + AggregateRating (estrelas na SERP) */}
+      <JsonLd id="software-application" data={softwareAppSchema} />
+
       <PrivacyBanner />
 
       <div className="flex min-h-0 flex-1">
@@ -130,6 +142,9 @@ export function Layout() {
               </aside>
 
               <main className="min-w-0 flex-1">
+                {/* Trust badges globais (conversão / confiança, estilo PDF24) */}
+                <TrustBadges centered className="mb-5" />
+
                 {/* Boundary + Suspense no Outlet: Sidebar/shell permanecem visíveis */}
                 <ErrorBoundary compact>
                   <Suspense
@@ -153,6 +168,9 @@ export function Layout() {
                     <Outlet />
                   </Suspense>
                 </ErrorBoundary>
+
+                {/* Banner de afiliados — oculto em rotas legais */}
+                {showBanner && <AffiliateBanner />}
               </main>
 
               <aside className="hidden w-36 shrink-0 2xl:block" aria-hidden>

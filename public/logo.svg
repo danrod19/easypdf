@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="Easy PDF Local">
+  <!-- Documento PDF estilizado — branco, fundo transparente -->
+  <path
+    d="M28 18h52l22 22v64a10 10 0 0 1-10 10H28a10 10 0 0 1-10-10V28a10 10 0 0 1 10-10z"
+    fill="#ffffff"
+  />
+  <!-- Canto dobrado -->
+  <path d="M80 18v22h22" fill="#ffffff" opacity="0.35"/>
+  <path d="M80 18l22 22H90a10 10 0 0 1-10-10V18z" fill="#ffffff" opacity="0.55"/>
+  <!-- Linhas do documento -->
+  <path
+    d="M38 52h36M38 64h28M38 76h32"
+    stroke="#ef4444"
+    stroke-width="5"
+    stroke-linecap="round"
+    opacity="0.9"
+  />
+  <!-- Escudo de privacidade (centro-inferior) -->
+  <g transform="translate(78 78)">
+    <path
+      d="M0-22c8 4 16 5 22 5v18c0 14-10 24-22 30C-12 25-22 15-22 1V-17c6 0 14-1 22-5z"
+      fill="#ef4444"
+    />
+    <!-- Cadeado simplificado no escudo -->
+    <rect x="-7" y="-2" width="14" height="11" rx="2.5" fill="#ffffff"/>
+    <path
+      d="M-4-2v-4a4 4 0 0 1 8 0v4"
+      stroke="#ffffff"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      fill="none"
+    />
+    <circle cx="0" cy="3.5" r="1.6" fill="#ef4444"/>
+  </g>
+</svg>

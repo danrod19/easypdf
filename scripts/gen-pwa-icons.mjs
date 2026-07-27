@@ -1,76 +1,84 @@
+/**
+ * Gera ícones PWA a partir de public/logo.svg com Sharp.
+ *
+ * Uso:
+ *   npm i -D sharp
+ *   npm run icons:pwa
+ *
+ * Maskable (Android/One UI): ~25% de margem em cada lado para o logo
+ * não ser cortado por máscaras circulares/arredondadas.
+ */
 import fs from 'node:fs';
-import zlib from 'node:zlib';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const publicDir = path.join(__dirname, '..', 'public');
+const root = path.join(__dirname, '..');
+const publicDir = path.join(root, 'public');
+const logoPath = path.join(publicDir, 'logo.svg');
 
-/** Table-driven CRC32 (fast). */
-const CRC_TABLE = (() => {
-  const table = new Uint32Array(256);
-  for (let n = 0; n < 256; n++) {
-    let c = n;
-    for (let k = 0; k < 8; k++) {
-      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-    }
-    table[n] = c >>> 0;
-  }
-  return table;
-})();
+/** Brand red — alinhado ao Tailwind brand / theme */
+const BRAND_BG = { r: 239, g: 68, b: 68, alpha: 1 }; // #ef4444
 
-function crc32(buf) {
-  let c = 0xffffffff;
-  for (let i = 0; i < buf.length; i++) {
-    c = CRC_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
-  }
-  return (c ^ 0xffffffff) >>> 0;
-}
+/** Fração de padding por lado (0.25 = 25% de respiro maskable) */
+const PADDING_RATIO = 0.25;
 
-function chunk(type, data) {
-  const typeBuf = Buffer.from(type);
-  const len = Buffer.alloc(4);
-  len.writeUInt32BE(data.length);
-  const crcData = Buffer.concat([typeBuf, data]);
-  const crcBuf = Buffer.alloc(4);
-  crcBuf.writeUInt32BE(crc32(crcData));
-  return Buffer.concat([len, typeBuf, data, crcBuf]);
-}
+const SIZES = [192, 512];
 
-/** Solid brand red square PNG (RGB). */
-function solidPng(size, r, g, b) {
-  const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(size, 0);
-  ihdr.writeUInt32BE(size, 4);
-  ihdr[8] = 8;
-  ihdr[9] = 2;
-
-  const stride = 1 + size * 3;
-  const raw = Buffer.alloc(stride * size);
-  for (let y = 0; y < size; y++) {
-    const row = y * stride;
-    raw[row] = 0;
-    for (let x = 0; x < size; x++) {
-      const i = row + 1 + x * 3;
-      raw[i] = r;
-      raw[i + 1] = g;
-      raw[i + 2] = b;
-    }
+async function generateIcon(size) {
+  if (!fs.existsSync(logoPath)) {
+    throw new Error(`Logo não encontrado: ${logoPath}`);
   }
 
-  const compressed = zlib.deflateSync(raw, { level: 6 });
-  return Buffer.concat([
-    signature,
-    chunk('IHDR', ihdr),
-    chunk('IDAT', compressed),
-    chunk('IEND', Buffer.alloc(0)),
-  ]);
+  const padding = Math.round(size * PADDING_RATIO);
+  const logoSize = size - padding * 2;
+
+  const logoBuffer = await sharp(logoPath)
+    .resize(logoSize, logoSize, {
+      fit: 'contain',
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
+    .png()
+    .toBuffer();
+
+  const outPath = path.join(publicDir, `pwa-${size}x${size}.png`);
+
+  await sharp({
+    create: {
+      width: size,
+      height: size,
+      channels: 4,
+      background: BRAND_BG,
+    },
+  })
+    .composite([
+      {
+        input: logoBuffer,
+        gravity: 'centre',
+      },
+    ])
+    .png({ compressionLevel: 9 })
+    .toFile(outPath);
+
+  const stats = fs.statSync(outPath);
+  console.log(
+    `✓ ${path.relative(root, outPath)} (${size}×${size}, logo ${logoSize}px, padding ${padding}px) — ${stats.size} bytes`
+  );
 }
 
-const RED = [239, 68, 68]; // #ef4444 brand
-for (const size of [192, 512]) {
-  const file = path.join(publicDir, `pwa-${size}x${size}.png`);
-  fs.writeFileSync(file, solidPng(size, ...RED));
-  console.log('wrote', file, fs.statSync(file).size, 'bytes');
+async function main() {
+  console.log('Gerando ícones PWA a partir de public/logo.svg …');
+  console.log(`Fundo: #ef4444 · padding maskable: ${PADDING_RATIO * 100}% por lado\n`);
+
+  for (const size of SIZES) {
+    await generateIcon(size);
+  }
+
+  console.log('\nPronto. Substitua logo.svg e rode `npm run icons:pwa` para regenerar.');
 }
+
+main().catch((err) => {
+  console.error('Falha ao gerar ícones:', err);
+  process.exit(1);
+});
