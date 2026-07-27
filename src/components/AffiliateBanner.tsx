@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ExternalLink, Star } from 'lucide-react';
 import { affiliateLinks, type AffiliateLink } from '../data/affiliateLinks';
+import { logEvent } from '../utils/analytics';
 
 /**
  * Banner de afiliado “nativo” — sorteia um link por montagem.
@@ -44,6 +45,14 @@ export function AffiliateBanner() {
             href={ad.url}
             target="_blank"
             rel="noopener noreferrer sponsored"
+            onClick={() =>
+              logEvent('affiliate_click', {
+                link_id: ad.id,
+                platform: ad.platform,
+                link_url: ad.url,
+                link_title: ad.title,
+              })
+            }
             className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-red-300 sm:w-auto dark:bg-red-600 dark:hover:bg-red-500 dark:focus-visible:ring-red-800"
           >
             {ad.ctaText}

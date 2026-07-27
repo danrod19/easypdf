@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { registerSW } from 'virtual:pwa-register';
 import App from './App';
 import { AnalyticsTracker } from './components/AnalyticsTracker';
+import { RouteTracker } from './components/RouteTracker';
 import { ThemeProvider } from './context/ThemeContext';
 import './index.css';
 
@@ -24,10 +25,12 @@ registerSW({
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {/* BrowserRouter é obrigatório para o AnalyticsTracker (useLocation) */}
+    {/* BrowserRouter é obrigatório para RouteTracker / AnalyticsTracker (useLocation) */}
     <BrowserRouter>
-      {/* GA4 SPA: initialize + pageview em cada mudança de rota */}
+      {/* Consent Mode v2 + CMP AdSense */}
       <AnalyticsTracker />
+      {/* GA4 SPA: page_view em cada mudança de rota */}
+      <RouteTracker />
       <ThemeProvider>
         <App />
       </ThemeProvider>

@@ -23,6 +23,22 @@
         wait_for_update: 500,
       });
     </script>
+    <!--
+      Google Analytics 4 (gtag.js)
+      Substitua G-XXXXXXXXXX pelo Measurement ID real ou use VITE_GA_MEASUREMENT_ID
+      no build. send_page_view: false — SPA envia page_view via RouteTracker.
+    -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"
+    ></script>
+    <script>
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX', {
+        anonymize_ip: true,
+        send_page_view: false,
+      });
+    </script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1776280342582118"
      crossorigin="anonymous"></script>
     <meta charset="UTF-8" />

@@ -1,62 +1,38 @@
-import { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import ReactGA from 'react-ga4';
+import { useEffect, useState } from 'react';
 import {
   ensureConsentDefaultsDenied,
   subscribeGoogleCmpAnalyticsConsent,
   updateConsent,
   type ConsentValue,
 } from '../lib/googleConsent';
+import { GA_MEASUREMENT_ID, isGaPlaceholder } from '../utils/analytics';
 
 /**
- * Measurement ID do Google Analytics 4.
- * Substitua pelo ID real ou defina VITE_GA_MEASUREMENT_ID no .env / host.
- */
-export const GA_MEASUREMENT_ID =
-  (import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined)?.trim() ||
-  'G-XXXXXXXXXX';
-
-const isPlaceholderId =
-  !GA_MEASUREMENT_ID ||
-  GA_MEASUREMENT_ID === 'G-XXXXXXXXXX' ||
-  GA_MEASUREMENT_ID.includes('XXXX');
-
-/**
- * GA4 + Google Consent Mode v2, alinhado à CMP oficial do AdSense.
+ * Google Consent Mode v2 + escuta da CMP do AdSense.
+ * Pageviews SPA ficam a cargo do <RouteTracker /> (gtag page_view).
  *
- * Fluxo:
- * 1. Defaults `analytics_storage` / `ad_storage` = **denied**
- *    (snippet no index.html + reforço aqui)
- * 2. Escuta a CMP Google (TCF / Funding Choices / dataLayer consent update)
- * 3. Só após **granted**: `ReactGA.initialize` + pageviews SPA
- * 4. Se o usuário revogar: para pageviews e `analytics_storage: denied`
- *
- * Montar **dentro** de `<BrowserRouter>` (já em main.tsx):
+ * Montar **dentro** de `<BrowserRouter>` (main.tsx):
  *
  * ```tsx
  * <BrowserRouter>
  *   <AnalyticsTracker />
+ *   <RouteTracker />
  *   <App />
  * </BrowserRouter>
  * ```
  */
 export function AnalyticsTracker() {
-  const location = useLocation();
-  const gaReady = useRef(false);
   const [analyticsAllowed, setAnalyticsAllowed] = useState(false);
-  const lastPageviewKey = useRef<string | null>(null);
 
-  // 1) Consent Mode defaults (denied) o mais cedo possível no React
   useEffect(() => {
     ensureConsentDefaultsDenied();
   }, []);
 
-  // 2) Escuta a CMP do Google (aceite / revogação)
   useEffect(() => {
-    if (isPlaceholderId) {
+    if (isGaPlaceholder) {
       if (import.meta.env.DEV) {
         console.info(
-          '[Analytics] GA4 placeholder (G-XXXXXXXXXX). Defina VITE_GA_MEASUREMENT_ID. Consent Mode defaults = denied.'
+          '[Analytics] GA4 placeholder (G-XXXXXXXXXX). Defina VITE_GA_MEASUREMENT_ID no .env. Consent Mode defaults = denied.'
         );
       }
       return;
@@ -71,13 +47,11 @@ export function AnalyticsTracker() {
         }
 
         if (granted) {
-          // Reforço idempotente: a CMP do Google em geral já chamou update
           updateConsent({ analytics_storage: 'granted' });
           setAnalyticsAllowed(true);
         } else {
           updateConsent({ analytics_storage: 'denied' });
           setAnalyticsAllowed(false);
-          lastPageviewKey.current = null;
         }
       }
     );
@@ -85,35 +59,16 @@ export function AnalyticsTracker() {
     return unsubscribe;
   }, []);
 
-  // 3) Initialize + pageview SPA — somente com consentimento de analytics
+  // Reforça gtag config quando o ID real existe e o consentimento foi dado
   useEffect(() => {
-    if (isPlaceholderId || !analyticsAllowed) return;
+    if (isGaPlaceholder || !analyticsAllowed) return;
+    if (typeof window.gtag !== 'function') return;
 
-    if (!gaReady.current) {
-      ReactGA.initialize(GA_MEASUREMENT_ID, {
-        gtagOptions: {
-          anonymize_ip: true,
-        },
-      });
-      gaReady.current = true;
-      if (import.meta.env.DEV) {
-        console.info(
-          '[Analytics] ReactGA.initialize após consentimento granted'
-        );
-      }
-    }
-
-    const page = `${location.pathname}${location.search}`;
-    const key = `${page}|${document.title}`;
-    if (lastPageviewKey.current === key) return;
-    lastPageviewKey.current = key;
-
-    ReactGA.send({
-      hitType: 'pageview',
-      page,
-      title: document.title,
+    window.gtag('config', GA_MEASUREMENT_ID, {
+      anonymize_ip: true,
+      send_page_view: false,
     });
-  }, [location.pathname, location.search, analyticsAllowed]);
+  }, [analyticsAllowed]);
 
   return null;
 }
