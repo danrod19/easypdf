@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Heart } from 'lucide-react';
 import { tools, type ToolIconName } from '../data/tools';
-import { useTheme } from '../context/ThemeContext';
 import { DonationModal } from './DonationModal';
 import { InstallPwaButton } from './InstallPwaButton';
+import { ThemeToggle } from './ThemeToggle';
+import { BrandLogo } from './BrandLogo';
 
 type SidebarProps = {
   /** Fecha o drawer mobile ao navegar / clicar no overlay. */
@@ -25,7 +26,6 @@ export function Sidebar({
   className = '',
   id,
 }: SidebarProps) {
-  const { theme, toggleTheme } = useTheme();
   const [donateOpen, setDonateOpen] = useState(false);
 
   return (
@@ -34,18 +34,13 @@ export function Sidebar({
       id={id}
       className={`flex h-full w-64 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 ${className}`}
     >
-      {/* Logo */}
+      {/* Logo: símbolo (img) + marca (texto dark-mode) */}
       <div className="flex h-16 shrink-0 items-center gap-2 border-b border-slate-200 px-3 dark:border-slate-800">
-        <Link
-          to="/"
+        <BrandLogo
           onClick={onNavigate}
-          className="flex min-w-0 flex-1 items-center gap-2.5 font-bold text-brand-700 dark:text-brand-300"
-        >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-sm dark:bg-brand-500">
-            <PdfIcon className="h-5 w-5" />
-          </span>
-          <span className="truncate text-base tracking-tight">Easy PDF</span>
-        </Link>
+          size="default"
+          className="min-w-0 flex-1"
+        />
         {onClose && (
           <button
             type="button"
@@ -108,35 +103,7 @@ export function Sidebar({
           <span className="flex-1 text-left">Apoie o Projeto</span>
         </button>
 
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-          aria-label={
-            theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'
-          }
-        >
-          {theme === 'dark' ? (
-            <SunIcon className="h-5 w-5 text-amber-400" />
-          ) : (
-            <MoonIcon className="h-5 w-5 text-slate-600" />
-          )}
-          <span className="flex-1 text-left">
-            {theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
-          </span>
-          <span
-            className={`relative h-5 w-9 shrink-0 rounded-full transition ${
-              theme === 'dark' ? 'bg-brand-600' : 'bg-slate-300'
-            }`}
-            aria-hidden
-          >
-            <span
-              className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition ${
-                theme === 'dark' ? 'left-4' : 'left-0.5'
-              }`}
-            />
-          </span>
-        </button>
+        <ThemeToggle variant="full" />
 
         <nav
           className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-1 text-center text-[11px] leading-snug text-slate-400 dark:text-slate-500"
@@ -217,14 +184,6 @@ function CloseIcon({ className }: { className?: string }) {
   );
 }
 
-function PdfIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2.5L18.5 10H13V4.5zM8 13h8v2H8v-2zm0 4h5v2H8v-2z" />
-    </svg>
-  );
-}
-
 function HomeIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -239,37 +198,6 @@ function HomeIcon({ className }: { className?: string }) {
     >
       <path d="M3 10.5 12 3l9 7.5" />
       <path d="M5 10v10h14V10" />
-    </svg>
-  );
-}
-
-function SunIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden
-    >
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-    </svg>
-  );
-}
-
-function MoonIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden
-    >
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
     </svg>
   );
 }

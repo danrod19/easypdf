@@ -1,11 +1,10 @@
 /**
- * Gera ícones PWA a partir de public/logo.svg com Sharp.
+ * Gera ícones PWA a partir de public/logo-icon.png com Sharp.
  *
  * Uso:
- *   npm i -D sharp
  *   npm run icons:pwa
  *
- * Maskable (Android/One UI): ~25% de margem em cada lado para o logo
+ * Maskable (Android/One UI): ~20% de margem em cada lado para o logo
  * não ser cortado por máscaras circulares/arredondadas.
  */
 import fs from 'node:fs';
@@ -16,21 +15,29 @@ import sharp from 'sharp';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
 const publicDir = path.join(root, 'public');
-const logoPath = path.join(publicDir, 'logo.svg');
+
+/** Preferência: logo-icon.png; fallback logo.svg */
+const LOGO_CANDIDATES = ['logo-icon.png', 'logo.svg'];
 
 /** Brand red — alinhado ao Tailwind brand / theme */
 const BRAND_BG = { r: 239, g: 68, b: 68, alpha: 1 }; // #ef4444
 
-/** Fração de padding por lado (0.25 = 25% de respiro maskable) */
-const PADDING_RATIO = 0.25;
+/** Fração de padding por lado (maskable safe zone) */
+const PADDING_RATIO = 0.2;
 
 const SIZES = [192, 512];
 
-async function generateIcon(size) {
-  if (!fs.existsSync(logoPath)) {
-    throw new Error(`Logo não encontrado: ${logoPath}`);
+function resolveLogoPath() {
+  for (const name of LOGO_CANDIDATES) {
+    const p = path.join(publicDir, name);
+    if (fs.existsSync(p)) return p;
   }
+  throw new Error(
+    `Nenhum logo encontrado em public/. Esperado: ${LOGO_CANDIDATES.join(' ou ')}`
+  );
+}
 
+async function generateIcon(logoPath, size) {
   const padding = Math.round(size * PADDING_RATIO);
   const logoSize = size - padding * 2;
 
@@ -68,14 +75,19 @@ async function generateIcon(size) {
 }
 
 async function main() {
-  console.log('Gerando ícones PWA a partir de public/logo.svg …');
-  console.log(`Fundo: #ef4444 · padding maskable: ${PADDING_RATIO * 100}% por lado\n`);
+  const logoPath = resolveLogoPath();
+  console.log(`Gerando ícones PWA a partir de ${path.relative(root, logoPath)} …`);
+  console.log(
+    `Fundo: #ef4444 · padding maskable: ${PADDING_RATIO * 100}% por lado\n`
+  );
 
   for (const size of SIZES) {
-    await generateIcon(size);
+    await generateIcon(logoPath, size);
   }
 
-  console.log('\nPronto. Substitua logo.svg e rode `npm run icons:pwa` para regenerar.');
+  console.log(
+    '\nPronto. Substitua public/logo-icon.png e rode `npm run icons:pwa` para regenerar.'
+  );
 }
 
 main().catch((err) => {

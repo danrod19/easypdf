@@ -1,7 +1,9 @@
 import { Suspense, useEffect, useId, useState } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { PrivacyBanner } from './PrivacyBanner';
 import { CookieBanner } from './CookieBanner';
+import { ThemeToggle } from './ThemeToggle';
+import { BrandLogo } from './BrandLogo';
 import { Footer } from './Footer';
 import { AdSlot } from './AdSlot';
 import { AdBanner } from './AdBanner';
@@ -113,15 +115,14 @@ export function Layout() {
               <HamburgerIcon className="h-5 w-5" />
             </button>
 
-            <Link
-              to="/"
-              className="flex min-w-0 items-center gap-2 font-bold text-brand-700 dark:text-brand-300"
-            >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white dark:bg-brand-500">
-                <PdfIcon className="h-4 w-4" />
-              </span>
-              <span className="truncate">Easy PDF</span>
-            </Link>
+            <BrandLogo
+              size="compact"
+              hideTagline
+              className="min-w-0 flex-1"
+            />
+
+            {/* Dark mode — sempre visível no header mobile */}
+            <ThemeToggle variant="icon" className="ml-auto shrink-0" />
           </header>
 
           {/* Conteúdo com scroll — data-scroll-root para StickyCta */}
@@ -215,10 +216,4 @@ function HamburgerIcon({ className }: { className?: string }) {
   );
 }
 
-function PdfIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2.5L18.5 10H13V4.5zM8 13h8v2H8v-2zm0 4h5v2H8v-2z" />
-    </svg>
-  );
-}
+

@@ -82,6 +82,16 @@ export function useSEO({
     upsertMeta('property', 'og:type', ogType);
     upsertMeta('property', 'og:site_name', 'Easy PDF Local');
     upsertMeta('name', 'twitter:card', 'summary_large_image');
+    upsertMeta(
+      'property',
+      'og:image',
+      `${SITE_ORIGIN}/og-image.png`
+    );
+    upsertMeta(
+      'name',
+      'twitter:image',
+      `${SITE_ORIGIN}/og-image.png`
+    );
 
     if (path != null) {
       const normalized =
