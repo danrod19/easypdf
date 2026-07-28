@@ -13,6 +13,8 @@ import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { desbloquearPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
+import { useFileIntake } from '../hooks/useFileIntake';
+import { dropZoneLimitHint } from '../lib/fileValidation';
 import {
   unlockPdfWithPassword,
   unlockedFileName,
@@ -54,6 +56,7 @@ export default function DesbloquearPdfPage() {
   const errorId = useId();
   const passwordId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.DESBLOQUEAR_PDF);
+  const intake = useFileIntake(TOOL_NAMES.DESBLOQUEAR_PDF, 'pdf_single');
 
   const [file, setFile] = useState<File | null>(null);
   const [password, setPassword] = useState('');
@@ -90,15 +93,22 @@ export default function DesbloquearPdfPage() {
   }, [resetResult]);
 
   const handleFiles = useCallback(
-    (files: File[]) => {
+    async (files: File[]) => {
       const next = files[0];
       if (!next) return;
+
+      const gate = await intake([next]);
+      if (!gate.ok) {
+        setError(gate.message);
+        return;
+      }
+
       resetResult();
-      setFile(next);
+      setFile(gate.files[0] ?? next);
       setPassword('');
-      ga.trackUpload([next]);
+      ga.trackUpload(gate.files);
     },
-    [ga, resetResult]
+    [ga, intake, resetResult]
   );
 
   const handleUnlock = async () => {
@@ -199,10 +209,11 @@ export default function DesbloquearPdfPage() {
             onFiles={handleFiles}
             disabled={isProcessing}
             multiple={false}
+            onReject={(msg) => setError(msg)}
             labels={{
               idle: 'Arraste e solte seu PDF protegido',
               dragging: 'Solte o PDF aqui',
-              hint: 'ou clique para escolher · 1 arquivo · desbloqueio local com senha',
+              hint: `ou clique para escolher · ${dropZoneLimitHint('pdf_single')}`,
               ariaLabel: 'Selecionar PDF para desbloquear',
             }}
           />

@@ -2,9 +2,11 @@
  * Utilitários GA4 (gtag.js).
  * O script base + consent defaults ficam no index.html.
  * Pageviews SPA: RouteTracker (logPageView).
- * Eventos de produto: preferir helpers tipados em `gaEvents.ts`
- * (tool_view, file_uploaded, process_*, affiliate_click, etc.).
+ * Eventos de produto: preferir helpers tipados em `gaEvents.ts`.
+ * Só envia eventos se o usuário aceitou cookies (cookie_consent=granted).
  */
+
+import { isAnalyticsConsentGranted } from '../lib/cookieConsent';
 
 /** Measurement ID — preferir VITE_GA_MEASUREMENT_ID no .env */
 export const GA_MEASUREMENT_ID =
@@ -24,7 +26,11 @@ declare global {
 }
 
 function canTrack(): boolean {
-  return typeof window !== 'undefined' && typeof window.gtag === 'function';
+  if (typeof window === 'undefined' || typeof window.gtag !== 'function') {
+    return false;
+  }
+  // Respeita LGPD / escolha do CookieBanner
+  return isAnalyticsConsentGranted();
 }
 
 /**

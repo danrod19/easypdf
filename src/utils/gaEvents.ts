@@ -5,6 +5,7 @@ import type { MonetizationPosition, ToolName } from '../data/toolNames';
 export const GA_EVENTS = {
   TOOL_VIEW: 'tool_view',
   FILE_UPLOADED: 'file_uploaded',
+  FILE_REJECTED: 'file_rejected',
   PROCESS_STARTED: 'process_started',
   PROCESS_COMPLETED: 'process_completed',
   PREVIEW_OPENED: 'preview_opened',
@@ -47,6 +48,33 @@ export function trackFileUploaded(
     file_type: detectFileType(files),
     file_size_mb: roundMb(totalBytes),
     file_count: files.length,
+  });
+}
+
+export type FileRejectedParams = {
+  toolName: ToolName | string;
+  reason:
+    | 'file_too_large'
+    | 'total_size_too_large'
+    | 'too_many_files'
+    | 'too_many_pages'
+    | 'invalid_type'
+    | string;
+  fileSizeMb?: number;
+  pageCount?: number;
+};
+
+export function trackFileRejected({
+  toolName,
+  reason,
+  fileSizeMb,
+  pageCount,
+}: FileRejectedParams): void {
+  logEvent(GA_EVENTS.FILE_REJECTED, {
+    tool_name: toolName,
+    reason,
+    ...(fileSizeMb !== undefined ? { file_size_mb: fileSizeMb } : {}),
+    ...(pageCount !== undefined ? { page_count: pageCount } : {}),
   });
 }
 

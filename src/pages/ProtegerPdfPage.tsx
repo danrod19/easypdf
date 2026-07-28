@@ -12,6 +12,8 @@ import { ToolSeoContent } from '../components/ToolSeoContent';
 import { protegerPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
+import { useFileIntake } from '../hooks/useFileIntake';
+import { dropZoneLimitHint } from '../lib/fileValidation';
 import {
   protectPdfWithPassword,
   protectedFileName,
@@ -56,6 +58,7 @@ export default function ProtegerPdfPage() {
   const passwordId = useId();
   const confirmId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.PROTEGER_PDF);
+  const intake = useFileIntake(TOOL_NAMES.PROTEGER_PDF, 'pdf_single');
 
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number | null>(null);
@@ -90,17 +93,24 @@ export default function ProtegerPdfPage() {
       const next = files[0];
       if (!next) return;
 
+      const gate = await intake([next]);
+      if (!gate.ok) {
+        setError(gate.message);
+        return;
+      }
+      const accepted = gate.files[0] ?? next;
+
       setIsLoadingMeta(true);
       resetResult();
-      setFile(next);
+      setFile(accepted);
       setPageCount(null);
       setPassword('');
       setConfirmPassword('');
 
       try {
-        const count = await getPdfPageCount(next);
+        const count = await getPdfPageCount(accepted);
         setPageCount(count);
-        ga.trackUpload([next]);
+        ga.trackUpload(gate.files);
       } catch (err) {
         setFile(null);
         setPageCount(null);
@@ -113,7 +123,7 @@ export default function ProtegerPdfPage() {
         setIsLoadingMeta(false);
       }
     },
-    [ga, resetResult]
+    [ga, intake, resetResult]
   );
 
   const handleProtect = async () => {
@@ -211,10 +221,11 @@ export default function ProtegerPdfPage() {
             onFiles={handleFiles}
             disabled={busy}
             multiple={false}
+            onReject={(msg) => setError(msg)}
             labels={{
               idle: 'Arraste e solte seu PDF',
               dragging: 'Solte o PDF aqui',
-              hint: 'ou clique para escolher · 1 arquivo · proteção local com senha',
+              hint: `ou clique para escolher · ${dropZoneLimitHint('pdf_single')}`,
               ariaLabel: 'Selecionar PDF para proteger',
             }}
           />

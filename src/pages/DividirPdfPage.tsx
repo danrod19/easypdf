@@ -12,6 +12,8 @@ import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { dividirPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
+import { useFileIntake } from '../hooks/useFileIntake';
+import { dropZoneLimitHint } from '../lib/fileValidation';
 import {
   extractPdfPages,
   getPdfPageCount,
@@ -36,6 +38,7 @@ export default function DividirPdfPage() {
   const errorId = useId();
   const rangeId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.DIVIDIR_PDF);
+  const intake = useFileIntake(TOOL_NAMES.DIVIDIR_PDF, 'pdf_single');
 
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number | null>(null);
@@ -77,16 +80,23 @@ export default function DividirPdfPage() {
       const next = files[0];
       if (!next) return;
 
+      const gate = await intake([next]);
+      if (!gate.ok) {
+        setError(gate.message);
+        return;
+      }
+      const accepted = gate.files[0] ?? next;
+
       setIsLoadingMeta(true);
       resetResult();
-      setFile(next);
+      setFile(accepted);
       setPageCount(null);
       setRangeInput('');
 
       try {
-        const count = await getPdfPageCount(next);
+        const count = await getPdfPageCount(accepted);
         setPageCount(count);
-        ga.trackUpload([next]);
+        ga.trackUpload(gate.files);
       } catch (err) {
         setFile(null);
         setPageCount(null);
@@ -99,7 +109,7 @@ export default function DividirPdfPage() {
         setIsLoadingMeta(false);
       }
     },
-    [ga, resetResult]
+    [ga, intake, resetResult]
   );
 
   const handleExtract = async () => {
@@ -201,6 +211,10 @@ export default function DividirPdfPage() {
             onFiles={handleFiles}
             disabled={busy}
             multiple={false}
+            onReject={(msg) => setError(msg)}
+            labels={{
+              hint: `ou clique para escolher · ${dropZoneLimitHint('pdf_single')}`,
+            }}
           />
         ) : (
           <div className="card space-y-5">

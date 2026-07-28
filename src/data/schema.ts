@@ -6,7 +6,10 @@
 import { SITE_NAME, SITE_ORIGIN } from './seo';
 import type { SeoStep } from './toolSeoContent';
 
-/** SoftwareApplication + AggregateRating — estrelas em resultados de busca */
+/**
+ * SoftwareApplication — app gratuito no navegador.
+ * Sem AggregateRating / reviews inventados (conformidade Google Rich Results).
+ */
 export function buildSoftwareApplicationSchema() {
   return {
     '@context': 'https://schema.org',
@@ -19,14 +22,6 @@ export function buildSoftwareApplicationSchema() {
       '@type': 'Offer',
       price: '0',
       priceCurrency: 'BRL',
-    },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      bestRating: '5',
-      worstRating: '1',
-      ratingCount: '10000',
-      reviewCount: '10000',
     },
     description:
       'Ferramentas de PDF 100% no navegador — juntar, dividir, comprimir e converter sem upload. Privacidade total, grátis e sem cadastro.',

@@ -11,6 +11,8 @@ import { ToolSeoContent } from '../components/ToolSeoContent';
 import { extrairTextoSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
+import { useFileIntake } from '../hooks/useFileIntake';
+import { dropZoneLimitHint, validateIncomingFiles } from '../lib/fileValidation';
 import {
   extractTextFromPdf,
   isPdfFile,
@@ -27,6 +29,7 @@ export default function ExtrairTextoPage() {
   const textareaId = useId();
   const toggleId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.EXTRAIR_TEXTO);
+  const intake = useFileIntake(TOOL_NAMES.EXTRAIR_TEXTO, 'pdf_single');
 
   const [file, setFile] = useState<File | null>(null);
   const [forceOcr, setForceOcr] = useState(false);
@@ -45,7 +48,7 @@ export default function ExtrairTextoPage() {
   }, [success]);
 
   const handleFiles = useCallback(
-    (files: File[]) => {
+    async (files: File[]) => {
       const next = files[0];
       if (!next) return;
 
@@ -54,16 +57,22 @@ export default function ExtrairTextoPage() {
         return;
       }
 
-      setFile(next);
+      const gate = await intake([next]);
+      if (!gate.ok) {
+        setError(gate.message);
+        return;
+      }
+
+      setFile(gate.files[0] ?? next);
       setText('');
       setHasResult(false);
       setError(null);
       setSuccess(null);
       setProgress(0);
       setProgressMsg('');
-      ga.trackUpload([next]);
+      ga.trackUpload(gate.files);
     },
-    [ga]
+    [ga, intake]
   );
 
   const clearFile = useCallback(() => {
@@ -81,6 +90,18 @@ export default function ExtrairTextoPage() {
     if (!file) {
       setError('Selecione um arquivo PDF primeiro.');
       return;
+    }
+
+    // OCR é o pior caso de memória — limite de páginas mais baixo
+    if (forceOcr) {
+      const ocrGate = await validateIncomingFiles([file], {
+        toolName: TOOL_NAMES.EXTRAIR_TEXTO,
+        profile: 'ocr',
+      });
+      if (!ocrGate.ok) {
+        setError(ocrGate.message);
+        return;
+      }
     }
 
     setIsProcessing(true);
@@ -210,7 +231,7 @@ export default function ExtrairTextoPage() {
           labels={{
             idle: 'Arraste e solte um PDF',
             dragging: 'Solte o PDF aqui',
-            hint: 'ou clique para escolher · 1 arquivo · PDF · processamento local',
+            hint: `ou clique para escolher · ${dropZoneLimitHint('ocr')}`,
             ariaLabel: 'Selecionar PDF para extrair texto',
             rejectMessage: 'Apenas 1 arquivo PDF é aceito.',
           }}

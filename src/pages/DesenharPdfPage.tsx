@@ -20,6 +20,8 @@ import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { desenharPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
+import { useFileIntake } from '../hooks/useFileIntake';
+import { dropZoneLimitHint } from '../lib/fileValidation';
 import { loadPdfJs } from '../lib/pdfjsLoader';
 import {
   applyDrawingsToPdf,
@@ -80,6 +82,7 @@ const BRUSH_ORDER: { id: BrushSizeName; label: string }[] = [
 export default function DesenharPdfPage() {
   const errorId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.DESENHAR_PDF);
+  const intake = useFileIntake(TOOL_NAMES.DESENHAR_PDF, 'pdf_single');
   const containerRef = useRef<HTMLDivElement>(null);
   const bgCanvasRef = useRef<HTMLCanvasElement>(null);
   const drawCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -259,16 +262,23 @@ export default function DesenharPdfPage() {
       const next = files[0];
       if (!next) return;
 
+      const gate = await intake([next]);
+      if (!gate.ok) {
+        setError(gate.message);
+        return;
+      }
+      const accepted = gate.files[0] ?? next;
+
       setIsLoadingPdf(true);
       resetMessages();
-      setFile(next);
+      setFile(accepted);
       setPageCount(null);
       setStrokes([]);
       drawingRef.current = false;
       currentStrokeRef.current = null;
 
       try {
-        const buffer = await next.arrayBuffer();
+        const buffer = await accepted.arrayBuffer();
         // Cópia independente: pdf.js pode transferir/detatch o buffer
         const copy = buffer.slice(0);
         pdfBytesRef.current = copy;
@@ -279,7 +289,7 @@ export default function DesenharPdfPage() {
 
         const count = await renderPageOne(copy.slice(0), containerW);
         setPageCount(count);
-        ga.trackUpload([next]);
+        ga.trackUpload(gate.files);
       } catch (err) {
         clearFile();
         setError(
@@ -291,7 +301,7 @@ export default function DesenharPdfPage() {
         setIsLoadingPdf(false);
       }
     },
-    [clearFile, ga, renderPageOne, resetMessages]
+    [clearFile, ga, intake, renderPageOne, resetMessages]
   );
 
   // Redesenha quando strokes mudam
@@ -591,6 +601,10 @@ export default function DesenharPdfPage() {
             onFiles={handleFiles}
             disabled={busy}
             multiple={false}
+            onReject={(msg) => setError(msg)}
+            labels={{
+              hint: `ou clique para escolher · ${dropZoneLimitHint('pdf_single')}`,
+            }}
           />
         ) : (
           <div className="space-y-4">

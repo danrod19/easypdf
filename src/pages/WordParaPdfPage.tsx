@@ -12,6 +12,8 @@ import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { wordParaPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
+import { useFileIntake } from '../hooks/useFileIntake';
+import { dropZoneLimitHint } from '../lib/fileValidation';
 import {
   convertDocxToPdf,
   DOCX_MIME,
@@ -34,6 +36,7 @@ function buildConvertedFileName(originalName: string) {
 export default function WordParaPdfPage() {
   const errorId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.WORD_PARA_PDF);
+  const intake = useFileIntake(TOOL_NAMES.WORD_PARA_PDF, 'docx');
 
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -66,7 +69,7 @@ export default function WordParaPdfPage() {
   }, [resetResult]);
 
   const handleFiles = useCallback(
-    (files: File[]) => {
+    async (files: File[]) => {
       const next = files[0];
       if (!next) return;
 
@@ -77,11 +80,17 @@ export default function WordParaPdfPage() {
         return;
       }
 
+      const gate = await intake([next]);
+      if (!gate.ok) {
+        setError(gate.message);
+        return;
+      }
+
       resetResult();
-      setFile(next);
-      ga.trackUpload([next]);
+      setFile(gate.files[0] ?? next);
+      ga.trackUpload(gate.files);
     },
-    [ga, resetResult]
+    [ga, intake, resetResult]
   );
 
   const handleConvert = async () => {
@@ -189,7 +198,7 @@ export default function WordParaPdfPage() {
             labels={{
               idle: 'Arraste e solte seu DOCX',
               dragging: 'Solte o documento aqui',
-              hint: 'ou clique para escolher · apenas .docx · processamento local',
+              hint: `ou clique para escolher · ${dropZoneLimitHint('docx')}`,
               ariaLabel: 'Selecionar arquivo DOCX',
               rejectMessage:
                 'Apenas arquivos .docx são aceitos (Microsoft Word OOXML).',

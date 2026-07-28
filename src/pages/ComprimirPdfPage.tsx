@@ -13,6 +13,8 @@ import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { comprimirPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
+import { useFileIntake } from '../hooks/useFileIntake';
+import { dropZoneLimitHint } from '../lib/fileValidation';
 import {
   COMPRESSION_PRESETS,
   DEFAULT_COMPRESSION_LEVEL,
@@ -60,6 +62,7 @@ export default function ComprimirPdfPage() {
   const errorId = useId();
   const levelGroupId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.COMPRIMIR_PDF);
+  const intake = useFileIntake(TOOL_NAMES.COMPRIMIR_PDF, 'compress');
 
   const [file, setFile] = useState<File | null>(null);
   const [level, setLevel] = useState<CompressionLevel>(
@@ -97,14 +100,21 @@ export default function ComprimirPdfPage() {
   }, [resetResult]);
 
   const handleFiles = useCallback(
-    (files: File[]) => {
+    async (files: File[]) => {
       const next = files[0];
       if (!next) return;
+
+      const gate = await intake([next]);
+      if (!gate.ok) {
+        setError(gate.message);
+        return;
+      }
+
       resetResult();
-      setFile(next);
-      ga.trackUpload([next]);
+      setFile(gate.files[0] ?? next);
+      ga.trackUpload(gate.files);
     },
-    [ga, resetResult]
+    [ga, intake, resetResult]
   );
 
   const handleCompress = async () => {
@@ -210,10 +220,11 @@ export default function ComprimirPdfPage() {
             onFiles={handleFiles}
             disabled={isProcessing}
             multiple={false}
+            onReject={(msg) => setError(msg)}
             labels={{
               idle: 'Arraste e solte seu PDF',
               dragging: 'Solte o PDF aqui',
-              hint: 'ou clique para escolher · 1 arquivo · compressão local por rasterização',
+              hint: `ou clique para escolher · ${dropZoneLimitHint('compress')}`,
               ariaLabel: 'Selecionar PDF para comprimir',
             }}
           />

@@ -11,6 +11,8 @@ import { ToolSeoContent } from '../components/ToolSeoContent';
 import { imagemParaPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
+import { useFileIntake } from '../hooks/useFileIntake';
+import { dropZoneLimitHint } from '../lib/fileValidation';
 import { SuccessAction } from '../components/SuccessAction';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import {
@@ -70,6 +72,7 @@ const imagePdfFaqItems: FaqItem[] = [
 export default function ImagemParaPdfPage() {
   const errorId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.IMAGEM_PARA_PDF);
+  const intake = useFileIntake(TOOL_NAMES.IMAGEM_PARA_PDF, 'merge_images');
   const [items, setItems] = useState<ImageItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -88,30 +91,45 @@ export default function ImagemParaPdfPage() {
   }, []);
 
   const addFiles = useCallback(
-    (files: File[]) => {
+    async (files: File[]) => {
       setError(null);
       setSuccess(null);
-      setItems((prev) => {
-        const next = [...prev];
-        const accepted: File[] = [];
-        for (const file of files) {
-          if (!isSupportedImageFile(file)) continue;
-          const exists = next.some(
+
+      const existing = items.map((i) => i.file);
+      const deduped: File[] = [];
+      for (const file of files) {
+        if (!isSupportedImageFile(file)) continue;
+        const exists =
+          existing.some(
             (p) =>
-              p.file.name === file.name &&
-              p.file.size === file.size &&
-              p.file.lastModified === file.lastModified
+              p.name === file.name &&
+              p.size === file.size &&
+              p.lastModified === file.lastModified
+          ) ||
+          deduped.some(
+            (p) =>
+              p.name === file.name &&
+              p.size === file.size &&
+              p.lastModified === file.lastModified
           );
-          if (!exists) {
-            next.push({ id: createId(), file });
-            accepted.push(file);
-          }
-        }
-        if (accepted.length) ga.trackUpload(accepted);
-        return next;
-      });
+        if (!exists) deduped.push(file);
+      }
+
+      if (!deduped.length) return;
+
+      const gate = await intake(deduped, existing);
+      if (!gate.ok) {
+        setError(gate.message);
+        return;
+      }
+
+      setItems((prev) => [
+        ...prev,
+        ...gate.files.map((file) => ({ id: createId(), file })),
+      ]);
+      ga.trackUpload(gate.files);
     },
-    [ga]
+    [ga, intake, items]
   );
 
   const removeItem = useCallback((id: string) => {
@@ -239,13 +257,11 @@ export default function ImagemParaPdfPage() {
           multiple={true}
           accept={getImageAcceptAttr()}
           acceptFile={isSupportedImageFile}
-          onReject={() =>
-            setError('Apenas imagens JPEG (.jpg/.jpeg) ou PNG (.png) são aceitas.')
-          }
+          onReject={(msg) => setError(msg)}
           labels={{
             idle: 'Arraste e solte suas imagens',
             dragging: 'Solte as imagens aqui',
-            hint: 'ou clique para escolher · múltiplos arquivos · PNG, JPG, JPEG · processamento local',
+            hint: `ou clique para escolher · ${dropZoneLimitHint('merge_images')}`,
             ariaLabel: 'Selecionar imagens PNG ou JPEG',
             rejectMessage:
               'Apenas imagens JPEG (.jpg/.jpeg) ou PNG (.png) são aceitas.',

@@ -13,6 +13,8 @@ import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { removerPaginasSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
+import { useFileIntake } from '../hooks/useFileIntake';
+import { dropZoneLimitHint } from '../lib/fileValidation';
 import {
   generatePageThumbnails,
   removePagesFromPdf,
@@ -55,6 +57,7 @@ const removeFaqItems: FaqItem[] = [
 export default function RemoverPaginasPage() {
   const errorId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.REMOVER_PAGINAS);
+  const intake = useFileIntake(TOOL_NAMES.REMOVER_PAGINAS, 'pdf_single');
 
   const [file, setFile] = useState<File | null>(null);
   const [thumbs, setThumbs] = useState<PageThumbnail[]>([]);
@@ -104,15 +107,22 @@ export default function RemoverPaginasPage() {
       const next = files[0];
       if (!next) return;
 
+      const gate = await intake([next]);
+      if (!gate.ok) {
+        setError(gate.message);
+        return;
+      }
+      const accepted = gate.files[0] ?? next;
+
       setIsLoadingThumbs(true);
       resetResult();
-      setFile(next);
+      setFile(accepted);
       setThumbs([]);
       setMarkedForDelete([]);
 
       try {
         const generated = await generatePageThumbnails(
-          next,
+          accepted,
           ({ percent, message }) => {
             setProgress(percent);
             setProgressMsg(message);
@@ -121,7 +131,7 @@ export default function RemoverPaginasPage() {
         setThumbs(generated);
         setProgress(0);
         setProgressMsg('');
-        ga.trackUpload([next]);
+        ga.trackUpload(gate.files);
       } catch (err) {
         setFile(null);
         setThumbs([]);
@@ -136,7 +146,7 @@ export default function RemoverPaginasPage() {
         setIsLoadingThumbs(false);
       }
     },
-    [ga, resetResult]
+    [ga, intake, resetResult]
   );
 
   const toggleMark = useCallback((index: number) => {
@@ -271,10 +281,11 @@ export default function RemoverPaginasPage() {
             onFiles={handleFiles}
             disabled={busy}
             multiple={false}
+            onReject={(msg) => setError(msg)}
             labels={{
               idle: 'Arraste e solte seu PDF',
               dragging: 'Solte o PDF aqui',
-              hint: 'ou clique para escolher · 1 arquivo · remoção local de páginas',
+              hint: `ou clique para escolher · ${dropZoneLimitHint('pdf_single')}`,
               ariaLabel: 'Selecionar PDF para remover páginas',
             }}
           />

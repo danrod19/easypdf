@@ -1,65 +1,43 @@
 import { useEffect, useState } from 'react';
 import {
   ensureConsentDefaultsDenied,
-  subscribeGoogleCmpAnalyticsConsent,
   updateConsent,
   type ConsentValue,
 } from '../lib/googleConsent';
+import {
+  COOKIE_CONSENT_EVENT,
+  isAnalyticsConsentGranted,
+  restoreCookieConsentFromStorage,
+  type CookieConsentEventDetail,
+} from '../lib/cookieConsent';
 import { GA_MEASUREMENT_ID, isGaPlaceholder } from '../utils/analytics';
 
 /**
- * Google Consent Mode v2 + escuta da CMP do AdSense.
- * Pageviews SPA ficam a cargo do <RouteTracker /> (gtag page_view).
- *
- * Montar **dentro** de `<BrowserRouter>` (main.tsx):
- *
- * ```tsx
- * <BrowserRouter>
- *   <AnalyticsTracker />
- *   <RouteTracker />
- *   <App />
- * </BrowserRouter>
- * ```
+ * Google Consent Mode v2 + sincronização com CookieBanner.
+ * Pageviews SPA: <RouteTracker /> (respeita cookie_consent via logPageView).
  */
 export function AnalyticsTracker() {
-  const [analyticsAllowed, setAnalyticsAllowed] = useState(false);
+  const [analyticsAllowed, setAnalyticsAllowed] = useState(() =>
+    typeof window !== 'undefined' ? isAnalyticsConsentGranted() : false
+  );
 
   useEffect(() => {
     ensureConsentDefaultsDenied();
+    const restored = restoreCookieConsentFromStorage();
+    setAnalyticsAllowed(restored === 'granted');
   }, []);
 
   useEffect(() => {
-    if (isGaPlaceholder) {
-      if (import.meta.env.DEV) {
-        console.info(
-          '[Analytics] GA4 ID inválido/placeholder. Defina VITE_GA_MEASUREMENT_ID no .env. Consent Mode defaults = denied.'
-        );
-      }
-      return;
-    }
-
-    const unsubscribe = subscribeGoogleCmpAnalyticsConsent(
-      (granted, source) => {
-        if (import.meta.env.DEV) {
-          console.info(
-            `[Analytics] analytics_storage=${granted ? 'granted' : 'denied'} (${source})`
-          );
-        }
-
-        if (granted) {
-          updateConsent({ analytics_storage: 'granted' });
-          setAnalyticsAllowed(true);
-        } else {
-          updateConsent({ analytics_storage: 'denied' });
-          setAnalyticsAllowed(false);
-        }
-      }
-    );
-
-    return unsubscribe;
+    const onConsent = (ev: Event) => {
+      const detail = (ev as CustomEvent<CookieConsentEventDetail>).detail;
+      const granted = detail?.choice === 'granted';
+      setAnalyticsAllowed(granted);
+    };
+    window.addEventListener(COOKIE_CONSENT_EVENT, onConsent);
+    return () => window.removeEventListener(COOKIE_CONSENT_EVENT, onConsent);
   }, []);
 
-  // Reforça gtag config quando o ID real existe e o consentimento foi dado
+  // Config GA4 só com consentimento positivo
   useEffect(() => {
     if (isGaPlaceholder || !analyticsAllowed) return;
     if (typeof window.gtag !== 'function') return;
@@ -81,10 +59,17 @@ export function AnalyticsTracker() {
 export function debugGrantAnalyticsConsent(): void {
   updateConsent({
     analytics_storage: 'granted' as ConsentValue,
+    ad_storage: 'granted' as ConsentValue,
+    ad_user_data: 'granted' as ConsentValue,
+    ad_personalization: 'granted' as ConsentValue,
   });
   window.dispatchEvent(
-    new CustomEvent('easypdf-consent', {
-      detail: { analytics_storage: 'granted' },
+    new CustomEvent(COOKIE_CONSENT_EVENT, {
+      detail: {
+        choice: 'granted',
+        analytics_storage: 'granted',
+        ad_storage: 'granted',
+      },
     })
   );
 }

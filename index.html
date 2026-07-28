@@ -23,10 +23,9 @@
       })();
     </script>
     <!--
-      Google Consent Mode v2 — defaults DENIED antes de qualquer tag Google
-      (AdSense / GA4). A CMP oficial do AdSense (Funding Choices) atualiza
-      para granted após o usuário aceitar. Não remova este bloco nem o mova
-      para depois do adsbygoogle.
+      Google Consent Mode v2 — defaults DENIED antes de qualquer tag Google.
+      Se o usuário já escolheu (localStorage cookie_consent), reaplica na hora.
+      Só "granted" após "Aceitar todos" no CookieBanner (ou escolha salva).
     -->
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -43,9 +42,32 @@
         security_storage: 'granted',
         wait_for_update: 500,
       });
+      // Restaura escolha prévia (LGPD) antes de carregar GA/AdSense
+      try {
+        var __cc = localStorage.getItem('cookie_consent');
+        if (__cc === 'granted') {
+          gtag('consent', 'update', {
+            ad_storage: 'granted',
+            ad_user_data: 'granted',
+            ad_personalization: 'granted',
+            analytics_storage: 'granted',
+          });
+        } else if (__cc === 'denied') {
+          gtag('consent', 'update', {
+            ad_storage: 'denied',
+            ad_user_data: 'denied',
+            ad_personalization: 'denied',
+            analytics_storage: 'denied',
+          });
+        }
+      } catch (e) {
+        /* ignore */
+      }
     </script>
     <!--
       Google Analytics 4 (gtag.js) — Measurement ID: G-S7MTF3EX46
+      Consent Mode: com denied, o Google usa pings sem cookies até granted.
+      Eventos de app (logEvent/logPageView) só disparam se cookie_consent=granted.
       send_page_view: false — SPA envia page_view via RouteTracker.
     -->
     <script
@@ -59,6 +81,10 @@
         send_page_view: false,
       });
     </script>
+    <!--
+      AdSense: script pode carregar com consent denied (Consent Mode).
+      Unidades React (AdSenseUnit) só fazem push se cookie_consent=granted.
+    -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1776280342582118"
      crossorigin="anonymous"></script>
     <meta charset="UTF-8" />

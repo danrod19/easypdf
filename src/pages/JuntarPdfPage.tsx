@@ -13,6 +13,8 @@ import { getSeoForPath } from '../data/seo';
 import { juntarPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
+import { useFileIntake } from '../hooks/useFileIntake';
+import { dropZoneLimitHint } from '../lib/fileValidation';
 import { mergePdfFilesPreferWorker } from '../lib/mergePdfsWorker';
 import { downloadBlob } from '../lib/format';
 
@@ -36,6 +38,7 @@ function buildMergedFileName() {
 export default function JuntarPdfPage() {
   const errorId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.JUNTAR_PDF);
+  const intake = useFileIntake(TOOL_NAMES.JUNTAR_PDF, 'merge_pdf');
   const [items, setItems] = useState<PdfItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -55,30 +58,45 @@ export default function JuntarPdfPage() {
   }, []);
 
   const addFiles = useCallback(
-    (files: File[]) => {
+    async (files: File[]) => {
       setError(null);
       setSuccess(null);
-      setItems((prev) => {
-        const next = [...prev];
-        const accepted: File[] = [];
-        for (const file of files) {
-          // evita duplicata por nome + tamanho + lastModified
-          const exists = next.some(
+
+      const existing = items.map((i) => i.file);
+      // evita duplicata (lista atual + batch)
+      const deduped: File[] = [];
+      for (const file of files) {
+        const exists =
+          existing.some(
             (p) =>
-              p.file.name === file.name &&
-              p.file.size === file.size &&
-              p.file.lastModified === file.lastModified
+              p.name === file.name &&
+              p.size === file.size &&
+              p.lastModified === file.lastModified
+          ) ||
+          deduped.some(
+            (p) =>
+              p.name === file.name &&
+              p.size === file.size &&
+              p.lastModified === file.lastModified
           );
-          if (!exists) {
-            next.push({ id: createId(), file });
-            accepted.push(file);
-          }
-        }
-        if (accepted.length) ga.trackUpload(accepted);
-        return next;
-      });
+        if (!exists) deduped.push(file);
+      }
+
+      if (!deduped.length) return;
+
+      const gate = await intake(deduped, existing);
+      if (!gate.ok) {
+        setError(gate.message);
+        return;
+      }
+
+      setItems((prev) => [
+        ...prev,
+        ...gate.files.map((file) => ({ id: createId(), file })),
+      ]);
+      ga.trackUpload(gate.files);
     },
-    [ga]
+    [ga, intake, items]
   );
 
   const removeItem = useCallback((id: string) => {
@@ -204,7 +222,14 @@ export default function JuntarPdfPage() {
           </p>
         </header>
 
-        <DropZone onFiles={addFiles} disabled={isProcessing} />
+        <DropZone
+          onFiles={addFiles}
+          disabled={isProcessing}
+          onReject={(msg) => setError(msg)}
+          labels={{
+            hint: `ou clique para escolher · ${dropZoneLimitHint('merge_pdf')}`,
+          }}
+        />
 
         <FileList
           items={items}

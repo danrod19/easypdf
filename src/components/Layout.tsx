@@ -57,7 +57,7 @@ export function Layout() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-slate-50 dark:bg-slate-950">
-      {/* JSON-LD global: SoftwareApplication + AggregateRating (estrelas na SERP) */}
+      {/* JSON-LD global: SoftwareApplication (sem AggregateRating inventado) */}
       <JsonLd id="software-application" data={softwareAppSchema} />
 
       <PrivacyBanner />
@@ -136,7 +136,10 @@ export function Layout() {
 
             <div className="mx-auto flex w-full max-w-6xl gap-6 px-4 py-6 pb-24 sm:px-6 sm:py-8 sm:pb-28 lg:px-8">
               {/* Ad lateral — telas grandes */}
-              <aside className="hidden w-36 shrink-0 xl:block" aria-hidden>
+              <aside
+                className="hidden w-36 shrink-0 xl:block"
+                aria-label="Publicidade"
+              >
                 <div className="sticky top-6">
                   <AdSlot placement="sidebar-left" />
                 </div>
@@ -174,7 +177,10 @@ export function Layout() {
                 {showBanner && <AffiliateBanner />}
               </main>
 
-              <aside className="hidden w-36 shrink-0 2xl:block" aria-hidden>
+              <aside
+                className="hidden w-36 shrink-0 2xl:block"
+                aria-label="Publicidade"
+              >
                 <div className="sticky top-6">
                   <AdSlot placement="sidebar-right" />
                 </div>

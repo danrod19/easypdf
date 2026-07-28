@@ -13,6 +13,8 @@ import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { marcaDaguaSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
+import { useFileIntake } from '../hooks/useFileIntake';
+import { dropZoneLimitHint } from '../lib/fileValidation';
 import {
   applyWatermarkToPdf,
   DEFAULT_WATERMARK_OPTIONS,
@@ -90,6 +92,7 @@ export default function MarcaDaguaPage() {
   const opacityId = useId();
   const fontSizeId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.MARCA_DAGUA);
+  const intake = useFileIntake(TOOL_NAMES.MARCA_DAGUA, 'pdf_single');
 
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number | null>(null);
@@ -138,15 +141,22 @@ export default function MarcaDaguaPage() {
       const next = files[0];
       if (!next) return;
 
+      const gate = await intake([next]);
+      if (!gate.ok) {
+        setError(gate.message);
+        return;
+      }
+      const accepted = gate.files[0] ?? next;
+
       setIsLoadingMeta(true);
       resetResult();
-      setFile(next);
+      setFile(accepted);
       setPageCount(null);
 
       try {
-        const count = await getPdfPageCount(next);
+        const count = await getPdfPageCount(accepted);
         setPageCount(count);
-        ga.trackUpload([next]);
+        ga.trackUpload(gate.files);
       } catch (err) {
         setFile(null);
         setPageCount(null);
@@ -159,7 +169,7 @@ export default function MarcaDaguaPage() {
         setIsLoadingMeta(false);
       }
     },
-    [ga, resetResult]
+    [ga, intake, resetResult]
   );
 
   const handleApply = async () => {
@@ -269,6 +279,10 @@ export default function MarcaDaguaPage() {
             onFiles={handleFiles}
             disabled={busy}
             multiple={false}
+            onReject={(msg) => setError(msg)}
+            labels={{
+              hint: `ou clique para escolher · ${dropZoneLimitHint('pdf_single')}`,
+            }}
           />
         ) : (
           <div className="space-y-5">
