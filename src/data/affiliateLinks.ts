@@ -6,11 +6,17 @@ export interface AffiliateLink {
   badge: string;
   ctaText: string;
   platform: 'amazon' | 'ml';
+  /** Path local em /public/affiliates (self-hosted, WebP) */
   imageUrl: string;
   price?: string;
   originalPrice?: string;
 }
 
+/**
+ * Catálogo de afiliados.
+ * Imagens self-hosted em public/affiliates/*.webp — sem hotlink.
+ * URLs de oferta (url) permanecem nos programas de afiliado.
+ */
 export const affiliateLinks: AffiliateLink[] = [
   {
     id: 'kindle-unlimited',
@@ -21,8 +27,7 @@ export const affiliateLinks: AffiliateLink[] = [
     badge: 'Recompensa Amazon',
     ctaText: 'Testar Grátis',
     platform: 'amazon',
-    imageUrl:
-      'https://editorialge.com/wp-content/uploads/2023/04/Amazon-kindle-unlimited-1024x532.jpeg',
+    imageUrl: '/affiliates/kindle-unlimited.webp',
     price: '30 Dias Grátis',
   },
   {
@@ -34,8 +39,7 @@ export const affiliateLinks: AffiliateLink[] = [
     badge: 'Recompensa Amazon',
     ctaText: 'Assinar Prime',
     platform: 'amazon',
-    imageUrl:
-      'https://tse3.mm.bing.net/th/id/OIP.SRI5lFYPZasfwH490xc9XQHaEM?r=0&pid=Api&P=0&h=180',
+    imageUrl: '/affiliates/amazon-prime.webp',
     price: '30 Dias Grátis',
   },
   {
@@ -47,8 +51,7 @@ export const affiliateLinks: AffiliateLink[] = [
     badge: 'Recompensa Amazon',
     ctaText: 'Ouvir Agora',
     platform: 'amazon',
-    imageUrl:
-      'https://tse4.mm.bing.net/th/id/OIP.hXi4HjpQ20NbOYV2i60xJwHaE7?r=0&pid=Api&P=0&h=180',
+    imageUrl: '/affiliates/amazon-music.webp',
     price: '30 Dias Grátis',
   },
   {
@@ -60,8 +63,7 @@ export const affiliateLinks: AffiliateLink[] = [
     badge: 'Saúde no Home Office',
     ctaText: 'Ver Oferta no ML',
     platform: 'ml',
-    imageUrl:
-      'https://http2.mlstatic.com/D_NQ_NP_2X_760268-MLA112165982538_062026-F.webp',
+    imageUrl: '/affiliates/mouse-vertical.webp',
     price: 'R$ 42,78',
     originalPrice: 'R$ 78,90',
   },
@@ -74,8 +76,7 @@ export const affiliateLinks: AffiliateLink[] = [
     badge: 'Setup Profissional',
     ctaText: 'Ver Oferta no ML',
     platform: 'ml',
-    imageUrl:
-      'https://http2.mlstatic.com/D_NQ_NP_2X_777241-MLB94692583816_102025-F-pc-computador-completo-intel-i5-16gb-ssd-480gb-monitor-19.webp',
+    imageUrl: '/affiliates/pc-completo.webp',
     price: 'R$ 1.458,59',
     originalPrice: 'R$ 2.095,00',
   },
@@ -88,7 +89,7 @@ export const affiliateLinks: AffiliateLink[] = [
     badge: 'Acessório',
     ctaText: 'Ver na Amazon',
     platform: 'amazon',
-    imageUrl: 'https://m.media-amazon.com/images/I/71-EbJpLi8L._AC_SL1500_.jpg',
+    imageUrl: '/affiliates/mouse-rgb.webp',
     price: 'R$ 21,56',
     originalPrice: 'R$ 23,90',
   },
@@ -101,8 +102,7 @@ export const affiliateLinks: AffiliateLink[] = [
     badge: 'Mais Vendidos',
     ctaText: 'Ver Oferta no ML',
     platform: 'ml',
-    imageUrl:
-      'https://http2.mlstatic.com/D_NQ_NP_2X_746099-MLB80308965401_102024-F-kit-9-pares-meias-puma-soquete-cano-curto-sapatilha-original.webp',
+    imageUrl: '/affiliates/meias-puma.webp',
     price: 'R$ 63,26',
     originalPrice: 'R$ 124,00',
   },
@@ -115,8 +115,7 @@ export const affiliateLinks: AffiliateLink[] = [
     badge: 'Maternidade',
     ctaText: 'Criar Lista',
     platform: 'amazon',
-    imageUrl:
-      'https://mamaepechincha.com.br/wp-content/uploads/2022/08/voce-sabia-que-e-possivel-criar-uma-lista-de-produtos-essenciais-para-a-chegada-do-seu-bebe-na-amazon.webp',
+    imageUrl: '/affiliates/lista-bebe.webp',
     price: 'Grátis',
   },
 ];
