@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { openCookiePreferences } from '../lib/cookieConsent';
 
 export function Footer() {
   return (
@@ -54,6 +55,13 @@ export function Footer() {
           >
             Contato
           </Link>
+          <button
+            type="button"
+            onClick={() => openCookiePreferences()}
+            className="hover:text-brand-600 focus:outline-none focus-visible:underline dark:hover:text-brand-400"
+          >
+            Preferências de cookies
+          </button>
         </div>
       </div>
     </footer>

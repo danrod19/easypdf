@@ -34,11 +34,29 @@ export const CONSENT_DENIED_STATE: ConsentState = {
 /** Evento custom para SPA (AnalyticsTracker, AdSenseUnit, etc.) */
 export const COOKIE_CONSENT_EVENT = 'easypdf-consent';
 
+/** Abre o painel “Preferências de cookies” (Footer → CookieBanner) */
+export const OPEN_COOKIE_PREFS_EVENT = 'easypdf-open-cookie-prefs';
+
 export type CookieConsentEventDetail = {
   choice: CookieConsentChoice;
   analytics_storage: 'granted' | 'denied';
   ad_storage: 'granted' | 'denied';
 };
+
+/** Dispara abertura do gerenciador de cookies (rodapé, privacidade, etc.). */
+export function openCookiePreferences(): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(OPEN_COOKIE_PREFS_EVENT));
+}
+
+/** Rótulo amigável da escolha atual (PT). */
+export function cookieConsentLabel(
+  choice: CookieConsentChoice | null
+): string {
+  if (choice === 'granted') return 'Aceitar todos (métricas e anúncios)';
+  if (choice === 'denied') return 'Apenas necessários (sem métricas/anúncios)';
+  return 'Ainda não definido';
+}
 
 /**
  * Lê a escolha salva. Migra legada "accepted" → "granted".
