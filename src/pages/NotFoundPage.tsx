@@ -1,17 +1,22 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { FileStack, Home } from 'lucide-react';
 import { Seo } from '../components/Seo';
 
 /**
  * 404 estratégico — retém o usuário com CTA para a Home / Juntar PDFs.
  * Rota de fallback: <Route path="*" element={<NotFoundPage />} /> em App.tsx
+ * noindex: evita indexar URLs inexistentes; canonical self-ref da URL pedida.
  */
 export default function NotFoundPage() {
+  const { pathname } = useLocation();
+
   return (
     <>
       <Seo
         title="Página não encontrada | Easy PDF Local"
         description="A página solicitada não existe no Easy PDF Local. Volte ao início e junte PDFs grátis no navegador, sem upload."
+        path={pathname}
+        noIndex
       />
       <div className="mx-auto flex max-w-lg flex-col items-center px-4 py-12 text-center sm:py-16">
         <p className="text-7xl font-bold tracking-tight text-slate-200 dark:text-slate-800">

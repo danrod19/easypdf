@@ -10,7 +10,11 @@ type ToolPlaceholderProps = {
 export function ToolPlaceholder({ tool }: ToolPlaceholderProps) {
   return (
     <>
-      <Seo title={tool.title} description={tool.description} />
+      <Seo
+        title={tool.title}
+        description={tool.description}
+        path={tool.path}
+      />
       <div className="space-y-6">
         <header className="space-y-2">
           <p className="text-sm font-medium text-brand-600 dark:text-brand-400">

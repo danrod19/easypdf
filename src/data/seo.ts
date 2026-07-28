@@ -16,6 +16,30 @@ export type SeoMeta = {
 export const SITE_ORIGIN = 'https://easypdflocal.com.br';
 export const SITE_NAME = 'Easy PDF Local';
 
+/**
+ * Normaliza path para canonical self-referencing:
+ * - sem query/hash (pathname puro)
+ * - sem barra final (exceto home "/")
+ * - sempre começa com /
+ */
+export function normalizeSeoPath(pathname: string): string {
+  let p = (pathname || '/').trim();
+  // remove query/hash se alguém passar URL parcial
+  const q = p.indexOf('?');
+  if (q >= 0) p = p.slice(0, q);
+  const h = p.indexOf('#');
+  if (h >= 0) p = p.slice(0, h);
+  if (!p.startsWith('/')) p = `/${p}`;
+  if (p.length > 1 && p.endsWith('/')) p = p.slice(0, -1);
+  return p || '/';
+}
+
+/** URL canônica absoluta HTTPS, ex: https://easypdflocal.com.br/word-para-pdf */
+export function buildCanonicalUrl(pathname: string): string {
+  const path = normalizeSeoPath(pathname);
+  return path === '/' ? `${SITE_ORIGIN}/` : `${SITE_ORIGIN}${path}`;
+}
+
 export const seoByPath: Record<string, SeoMeta> = {
   '/': {
     title:
@@ -136,9 +160,11 @@ export const defaultSeo: SeoMeta = {
 };
 
 export function getSeoForPath(pathname: string): SeoMeta {
-  const normalized =
-    pathname.length > 1 && pathname.endsWith('/')
-      ? pathname.slice(0, -1)
-      : pathname || '/';
-  return seoByPath[normalized] ?? defaultSeo;
+  const normalized = normalizeSeoPath(pathname);
+  const meta = seoByPath[normalized] ?? defaultSeo;
+  // Garante path canônico sempre presente (self-referencing)
+  return {
+    ...meta,
+    path: meta.path ? normalizeSeoPath(meta.path) : normalized,
+  };
 }
