@@ -300,6 +300,27 @@ export function validateIncomingFilesSync(
   return { ok: true, files: incoming };
 }
 
+/**
+ * Garante que o arquivo pode ir para OCR (tamanho + ≤ MAX_OCR_PAGES).
+ * Dispara `file_rejected` em falha. Use imediatamente antes do Tesseract.
+ *
+ * @returns void se OK
+ * @throws Error com mensagem amigável em PT se rejeitado
+ */
+export async function assertOcrPageLimit(
+  file: File,
+  toolName: ToolName | string = 'extrair_texto'
+): Promise<void> {
+  const result = await validateIncomingFiles([file], {
+    toolName,
+    profile: 'ocr',
+    checkPages: true,
+  });
+  if (!result.ok) {
+    throw new Error(result.message);
+  }
+}
+
 /** Texto de dica para DropZone (limites em linguagem humana). */
 export function dropZoneLimitHint(profile: ValidationProfile): string {
   const mb = formatLimitMb(FILE_LIMITS.MAX_FILE_BYTES);

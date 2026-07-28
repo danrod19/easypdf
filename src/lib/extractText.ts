@@ -1,4 +1,6 @@
 import { loadPdfJs } from './pdfjsLoader';
+import { assertOcrPageLimit } from './fileValidation';
+import { TOOL_NAMES } from '../data/toolNames';
 
 export interface ExtractProgress {
   /** 0–100 */
@@ -168,18 +170,36 @@ async function renderPageToCanvas(
   return canvas;
 }
 
+export type ExtractOcrOptions = {
+  /** tool_name GA4 (default: extrair_texto) */
+  toolName?: string;
+};
+
 /**
  * OCR de PDF escaneado: cada página → canvas → Tesseract.recognize(..., 'por').
+ * Sempre valida limite de páginas (MAX_OCR_PAGES) antes de iniciar o Tesseract —
+ * cobre “Forçar OCR”, extractTextFromImage e qualquer fallback automático.
  */
 export async function extractOcrTextFromPdf(
   file: File,
-  onProgress?: ExtractProgressCallback
+  onProgress?: ExtractProgressCallback,
+  options: ExtractOcrOptions = {}
 ): Promise<string> {
   if (!isPdfFile(file)) {
     throw new Error('Envie um arquivo PDF para o OCR.');
   }
 
-  onProgress?.({ percent: 1, message: 'Carregando PDF…' });
+  // Proteção OOM: único choke-point de OCR (forçado ou automático)
+  onProgress?.({
+    percent: 1,
+    message: 'Verificando se o PDF é adequado para OCR…',
+  });
+  await assertOcrPageLimit(
+    file,
+    options.toolName ?? TOOL_NAMES.EXTRAIR_TEXTO
+  );
+
+  onProgress?.({ percent: 2, message: 'Carregando PDF…' });
 
   const pdfjs = await loadPdfJs();
   const data = new Uint8Array(await file.arrayBuffer());
@@ -297,16 +317,43 @@ export async function extractOcrTextFromPdf(
 
 /**
  * Extrai texto de PDF: nativo (pdf.js) ou OCR (canvas + Tesseract 'por').
+ *
+ * - forceOcr: sempre OCR (com limite de páginas).
+ * - autoOcr (default true): se o texto nativo for praticamente vazio
+ *   (PDF escaneado), tenta OCR automaticamente — também com limite de páginas.
  */
 export async function extractTextFromPdf(
   file: File,
-  options: { forceOcr?: boolean } = {},
+  options: {
+    forceOcr?: boolean;
+    /** Se true (default), OCR automático quando nativo ≈ vazio */
+    autoOcr?: boolean;
+    toolName?: string;
+  } = {},
   onProgress?: ExtractProgressCallback
 ): Promise<string> {
+  const toolName = options.toolName ?? TOOL_NAMES.EXTRAIR_TEXTO;
+  const ocrOpts = { toolName };
+
   if (options.forceOcr) {
-    return extractOcrTextFromPdf(file, onProgress);
+    return extractOcrTextFromPdf(file, onProgress, ocrOpts);
   }
-  return extractNativeTextFromPdf(file, onProgress);
+
+  const native = await extractNativeTextFromPdf(file, onProgress);
+  const autoOcr = options.autoOcr !== false;
+  const stripped = native.replace(/\s/g, '');
+
+  // PDF escaneado / sem texto selecionável → OCR automático (protegido)
+  if (autoOcr && stripped.length < 20) {
+    onProgress?.({
+      percent: 4,
+      message:
+        'Pouco ou nenhum texto nativo encontrado. Iniciando OCR automático…',
+    });
+    return extractOcrTextFromPdf(file, onProgress, ocrOpts);
+  }
+
+  return native;
 }
 
 /**

@@ -12,7 +12,7 @@ import { extrairTextoSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { useFileIntake } from '../hooks/useFileIntake';
-import { dropZoneLimitHint, validateIncomingFiles } from '../lib/fileValidation';
+import { dropZoneLimitHint } from '../lib/fileValidation';
 import {
   extractTextFromPdf,
   isPdfFile,
@@ -92,17 +92,8 @@ export default function ExtrairTextoPage() {
       return;
     }
 
-    // OCR é o pior caso de memória — limite de páginas mais baixo
-    if (forceOcr) {
-      const ocrGate = await validateIncomingFiles([file], {
-        toolName: TOOL_NAMES.EXTRAIR_TEXTO,
-        profile: 'ocr',
-      });
-      if (!ocrGate.ok) {
-        setError(ocrGate.message);
-        return;
-      }
-    }
+    // Limite OCR (forçado ou automático) é aplicado dentro de extractOcrTextFromPdf
+    // via assertOcrPageLimit / profile 'ocr' — sem duplicar lógica aqui.
 
     setIsProcessing(true);
     setError(null);
@@ -121,7 +112,12 @@ export default function ExtrairTextoPage() {
     try {
       const result = await extractTextFromPdf(
         file,
-        { forceOcr },
+        {
+          forceOcr,
+          // autoOcr: se nativo ≈ vazio, tenta OCR (também com limite de 30 páginas)
+          autoOcr: true,
+          toolName: TOOL_NAMES.EXTRAIR_TEXTO,
+        },
         ({ percent, message }) => {
           setProgress(percent);
           setProgressMsg(message);
@@ -135,7 +131,7 @@ export default function ExtrairTextoPage() {
         setSuccess(
           forceOcr
             ? 'OCR concluído, mas nenhum texto foi detectado. Tente maior nitidez no scan ou outra página.'
-            : 'Nenhum texto nativo encontrado. Se o PDF for escaneado (só imagem), ative “Forçar OCR” e tente de novo.'
+            : 'Nenhum texto encontrado (nativo nem OCR). Se o PDF for um scan de muitas páginas, o limite é 30 páginas no OCR.'
         );
       } else {
         setSuccess(
