@@ -35,7 +35,7 @@ export function buildSoftwareApplicationSchema() {
     featureList: [
       'Processamento 100% client-side',
       'Sem upload de arquivos',
-      'Grátis e sem limites diários',
+      'Grátis, sem cadastro e sem cota diária de uso',
       'Privacidade total no dispositivo',
     ],
     browserRequirements: 'Requires JavaScript. Works offline after first load (PWA).',

@@ -18,14 +18,15 @@ const badges = [
     Icon: Cpu,
   },
   {
-    label: '100% Grátis e Sem Limites',
-    description: 'Sem limites diários, de páginas ou tamanho de arquivo',
+    label: 'Grátis e sem cadastro',
+    description:
+      'Sem conta e sem cota diária de uso — com limites técnicos do navegador para estabilidade',
     Icon: Gift,
   },
 ] as const;
 
 /**
- * Badges de confiança — ataque à nuvem: 100% client-side, grátis e sem limites.
+ * Badges de confiança — privacidade local, grátis e sem cadastro (limites técnicos honestos).
  */
 export function TrustBadges({
   className = '',

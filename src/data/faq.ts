@@ -19,7 +19,13 @@ export const defaultFaqItems: FaqItem[] = [
     id: 'pagar',
     question: 'Preciso pagar para usar?',
     answer:
-      "Não. As ferramentas principais — Juntar PDF, Dividir PDF, Girar PDF, Marca d'água, Desenhar no PDF, Word para PDF, Imagem para PDF e OCR — são gratuitas e sem cadastro. Você pode usar quantas vezes quiser, sem limites de conta. Eventuais anúncios ajudam a manter o serviço online sem cobrar do usuário.",
+      "Não. As ferramentas principais — Juntar PDF, Dividir PDF, Girar PDF, Marca d'água, Desenhar no PDF, Word para PDF, Imagem para PDF e OCR — são gratuitas e sem cadastro. Não há plano pago nem cota diária de uso por conta. Há limites técnicos do navegador (por exemplo tamanho do arquivo e, em OCR/compressão, número de páginas) para o processamento local permanecer estável, especialmente no celular. Eventuais anúncios ajudam a manter o serviço no ar sem cobrar do usuário.",
+  },
+  {
+    id: 'limites-tecnicos',
+    question: 'Existe limite de tamanho ou de páginas?',
+    answer:
+      'Sim — limites técnicos para proteger a memória do seu navegador, não cotas de “conta”. Em geral: até cerca de 50 MB por arquivo; no juntar PDF, até 20 arquivos e cerca de 80 MB no total; OCR até 30 páginas; compressão até 50 páginas. Arquivos dentro desses tetos costumam funcionar bem; acima disso o site avisa e bloqueia o processamento para evitar travamentos.',
   },
   {
     id: 'sem-servidor',

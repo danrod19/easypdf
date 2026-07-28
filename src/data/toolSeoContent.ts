@@ -137,9 +137,9 @@ export const juntarPdfSeoContent: ToolSeoBlock = {
         'Antes de mesclar, você organiza a lista. Ideal para relatórios, apostilas, anexos de proposta comercial e documentos digitalizados em partes.',
     },
     {
-      title: 'Sem cadastro e sem limite de “conta”',
+      title: 'Sem cadastro e sem cota diária de uso',
       description:
-        'Não criamos usuário nem exigimos login. Use quantas vezes precisar no dia a dia — o freemium não trava o merge básico por número de usos.',
+        'Não criamos usuário nem exigimos login. Você pode juntar PDFs quantas vezes precisar no dia a dia. Há limites técnicos de tamanho e quantidade de arquivos para o merge local permanecer estável no navegador.',
     },
     {
       title: 'Adequado a arquivos confidenciais',
@@ -162,7 +162,7 @@ export const juntarPdfSeoContent: ToolSeoBlock = {
     {
       question: 'Quantos PDFs posso juntar de uma vez?',
       answer:
-        'O limite prático é a memória e a performance do seu aparelho. Para dezenas de arquivos grandes, um computador com mais RAM costuma ser mais confortável. Não há cota de servidor porque não usamos fila na nuvem.',
+        'Até 20 arquivos por vez, com cerca de 50 MB por arquivo e 80 MB no total — limites técnicos do navegador (não de “conta” na nuvem). Para lotes muito grandes, use um computador com mais RAM ou divida em etapas. Não há fila de servidor porque o merge é local.',
     },
     {
       question: 'A qualidade do PDF cai ao juntar?',
