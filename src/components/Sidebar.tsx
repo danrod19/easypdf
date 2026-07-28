@@ -36,15 +36,15 @@ export function Sidebar({
       id={id}
       className={`flex h-full w-64 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 ${className}`}
     >
-      {/* Logo + dark mode (sempre visível no topo da sidebar) */}
+      {/* Logo + tema (ícone) + fechar (drawer mobile) */}
       <div className="flex h-16 shrink-0 items-center gap-1.5 border-b border-slate-200 px-2 dark:border-slate-800 sm:px-3">
         <BrandLogo
           onClick={onNavigate}
           size="default"
           className="min-w-0 flex-1"
         />
-        {/* Desktop: toggle ao lado do logo (sem precisar rolar o menu) */}
-        <ThemeToggle variant="icon" className="hidden lg:inline-flex" />
+        {/* Ícone de tema: desktop e drawer mobile (topo, sem scroll) */}
+        <ThemeToggle variant="icon" className="shrink-0" />
         {onClose && (
           <button
             type="button"

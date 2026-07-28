@@ -28,6 +28,7 @@ export function ThemeToggle({
         onClick={toggleTheme}
         className={`flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-4 focus-visible:ring-red-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:focus-visible:ring-red-900 ${className}`}
         aria-label={label}
+        aria-pressed={isDark}
         title={label}
       >
         {isDark ? (
@@ -63,6 +64,7 @@ export function ThemeToggle({
       onClick={toggleTheme}
       className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-red-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:focus-visible:ring-red-900 ${className}`}
       aria-label={label}
+      aria-pressed={isDark}
       title={label}
     >
       {isDark ? (
