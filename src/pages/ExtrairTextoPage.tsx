@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Seo } from '../components/Seo';
 import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
@@ -14,6 +14,7 @@ import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { useFileIntake } from '../hooks/useFileIntake';
 import { dropZoneLimitHint } from '../lib/fileValidation';
 import {
+  AbortError,
   extractTextFromPdf,
   isPdfFile,
   PDF_EXTRACT_ACCEPT,
@@ -30,6 +31,8 @@ export default function ExtrairTextoPage() {
   const toggleId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.EXTRAIR_TEXTO);
   const intake = useFileIntake(TOOL_NAMES.EXTRAIR_TEXTO, 'pdf_single');
+  /** Cancela OCR/extração ao sair da página ou iniciar novo job */
+  const abortRef = useRef<AbortController | null>(null);
 
   const [file, setFile] = useState<File | null>(null);
   const [forceOcr, setForceOcr] = useState(false);
@@ -46,6 +49,14 @@ export default function ExtrairTextoPage() {
     const t = window.setTimeout(() => setSuccess(null), 3500);
     return () => window.clearTimeout(t);
   }, [success]);
+
+  // Cleanup: encerra worker OCR se o usuário navegar para outra rota
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+      abortRef.current = null;
+    };
+  }, []);
 
   const handleFiles = useCallback(
     async (files: File[]) => {
@@ -92,8 +103,11 @@ export default function ExtrairTextoPage() {
       return;
     }
 
-    // Limite OCR (forçado ou automático) é aplicado dentro de extractOcrTextFromPdf
-    // via assertOcrPageLimit / profile 'ocr' — sem duplicar lógica aqui.
+    // Limite OCR + assets locais + abort: extractTextFromPdf / extractOcrTextFromPdf
+
+    abortRef.current?.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
 
     setIsProcessing(true);
     setError(null);
@@ -117,12 +131,15 @@ export default function ExtrairTextoPage() {
           // autoOcr: se nativo ≈ vazio, tenta OCR (também com limite de 30 páginas)
           autoOcr: true,
           toolName: TOOL_NAMES.EXTRAIR_TEXTO,
+          signal: ac.signal,
         },
         ({ percent, message }) => {
           setProgress(percent);
           setProgressMsg(message);
         }
       );
+
+      if (ac.signal.aborted) return;
 
       setText(result);
       setHasResult(true);
@@ -142,6 +159,13 @@ export default function ExtrairTextoPage() {
       }
       ga.endProcess(true, startedAt);
     } catch (err) {
+      if (
+        err instanceof AbortError ||
+        (err instanceof Error && err.name === 'AbortError')
+      ) {
+        // Saída da página ou cancelamento — sem erro ruidoso
+        return;
+      }
       const message =
         err instanceof Error
           ? err.message
@@ -152,6 +176,9 @@ export default function ExtrairTextoPage() {
       setHasResult(false);
       ga.endProcess(false, startedAt);
     } finally {
+      if (abortRef.current === ac) {
+        abortRef.current = null;
+      }
       setIsProcessing(false);
     }
   };
@@ -462,9 +489,12 @@ export default function ExtrairTextoPage() {
             </li>
           </ol>
           <p className="mt-3 text-xs text-slate-500">
-            No OCR, a primeira execução pode baixar o modelo de idioma (~alguns
-            MB) e guardá-lo em cache — o conteúdo do PDF nunca sobe para a
-            nuvem.
+            O OCR usa Tesseract self-host (worker + português em{' '}
+            <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">
+              /tesseract/
+            </code>
+            ), sem CDN de terceiros. O conteúdo do PDF nunca sobe para a nuvem.
+            Ao sair da página, o processamento é cancelado.
           </p>
         </section>
 

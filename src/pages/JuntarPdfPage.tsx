@@ -1,4 +1,4 @@
-import { useCallback, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Seo } from '../components/Seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
@@ -39,12 +39,21 @@ export default function JuntarPdfPage() {
   const errorId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.JUNTAR_PDF);
   const intake = useFileIntake(TOOL_NAMES.JUNTAR_PDF, 'merge_pdf');
+  /** Cancela o Web Worker de merge ao sair da página */
+  const abortRef = useRef<AbortController | null>(null);
   const [items, setItems] = useState<PdfItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressMsg, setProgressMsg] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+      abortRef.current = null;
+    };
+  }, []);
 
   // Pré-visualização do PDF gerado (em vez de download automático)
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -133,6 +142,10 @@ export default function JuntarPdfPage() {
       return;
     }
 
+    abortRef.current?.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
+
     setIsProcessing(true);
     setError(null);
     setSuccess(null);
@@ -151,8 +164,11 @@ export default function JuntarPdfPage() {
         ({ percent, message }) => {
           setProgress(percent);
           setProgressMsg(message);
-        }
+        },
+        ac.signal
       );
+
+      if (ac.signal.aborted) return;
 
       // Cópia estável para o estado (evita buffer detach do pdf.js / pdf-lib)
       const stableBytes = new Uint8Array(bytes);
@@ -166,6 +182,12 @@ export default function JuntarPdfPage() {
       );
       ga.endProcess(true, startedAt);
     } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        return;
+      }
+      if (err instanceof Error && err.name === 'AbortError') {
+        return;
+      }
       const message =
         err instanceof Error
           ? err.message
@@ -175,6 +197,9 @@ export default function JuntarPdfPage() {
       setProgressMsg('');
       ga.endProcess(false, startedAt);
     } finally {
+      if (abortRef.current === ac) {
+        abortRef.current = null;
+      }
       setIsProcessing(false);
     }
   };

@@ -9,7 +9,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "icons:pwa": "node scripts/gen-pwa-icons.mjs"
+    "icons:pwa": "node scripts/gen-pwa-icons.mjs",
+    "tesseract:setup": "node scripts/setup-tesseract.mjs"
   },
   "dependencies": {
     "html2pdf.js": "^0.10.2",

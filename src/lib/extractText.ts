@@ -2,6 +2,15 @@ import { loadPdfJs } from './pdfjsLoader';
 import { assertOcrPageLimit } from './fileValidation';
 import { TOOL_NAMES } from '../data/toolNames';
 
+/** Assets self-hosted em public/tesseract/ (sem CDN) */
+export const TESSERACT_PATHS = {
+  workerPath: '/tesseract/worker.min.js',
+  /** Diretório dos tesseract-core-*.wasm(.js) */
+  corePath: '/tesseract',
+  /** Diretório do por.traineddata.gz */
+  langPath: '/tesseract',
+} as const;
+
 export interface ExtractProgress {
   /** 0–100 */
   percent: number;
@@ -10,6 +19,19 @@ export interface ExtractProgress {
 }
 
 export type ExtractProgressCallback = (progress: ExtractProgress) => void;
+
+export class AbortError extends Error {
+  constructor(message = 'Processamento cancelado.') {
+    super(message);
+    this.name = 'AbortError';
+  }
+}
+
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw new AbortError();
+  }
+}
 
 export const PDF_EXTRACT_ACCEPT = 'application/pdf,.pdf';
 
@@ -104,16 +126,20 @@ function formatPageBlocks(chunks: string[], pageCount: number): string {
  */
 export async function extractNativeTextFromPdf(
   file: File,
-  onProgress?: ExtractProgressCallback
+  onProgress?: ExtractProgressCallback,
+  signal?: AbortSignal
 ): Promise<string> {
   if (!isPdfFile(file)) {
     throw new Error('Envie um arquivo PDF para extrair o texto.');
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 2, message: 'Carregando PDF…' });
 
   const pdfjs = await loadPdfJs();
+  throwIfAborted(signal);
   const data = new Uint8Array(await file.arrayBuffer());
+  throwIfAborted(signal);
   const pdf = await pdfjs.getDocument({ data }).promise;
   const pageCount = pdf.numPages;
 
@@ -123,20 +149,29 @@ export async function extractNativeTextFromPdf(
 
   const chunks: string[] = [];
 
-  for (let i = 1; i <= pageCount; i++) {
-    onProgress?.({
-      percent: Math.min(95, Math.round(((i - 1) / pageCount) * 100)),
-      message: `Lendo página ${i} de ${pageCount}…`,
-    });
+  try {
+    for (let i = 1; i <= pageCount; i++) {
+      throwIfAborted(signal);
+      onProgress?.({
+        percent: Math.min(95, Math.round(((i - 1) / pageCount) * 100)),
+        message: `Lendo página ${i} de ${pageCount}…`,
+      });
 
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    const items = (content.items as TextItem[]) ?? [];
-    chunks.push(textContentToString(items).trim());
-    page.cleanup();
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const items = (content.items as TextItem[]) ?? [];
+      chunks.push(textContentToString(items).trim());
+      page.cleanup();
+    }
+  } finally {
+    try {
+      await pdf.cleanup();
+    } catch {
+      // ignore
+    }
   }
 
-  await pdf.cleanup();
+  throwIfAborted(signal);
   onProgress?.({ percent: 100, message: 'Concluído!' });
   return formatPageBlocks(chunks, pageCount);
 }
@@ -173,21 +208,28 @@ async function renderPageToCanvas(
 export type ExtractOcrOptions = {
   /** tool_name GA4 (default: extrair_texto) */
   toolName?: string;
+  /** Cancelamento (desmontagem da página / sair da ferramenta) */
+  signal?: AbortSignal;
 };
 
 /**
  * OCR de PDF escaneado: cada página → canvas → Tesseract.recognize(..., 'por').
- * Sempre valida limite de páginas (MAX_OCR_PAGES) antes de iniciar o Tesseract —
- * cobre “Forçar OCR”, extractTextFromImage e qualquer fallback automático.
+ * - Assets 100% locais (/tesseract/*)
+ * - Limite MAX_OCR_PAGES antes do Tesseract
+ * - signal.abort → terminate do worker (sem leak ao sair da página)
  */
 export async function extractOcrTextFromPdf(
   file: File,
   onProgress?: ExtractProgressCallback,
   options: ExtractOcrOptions = {}
 ): Promise<string> {
+  const signal = options.signal;
+
   if (!isPdfFile(file)) {
     throw new Error('Envie um arquivo PDF para o OCR.');
   }
+
+  throwIfAborted(signal);
 
   // Proteção OOM: único choke-point de OCR (forçado ou automático)
   onProgress?.({
@@ -198,11 +240,14 @@ export async function extractOcrTextFromPdf(
     file,
     options.toolName ?? TOOL_NAMES.EXTRAIR_TEXTO
   );
+  throwIfAborted(signal);
 
   onProgress?.({ percent: 2, message: 'Carregando PDF…' });
 
   const pdfjs = await loadPdfJs();
+  throwIfAborted(signal);
   const data = new Uint8Array(await file.arrayBuffer());
+  throwIfAborted(signal);
   const pdf = await pdfjs.getDocument({ data }).promise;
   const pageCount = pdf.numPages;
 
@@ -212,7 +257,7 @@ export async function extractOcrTextFromPdf(
 
   onProgress?.({
     percent: 3,
-    message: 'Iniciando OCR (português)… Na 1ª vez o modelo pode ser baixado.',
+    message: 'Iniciando OCR local (português)…',
   });
 
   const { createWorker } = await import('tesseract.js');
@@ -221,9 +266,34 @@ export async function extractOcrTextFromPdf(
   /** Página em OCR no momento (para o logger do Tesseract) */
   let currentPage = 1;
 
+  const terminateWorker = async () => {
+    if (!worker) return;
+    try {
+      await worker.terminate();
+    } catch {
+      // ignore
+    }
+    worker = null;
+  };
+
+  const onAbort = () => {
+    void terminateWorker();
+  };
+  signal?.addEventListener('abort', onAbort, { once: true });
+
   try {
+    throwIfAborted(signal);
+
+    // Self-host: worker + core WASM + por.traineddata.gz em /tesseract/
     worker = await createWorker('por', undefined, {
+      workerPath: TESSERACT_PATHS.workerPath,
+      corePath: TESSERACT_PATHS.corePath,
+      langPath: TESSERACT_PATHS.langPath,
+      // Carrega worker do mesmo origin (worker-src 'self'), sem blob remoto
+      workerBlobURL: false,
+      gzip: true,
       logger: (m) => {
+        if (signal?.aborted) return;
         const msg = m as LoggerMessage;
         const p =
           typeof msg.progress === 'number' && Number.isFinite(msg.progress)
@@ -231,8 +301,11 @@ export async function extractOcrTextFromPdf(
             : 0;
         const status = (msg.status || '').toLowerCase();
 
-        // Ainda carregando o worker (antes do loop de páginas)
-        if (currentPage === 0 || status.includes('loading') || status.includes('initializ')) {
+        if (
+          currentPage === 0 ||
+          status.includes('loading') ||
+          status.includes('initializ')
+        ) {
           onProgress?.({
             percent: Math.min(8, Math.round(p * 8)),
             message: `Preparando OCR… ${msg.status || ''}`.trim(),
@@ -243,7 +316,6 @@ export async function extractOcrTextFromPdf(
 
         const pageBase = ((currentPage - 1) / pageCount) * 100;
         const pageSpan = 100 / pageCount;
-        // metade da fatia = render já feito; OCR usa o restante
         const ocrStart = 0.35;
         const percent = Math.min(
           99,
@@ -258,9 +330,12 @@ export async function extractOcrTextFromPdf(
       },
     });
 
+    throwIfAborted(signal);
+
     const chunks: string[] = [];
 
     for (let i = 1; i <= pageCount; i++) {
+      throwIfAborted(signal);
       currentPage = i;
 
       onProgress?.({
@@ -269,12 +344,16 @@ export async function extractOcrTextFromPdf(
       });
 
       const page = await pdf.getPage(i);
+      throwIfAborted(signal);
       const canvas = await renderPageToCanvas(page, 2);
+      throwIfAborted(signal);
 
       onProgress?.({
         percent: Math.round(((i - 0.65) / pageCount) * 100),
         message: `Lendo página ${i} de ${pageCount}… OCR em andamento…`,
       });
+
+      if (!worker) throw new AbortError();
 
       const {
         data: { text },
@@ -292,11 +371,22 @@ export async function extractOcrTextFromPdf(
       });
     }
 
-    await pdf.cleanup();
+    throwIfAborted(signal);
     onProgress?.({ percent: 100, message: 'Concluído!' });
     return formatPageBlocks(chunks, pageCount);
   } catch (err) {
+    if (err instanceof AbortError || (err instanceof Error && err.name === 'AbortError')) {
+      throw err instanceof AbortError ? err : new AbortError();
+    }
     if (err instanceof Error && err.message.startsWith('Envie')) {
+      throw err;
+    }
+    // Mensagens de limite de páginas (assertOcrPageLimit) passam direto
+    if (
+      err instanceof Error &&
+      (err.message.includes('muitas páginas') ||
+        err.message.includes('mais de'))
+    ) {
       throw err;
     }
     throw new Error(
@@ -305,12 +395,12 @@ export async function extractOcrTextFromPdf(
         : 'Erro no OCR do PDF. Tente outro arquivo ou desative o OCR se o PDF tiver texto selecionável.'
     );
   } finally {
-    if (worker) {
-      try {
-        await worker.terminate();
-      } catch {
-        // ignore
-      }
+    signal?.removeEventListener('abort', onAbort);
+    await terminateWorker();
+    try {
+      await pdf.cleanup();
+    } catch {
+      // ignore
     }
   }
 }
@@ -329,22 +419,28 @@ export async function extractTextFromPdf(
     /** Se true (default), OCR automático quando nativo ≈ vazio */
     autoOcr?: boolean;
     toolName?: string;
+    signal?: AbortSignal;
   } = {},
   onProgress?: ExtractProgressCallback
 ): Promise<string> {
   const toolName = options.toolName ?? TOOL_NAMES.EXTRAIR_TEXTO;
-  const ocrOpts = { toolName };
+  const ocrOpts = { toolName, signal: options.signal };
 
   if (options.forceOcr) {
     return extractOcrTextFromPdf(file, onProgress, ocrOpts);
   }
 
-  const native = await extractNativeTextFromPdf(file, onProgress);
+  const native = await extractNativeTextFromPdf(
+    file,
+    onProgress,
+    options.signal
+  );
   const autoOcr = options.autoOcr !== false;
   const stripped = native.replace(/\s/g, '');
 
   // PDF escaneado / sem texto selecionável → OCR automático (protegido)
   if (autoOcr && stripped.length < 20) {
+    throwIfAborted(options.signal);
     onProgress?.({
       percent: 4,
       message:
@@ -361,7 +457,8 @@ export async function extractTextFromPdf(
  */
 export async function extractTextFromImage(
   file: File,
-  onProgress?: ExtractProgressCallback
+  onProgress?: ExtractProgressCallback,
+  signal?: AbortSignal
 ): Promise<string> {
-  return extractTextFromPdf(file, { forceOcr: true }, onProgress);
+  return extractTextFromPdf(file, { forceOcr: true, signal }, onProgress);
 }

@@ -8,18 +8,30 @@ import type {
 /**
  * Junta PDFs preferencialmente em Web Worker (Vite `?worker`).
  * Se o Worker falhar ao carregar/rodar, faz fallback para a UI thread.
+ * `signal` permite cancelar (terminate) ao desmontar a página.
  */
 export async function mergePdfFilesPreferWorker(
   files: File[],
-  onProgress?: ProgressCallback
+  onProgress?: ProgressCallback,
+  signal?: AbortSignal
 ): Promise<Uint8Array> {
+  if (signal?.aborted) {
+    throw new DOMException('Processamento cancelado.', 'AbortError');
+  }
+
   if (typeof Worker === 'undefined') {
     return mergePdfFiles(files, onProgress);
   }
 
   try {
-    return await mergePdfFilesInWorker(files, onProgress);
+    return await mergePdfFilesInWorker(files, onProgress, signal);
   } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw err;
+    }
+    if (signal?.aborted) {
+      throw new DOMException('Processamento cancelado.', 'AbortError');
+    }
     if (import.meta.env.DEV) {
       console.warn(
         '[mergePdfsWorker] Worker indisponível — fallback na UI thread.',
@@ -32,11 +44,16 @@ export async function mergePdfFilesPreferWorker(
 
 async function mergePdfFilesInWorker(
   files: File[],
-  onProgress?: ProgressCallback
+  onProgress?: ProgressCallback,
+  signal?: AbortSignal
 ): Promise<Uint8Array> {
   const PdfWorkerCtor = (
     await import('../workers/pdfWorker?worker')
   ).default as new () => Worker;
+
+  if (signal?.aborted) {
+    throw new DOMException('Processamento cancelado.', 'AbortError');
+  }
 
   const worker = new PdfWorkerCtor();
   const id = `merge-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -45,6 +62,10 @@ async function mergePdfFilesInWorker(
   const names: string[] = [];
 
   for (let i = 0; i < files.length; i++) {
+    if (signal?.aborted) {
+      worker.terminate();
+      throw new DOMException('Processamento cancelado.', 'AbortError');
+    }
     const file = files[i];
     names.push(file.name);
     onProgress?.({
@@ -64,11 +85,42 @@ async function mergePdfFilesInWorker(
   };
 
   return new Promise<Uint8Array>((resolve, reject) => {
+    let settled = false;
+
     const cleanup = () => {
       worker.onmessage = null;
       worker.onerror = null;
-      worker.terminate();
+      signal?.removeEventListener('abort', onAbort);
+      try {
+        worker.terminate();
+      } catch {
+        // ignore
+      }
     };
+
+    const fail = (err: Error) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(err);
+    };
+
+    const succeed = (bytes: Uint8Array) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(bytes);
+    };
+
+    const onAbort = () => {
+      fail(new DOMException('Processamento cancelado.', 'AbortError'));
+    };
+
+    if (signal?.aborted) {
+      onAbort();
+      return;
+    }
+    signal?.addEventListener('abort', onAbort, { once: true });
 
     worker.onmessage = (event: MessageEvent<PdfWorkerOutbound>) => {
       const msg = event.data;
@@ -85,21 +137,17 @@ async function mergePdfFilesInWorker(
       }
 
       if (msg.type === 'error') {
-        cleanup();
-        reject(new Error(msg.message));
+        fail(new Error(msg.message));
         return;
       }
 
       if (msg.type === 'result') {
-        const bytes = new Uint8Array(msg.bytes);
-        cleanup();
-        resolve(bytes);
+        succeed(new Uint8Array(msg.bytes));
       }
     };
 
     worker.onerror = (ev) => {
-      cleanup();
-      reject(new Error(ev.message || 'Erro no Web Worker de PDF.'));
+      fail(new Error(ev.message || 'Erro no Web Worker de PDF.'));
     };
 
     // Transfere ownership dos buffers (zero-copy) para o worker
