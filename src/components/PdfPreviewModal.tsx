@@ -17,6 +17,30 @@ export type PdfPreviewModalProps = {
 };
 
 /**
+ * Identidade estável do resultado em pré-visualização.
+ * Reabrir o mesmo PDF não muda a chave; um novo processamento sim.
+ */
+function buildPreviewResultKey(
+  toolName: string,
+  fileName: string,
+  pdfBytes: Uint8Array | Blob
+): string {
+  const size =
+    pdfBytes instanceof Blob ? pdfBytes.size : pdfBytes.byteLength;
+  let sample = '';
+  if (pdfBytes instanceof Uint8Array && pdfBytes.byteLength > 0) {
+    const n = Math.min(32, pdfBytes.byteLength);
+    // amostra do início + fim para distinguir resultados do mesmo tamanho
+    const head = pdfBytes.subarray(0, n);
+    const tail = pdfBytes.subarray(Math.max(0, pdfBytes.byteLength - n));
+    sample = `${Array.from(head).join(',')}_${Array.from(tail).join(',')}`;
+  } else if (pdfBytes instanceof Blob) {
+    sample = `blob:${pdfBytes.type || 'pdf'}`;
+  }
+  return `${toolName}|${fileName}|${size}|${sample}`;
+}
+
+/**
  * Modal global de pré-visualização de PDF.
  * Renderiza apenas a 1ª página via pdfjs-dist (capa da prévia).
  */
@@ -33,6 +57,8 @@ export function PdfPreviewModal({
   const closeRef = useRef<HTMLButtonElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  /** Último resultado já contado em GA4 (evita reabrir = novo evento) */
+  const lastTrackedPreviewKeyRef = useRef<string | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [renderError, setRenderError] = useState<string | null>(null);
@@ -52,11 +78,16 @@ export function PdfPreviewModal({
     };
   }, [isOpen]);
 
-  // GA4: preview_opened (uma vez por abertura)
+  // GA4: preview_opened — uma vez por resultado gerado (não por reabertura)
   useEffect(() => {
-    if (!isOpen || !toolName) return;
+    if (!isOpen || !toolName || !pdfBytes) return;
+
+    const key = buildPreviewResultKey(toolName, fileName, pdfBytes);
+    if (key === lastTrackedPreviewKeyRef.current) return;
+
+    lastTrackedPreviewKeyRef.current = key;
     trackPreviewOpened(toolName);
-  }, [isOpen, toolName]);
+  }, [isOpen, toolName, fileName, pdfBytes]);
 
   // Escape fecha o modal
   useEffect(() => {
