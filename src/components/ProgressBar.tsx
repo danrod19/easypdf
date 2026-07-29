@@ -1,3 +1,5 @@
+import { useId } from 'react';
+
 type ProgressBarProps = {
   percent: number;
   message?: string;
@@ -5,6 +7,7 @@ type ProgressBarProps = {
 };
 
 export function ProgressBar({ percent, message, visible }: ProgressBarProps) {
+  const labelId = useId();
   if (!visible) return null;
 
   const clamped = Math.min(100, Math.max(0, percent));
@@ -13,7 +16,7 @@ export function ProgressBar({ percent, message, visible }: ProgressBarProps) {
   return (
     <div className="w-full space-y-2">
       <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-400">
-        <span id="progress-bar-label">{label}</span>
+        <span id={labelId}>{label}</span>
         <span
           className="font-semibold tabular-nums text-brand-600 dark:text-brand-400"
           aria-hidden
@@ -28,7 +31,7 @@ export function ProgressBar({ percent, message, visible }: ProgressBarProps) {
         aria-valuemax={100}
         aria-valuenow={Math.round(clamped)}
         aria-valuetext={`${Math.round(clamped)} por cento — ${label}`}
-        aria-labelledby="progress-bar-label"
+        aria-labelledby={labelId}
       >
         <div
           className="h-full rounded-full bg-brand-600 transition-[width] duration-300 ease-out dark:bg-brand-500"

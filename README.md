@@ -54,6 +54,31 @@ Banner fixo em todas as páginas:
 
 > Processamento 100% local. Seus arquivos não são enviados para nenhum servidor.
 
+## Performance (Web Workers)
+
+| Operação | Thread | Abort no unmount |
+|----------|--------|------------------|
+| Juntar PDF | Web Worker (`pdfWorker`) + fallback main | ✅ |
+| Girar PDF | Web Worker + fallback main | ✅ |
+| Dividir PDF | Web Worker + fallback main | ✅ |
+| Comprimir PDF | **Main thread** (pdf.js + canvas; sem OffscreenCanvas no worker genérico) | ✅ (cancela entre páginas) |
+| Extrair texto / OCR | Main + Tesseract worker (abort) | ✅ |
+
+Helpers: `src/lib/runPdfWorker.ts`, `src/lib/pdfOpsWorker.ts`, `src/lib/mergePdfsWorker.ts`.
+
+### Limitações documentadas
+
+- Compressão **não** usa o worker pdf-lib: depende de Canvas 2D + pdf.js no DOM.
+- Abort em compressão é cooperativo (entre páginas), não mid-render de uma página.
+- Fallback na main thread se o Worker falhar (ex.: ambiente sem `Worker`).
+
+## SEO / Canonical (SPA)
+
+- `index.html` tem canonical **self-referencing da home** (visível sem JS).
+- Rotas internas: `useSEO` / `<Seo path="…" />` atualizam `<link rel="canonical">` e `og:url` no cliente para a URL absoluta correta (`https://easypdflocal.com.br/…`).
+- Deploy estático (Cloudflare Pages / SWA): **sem HTML pré-renderizado por rota**; crawlers que não executam JS veem a canonical da home. Googlebot com JS vê a canonical por rota. `public/sitemap.xml` lista as URLs.
+- Prerender multi-page seria o upgrade se o GSC exigir HTML estático por path — fora do escopo atual.
+
 ## Monetização
 
 Placeholders com classe `adsense-slot` e `data-adsense-placement`:

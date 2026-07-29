@@ -109,14 +109,14 @@ function IconBtn({
       title={label}
       disabled={disabled}
       onClick={onClick}
-      className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold transition disabled:opacity-30
+      className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-30
         ${
           danger
             ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40'
             : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
         }`}
     >
-      {children}
+      <span aria-hidden>{children}</span>
     </button>
   );
 }

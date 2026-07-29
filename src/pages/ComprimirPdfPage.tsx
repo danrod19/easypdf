@@ -1,4 +1,4 @@
-import { useCallback, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Download, FileDown, Loader2, Minimize2 } from 'lucide-react';
 import { Seo } from '../components/Seo';
 import { getSeoForPath } from '../data/seo';
@@ -63,6 +63,8 @@ export default function ComprimirPdfPage() {
   const levelGroupId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.COMPRIMIR_PDF);
   const intake = useFileIntake(TOOL_NAMES.COMPRIMIR_PDF, 'compress');
+  /** Cancela compressão (entre páginas) ao sair da rota */
+  const abortRef = useRef<AbortController | null>(null);
 
   const [file, setFile] = useState<File | null>(null);
   const [level, setLevel] = useState<CompressionLevel>(
@@ -78,6 +80,13 @@ export default function ComprimirPdfPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
   const [previewFileName, setPreviewFileName] = useState('');
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+      abortRef.current = null;
+    };
+  }, []);
 
   const resetPreview = useCallback(() => {
     setIsModalOpen(false);
@@ -123,6 +132,10 @@ export default function ComprimirPdfPage() {
       return;
     }
 
+    abortRef.current?.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
+
     setIsProcessing(true);
     setError(null);
     setSuccess(null);
@@ -134,10 +147,18 @@ export default function ComprimirPdfPage() {
     const startedAt = ga.startProcess(1);
 
     try {
-      const out = await compressPdf(file, level, ({ percent, message }) => {
-        setProgress(percent);
-        setProgressMsg(message);
-      });
+      // Main thread (pdf.js + canvas); signal cancela entre páginas
+      const out = await compressPdf(
+        file,
+        level,
+        ({ percent, message }) => {
+          setProgress(percent);
+          setProgressMsg(message);
+        },
+        ac.signal
+      );
+
+      if (ac.signal.aborted) return;
 
       setResult(out);
 
@@ -160,6 +181,8 @@ export default function ComprimirPdfPage() {
       );
       ga.endProcess(true, startedAt);
     } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      if (err instanceof Error && err.name === 'AbortError') return;
       setError(
         err instanceof Error
           ? err.message
@@ -170,6 +193,9 @@ export default function ComprimirPdfPage() {
       setResult(null);
       ga.endProcess(false, startedAt);
     } finally {
+      if (abortRef.current === ac) {
+        abortRef.current = null;
+      }
       setIsProcessing(false);
     }
   };

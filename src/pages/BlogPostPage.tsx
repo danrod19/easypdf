@@ -77,8 +77,8 @@ export default function BlogPostPage() {
   return (
     <>
       <Seo
-        title={`${meta.title} | Blog ${SITE_NAME}`}
-        description={meta.excerpt}
+        title={meta.seoTitle ?? `${meta.title} | Blog ${SITE_NAME}`}
+        description={meta.seoDescription ?? meta.excerpt}
         path={`/blog/${meta.slug}`}
       />
 

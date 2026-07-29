@@ -1,4 +1,4 @@
-import { useCallback, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Seo } from '../components/Seo';
 import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
@@ -14,11 +14,8 @@ import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { useFileIntake } from '../hooks/useFileIntake';
 import { dropZoneLimitHint } from '../lib/fileValidation';
-import {
-  extractPdfPages,
-  getPdfPageCount,
-  parsePageRange,
-} from '../lib/splitPdf';
+import { getPdfPageCount, parsePageRange } from '../lib/splitPdf';
+import { extractPdfPagesPreferWorker } from '../lib/pdfOpsWorker';
 import { downloadBlob, formatBytes } from '../lib/format';
 
 function buildExtractedFileName(originalName: string) {
@@ -39,6 +36,8 @@ export default function DividirPdfPage() {
   const rangeId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.DIVIDIR_PDF);
   const intake = useFileIntake(TOOL_NAMES.DIVIDIR_PDF, 'pdf_single');
+  /** Cancela o Web Worker de split ao sair da página */
+  const abortRef = useRef<AbortController | null>(null);
 
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number | null>(null);
@@ -53,6 +52,13 @@ export default function DividirPdfPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
   const [previewFileName, setPreviewFileName] = useState('');
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+      abortRef.current = null;
+    };
+  }, []);
 
   const resetPreview = useCallback(() => {
     setIsModalOpen(false);
@@ -118,6 +124,10 @@ export default function DividirPdfPage() {
       return;
     }
 
+    abortRef.current?.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
+
     setIsProcessing(true);
     setError(null);
     setSuccess(null);
@@ -130,10 +140,17 @@ export default function DividirPdfPage() {
     try {
       const indices = parsePageRange(rangeInput, pageCount);
 
-      const bytes = await extractPdfPages(file, indices, ({ percent, message }) => {
-        setProgress(percent);
-        setProgressMsg(message);
-      });
+      const bytes = await extractPdfPagesPreferWorker(
+        file,
+        indices,
+        ({ percent, message }) => {
+          setProgress(percent);
+          setProgressMsg(message);
+        },
+        ac.signal
+      );
+
+      if (ac.signal.aborted) return;
 
       const stableBytes = new Uint8Array(bytes);
       const fileName = buildExtractedFileName(file.name);
@@ -146,6 +163,8 @@ export default function DividirPdfPage() {
       );
       ga.endProcess(true, startedAt);
     } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      if (err instanceof Error && err.name === 'AbortError') return;
       const message =
         err instanceof Error
           ? err.message
@@ -155,6 +174,9 @@ export default function DividirPdfPage() {
       setProgressMsg('');
       ga.endProcess(false, startedAt);
     } finally {
+      if (abortRef.current === ac) {
+        abortRef.current = null;
+      }
       setIsProcessing(false);
     }
   };
@@ -213,7 +235,10 @@ export default function DividirPdfPage() {
             multiple={false}
             onReject={(msg) => setError(msg)}
             labels={{
+              idle: 'Arraste e solte seu PDF',
+              dragging: 'Solte o PDF aqui',
               hint: `ou clique para escolher · ${dropZoneLimitHint('pdf_single')}`,
+              ariaLabel: 'Selecionar PDF para extrair páginas',
             }}
           />
         ) : (
@@ -307,6 +332,7 @@ export default function DividirPdfPage() {
                     className="btn-primary w-full sm:w-auto sm:min-w-[200px]"
                     disabled={!canExtract}
                     aria-describedby={error ? errorId : undefined}
+                    aria-busy={isProcessing}
                   >
                     {isProcessing ? (
                       <>

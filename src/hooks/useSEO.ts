@@ -70,7 +70,22 @@ function upsertRobots(content: string | null): void {
 /**
  * Hook de SEO dinâmico para SPA (React Router).
  * Atualiza title, meta description, Open Graph e **sempre** a tag
- * <link rel="canonical"> self-referencing absoluta (SITE_ORIGIN).
+ * <link rel="canonical"> self-referencing absoluta (`SITE_ORIGIN`).
+ *
+ * ## Canonical / crawlers (estado documentado)
+ *
+ * - **Home estática:** `index.html` já inclui
+ *   `<link rel="canonical" href="https://easypdflocal.com.br/" />`
+ *   legível sem JS (primeiro hit HTML).
+ * - **Demais rotas:** em SPA pura (Vite → Cloudflare Pages / SWA),
+ *   o HTML servido é o mesmo shell; a canonical por rota é atualizada
+ *   aqui via DOM após o React hidratar. Crawlers que executam JS
+ *   (Googlebot moderno) veem a URL correta; bots só-HTML veem a home.
+ * - **Não viável de forma simples no deploy estático:** gerar um
+ *   `index.html` distinto por rota (SSR/prerender multi-page) sem
+ *   complicar o pipeline Cloudflare Pages. `sitemap.xml` + canonical
+ *   runtime cobrem o caso prático.
+ * - Sempre absolute HTTPS, sem query/hash (`buildCanonicalUrl`).
  */
 export function useSEO({
   title,
@@ -102,7 +117,7 @@ export function useSEO({
     upsertMeta('property', 'og:image', `${SITE_ORIGIN}/og-image.png`);
     upsertMeta('name', 'twitter:image', `${SITE_ORIGIN}/og-image.png`);
 
-    // Canonical self-referencing (sempre)
+    // Canonical self-referencing (sempre; sobrescreve a da home no shell)
     const canonicalUrl = buildCanonicalUrl(effectivePath);
     upsertCanonical(canonicalUrl);
     upsertMeta('property', 'og:url', canonicalUrl);

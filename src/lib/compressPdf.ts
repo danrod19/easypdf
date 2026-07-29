@@ -106,10 +106,26 @@ export function dataUrlToBytes(dataUrl: string): Uint8Array {
  * Limitação intencional (privacidade / client-side): cada página vira imagem JPEG.
  * Texto deixa de ser selecionável; ótimo para scans e PDFs com fotos pesadas.
  */
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw new DOMException('Processamento cancelado.', 'AbortError');
+  }
+}
+
+/**
+ * Comprime um PDF no navegador via rasterização (pdf.js → canvas → JPEG → pdf-lib).
+ *
+ * **Main thread only:** depende de Canvas 2D e pdf.js no DOM.
+ * Não roda no Web Worker de pdf-lib (sem OffscreenCanvas + worker pdf.js).
+ * Use `signal` para cancelar no unmount (entre páginas).
+ *
+ * Limitação: cada página vira JPEG — texto deixa de ser selecionável.
+ */
 export async function compressPdf(
   file: File,
   level: CompressionLevel = DEFAULT_COMPRESSION_LEVEL,
-  onProgress?: CompressProgressCallback
+  onProgress?: CompressProgressCallback,
+  signal?: AbortSignal
 ): Promise<CompressPdfResult> {
   const preset = COMPRESSION_PRESETS[level];
   if (!preset) {
@@ -121,6 +137,7 @@ export async function compressPdf(
     throw new Error('O arquivo parece estar vazio.');
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 3, message: `Lendo ${file.name}…` });
 
   let arrayBuffer: ArrayBuffer;
@@ -130,9 +147,11 @@ export async function compressPdf(
     throw new Error(`Não foi possível ler o arquivo "${file.name}".`);
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 8, message: 'Carregando visualizador…' });
 
   const pdfjs = await loadPdfJs();
+  throwIfAborted(signal);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let pdf: any;
@@ -166,82 +185,94 @@ export async function compressPdf(
   const outDoc = await PDFDocument.create();
   const { jpegQuality, scale } = preset;
 
-  for (let pageNum = 1; pageNum <= pageCount; pageNum++) {
-    const percent = 12 + Math.round((pageNum / pageCount) * 80);
+  try {
+    for (let pageNum = 1; pageNum <= pageCount; pageNum++) {
+      throwIfAborted(signal);
+
+      const percent = 12 + Math.round((pageNum / pageCount) * 80);
+      onProgress?.({
+        percent,
+        message: `Comprimindo página ${pageNum} de ${pageCount}…`,
+        currentPage: pageNum,
+        totalPages: pageCount,
+      });
+
+      const page = await pdf.getPage(pageNum);
+      throwIfAborted(signal);
+      const viewport = page.getViewport({ scale });
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.floor(viewport.width));
+      canvas.height = Math.max(1, Math.floor(viewport.height));
+
+      const ctx = canvas.getContext('2d', { alpha: false });
+      if (!ctx) {
+        throw new Error('Canvas 2D indisponível neste navegador.');
+      }
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      await page.render({
+        canvasContext: ctx,
+        viewport,
+        canvas,
+      }).promise;
+
+      throwIfAborted(signal);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', jpegQuality);
+      const jpegBytes = dataUrlToBytes(dataUrl);
+      const image = await outDoc.embedJpg(jpegBytes);
+
+      const pageWidth = viewport.width / scale;
+      const pageHeight = viewport.height / scale;
+      const pdfPage = outDoc.addPage([pageWidth, pageHeight]);
+      pdfPage.drawImage(image, {
+        x: 0,
+        y: 0,
+        width: pageWidth,
+        height: pageHeight,
+      });
+
+      canvas.width = 0;
+      canvas.height = 0;
+    }
+
+    throwIfAborted(signal);
     onProgress?.({
-      percent,
-      message: `Comprimindo página ${pageNum} de ${pageCount}…`,
-      currentPage: pageNum,
+      percent: 95,
+      message: 'Gerando arquivo final…',
       totalPages: pageCount,
     });
 
-    const page = await pdf.getPage(pageNum);
-    const viewport = page.getViewport({ scale });
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.max(1, Math.floor(viewport.width));
-    canvas.height = Math.max(1, Math.floor(viewport.height));
+    const bytes = await outDoc.save({ useObjectStreams: true });
+    const compressedSize = bytes.byteLength;
+    const reductionPercent =
+      originalSize > 0
+        ? Math.round(((originalSize - compressedSize) / originalSize) * 1000) /
+          10
+        : 0;
 
-    const ctx = canvas.getContext('2d', { alpha: false });
-    if (!ctx) {
-      throw new Error('Canvas 2D indisponível neste navegador.');
-    }
-
-    // Fundo branco (evita transparência preta no JPEG)
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    await page.render({
-      canvasContext: ctx,
-      viewport,
-      canvas,
-    }).promise;
-
-    // Raster → JPEG com qualidade do nível escolhido
-    const dataUrl = canvas.toDataURL('image/jpeg', jpegQuality);
-    const jpegBytes = dataUrlToBytes(dataUrl);
-    const image = await outDoc.embedJpg(jpegBytes);
-
-    // Tamanho da página em pontos PDF (72 DPI): divide pelo scale de render
-    const pageWidth = viewport.width / scale;
-    const pageHeight = viewport.height / scale;
-    const pdfPage = outDoc.addPage([pageWidth, pageHeight]);
-    pdfPage.drawImage(image, {
-      x: 0,
-      y: 0,
-      width: pageWidth,
-      height: pageHeight,
+    onProgress?.({
+      percent: 100,
+      message: 'Concluído!',
+      totalPages: pageCount,
     });
 
-    // Libera memória do canvas o quanto antes
-    canvas.width = 0;
-    canvas.height = 0;
+    return {
+      bytes,
+      originalSize,
+      compressedSize,
+      reductionPercent,
+      pageCount,
+      level,
+    };
+  } finally {
+    try {
+      await pdf.cleanup?.();
+      await pdf.destroy?.();
+    } catch {
+      // ignore
+    }
   }
-
-  onProgress?.({
-    percent: 95,
-    message: 'Gerando arquivo final…',
-    totalPages: pageCount,
-  });
-
-  const bytes = await outDoc.save({ useObjectStreams: true });
-  const compressedSize = bytes.byteLength;
-  const reductionPercent =
-    originalSize > 0
-      ? Math.round(((originalSize - compressedSize) / originalSize) * 1000) / 10
-      : 0;
-
-  onProgress?.({
-    percent: 100,
-    message: 'Concluído!',
-    totalPages: pageCount,
-  });
-
-  return {
-    bytes,
-    originalSize,
-    compressedSize,
-    reductionPercent,
-    pageCount,
-    level,
-  };
 }

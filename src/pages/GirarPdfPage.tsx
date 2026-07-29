@@ -1,4 +1,4 @@
-import { useCallback, useId, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
   Loader2,
   RotateCcw,
@@ -23,7 +23,6 @@ import { useFileIntake } from '../hooks/useFileIntake';
 import { dropZoneLimitHint } from '../lib/fileValidation';
 import {
   applyRotationDelta,
-  applyRotationsToPdf,
   countPendingRotations,
   createZeroRotations,
   getPdfPageCount,
@@ -31,6 +30,7 @@ import {
   parsePageRange,
   rotatedFileName,
 } from '../lib/rotatePdf';
+import { applyRotationsPreferWorker } from '../lib/pdfOpsWorker';
 import { downloadBlob, formatBytes } from '../lib/format';
 import type { FaqItem } from '../data/faq';
 
@@ -75,8 +75,14 @@ type Mode = 'all' | 'specific';
 export default function GirarPdfPage() {
   const errorId = useId();
   const rangeId = useId();
+  const tabAllId = useId();
+  const tabSpecificId = useId();
+  const panelAllId = useId();
+  const panelSpecificId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.GIRAR_PDF);
   const intake = useFileIntake(TOOL_NAMES.GIRAR_PDF, 'pdf_single');
+  /** Cancela o Web Worker de rotação ao sair da página */
+  const abortRef = useRef<AbortController | null>(null);
 
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number | null>(null);
@@ -96,6 +102,13 @@ export default function GirarPdfPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
   const [previewFileName, setPreviewFileName] = useState('');
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+      abortRef.current = null;
+    };
+  }, []);
 
   const pendingCount = useMemo(
     () => countPendingRotations(rotations),
@@ -241,6 +254,10 @@ export default function GirarPdfPage() {
       return;
     }
 
+    abortRef.current?.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
+
     setIsProcessing(true);
     setError(null);
     setSuccess(null);
@@ -252,14 +269,17 @@ export default function GirarPdfPage() {
     const startedAt = ga.startProcess(1);
 
     try {
-      const bytes = await applyRotationsToPdf(
+      const bytes = await applyRotationsPreferWorker(
         file,
         rotations,
         ({ percent, message }) => {
           setProgress(percent);
           setProgressMsg(message);
-        }
+        },
+        ac.signal
       );
+
+      if (ac.signal.aborted) return;
 
       const outName = rotatedFileName(file.name);
       const stableBytes = new Uint8Array(bytes);
@@ -286,6 +306,8 @@ export default function GirarPdfPage() {
       setDownloadSuccess(true);
       ga.endProcess(true, startedAt);
     } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      if (err instanceof Error && err.name === 'AbortError') return;
       const message =
         err instanceof Error
           ? err.message
@@ -296,6 +318,9 @@ export default function GirarPdfPage() {
       setProgressMsg('');
       ga.endProcess(false, startedAt);
     } finally {
+      if (abortRef.current === ac) {
+        abortRef.current = null;
+      }
       setIsProcessing(false);
     }
   };
@@ -354,7 +379,10 @@ export default function GirarPdfPage() {
             multiple={false}
             onReject={(msg) => setError(msg)}
             labels={{
+              idle: 'Arraste e solte seu PDF',
+              dragging: 'Solte o PDF aqui',
               hint: `ou clique para escolher · ${dropZoneLimitHint('pdf_single')}`,
+              ariaLabel: 'Selecionar PDF para girar páginas',
             }}
           />
         ) : (
@@ -424,8 +452,11 @@ export default function GirarPdfPage() {
                   <button
                     type="button"
                     role="tab"
+                    id={tabAllId}
                     aria-selected={mode === 'all'}
-                    className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
+                    aria-controls={panelAllId}
+                    tabIndex={mode === 'all' ? 0 : -1}
+                    className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 ${
                       mode === 'all'
                         ? 'bg-white text-orange-700 shadow-sm dark:bg-slate-800 dark:text-orange-300'
                         : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
@@ -437,8 +468,11 @@ export default function GirarPdfPage() {
                   <button
                     type="button"
                     role="tab"
+                    id={tabSpecificId}
                     aria-selected={mode === 'specific'}
-                    className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
+                    aria-controls={panelSpecificId}
+                    tabIndex={mode === 'specific' ? 0 : -1}
+                    className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 ${
                       mode === 'specific'
                         ? 'bg-white text-orange-700 shadow-sm dark:bg-slate-800 dark:text-orange-300'
                         : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
@@ -452,8 +486,9 @@ export default function GirarPdfPage() {
                 {mode === 'all' ? (
                   <div
                     role="tabpanel"
+                    id={panelAllId}
+                    aria-labelledby={tabAllId}
                     className="space-y-4"
-                    aria-label="Girar todas as páginas"
                   >
                     <p className="text-sm text-slate-600 dark:text-slate-400">
                       Aplica 90° em todas as {pageCount} páginas de uma vez.
@@ -483,8 +518,9 @@ export default function GirarPdfPage() {
                 ) : (
                   <div
                     role="tabpanel"
+                    id={panelSpecificId}
+                    aria-labelledby={tabSpecificId}
                     className="space-y-4"
-                    aria-label="Girar páginas específicas"
                   >
                     <div className="space-y-2">
                       <label
@@ -576,6 +612,7 @@ export default function GirarPdfPage() {
                 disabled={!canSave}
                 onClick={() => void handleSave()}
                 aria-describedby={error ? errorId : undefined}
+                aria-busy={isProcessing}
               >
                 {isProcessing ? (
                   <>
