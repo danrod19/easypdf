@@ -97,6 +97,7 @@ export function StickyCta({
           type="button"
           onClick={handleClick}
           tabIndex={visible ? 0 : -1}
+          aria-label={label}
           className="btn-primary w-full shrink-0 !rounded-xl !px-4 !py-2.5 text-sm sm:w-auto"
         >
           <Upload className="h-4 w-4" aria-hidden />

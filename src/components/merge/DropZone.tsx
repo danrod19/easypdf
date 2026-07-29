@@ -104,6 +104,9 @@ export function DropZone({
       id={id}
       role="button"
       tabIndex={disabled ? -1 : 0}
+      aria-label={ariaLabel}
+      aria-disabled={disabled || undefined}
+      aria-describedby={`${id}-hint`}
       onKeyDown={(e) => {
         if (disabled) return;
         if (e.key === 'Enter' || e.key === ' ') {
@@ -115,8 +118,7 @@ export function DropZone({
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
-      aria-disabled={disabled}
-      className={`relative flex min-h-[220px] scroll-mt-24 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-12 text-center transition duration-200
+      className={`relative flex min-h-[220px] scroll-mt-24 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-12 text-center transition duration-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-300 dark:focus-visible:ring-brand-800
         ${
           disabled
             ? 'cursor-not-allowed border-slate-200 bg-slate-50 opacity-60 dark:border-slate-700 dark:bg-slate-900'
@@ -125,6 +127,7 @@ export function DropZone({
               : 'border-slate-300 bg-slate-50 hover:border-brand-400 hover:bg-brand-50/50 dark:border-slate-600 dark:bg-slate-900/40 dark:hover:border-brand-500 dark:hover:bg-brand-950/30'
         }`}
     >
+      {/* Input real: fora da ordem de tab (o role=button é o controle de teclado) */}
       <input
         ref={inputRef}
         type="file"
@@ -133,7 +136,8 @@ export function DropZone({
         className="sr-only"
         disabled={disabled}
         onChange={onChange}
-        aria-label={ariaLabel}
+        tabIndex={-1}
+        aria-hidden
       />
 
       <div
@@ -142,6 +146,7 @@ export function DropZone({
             ? 'bg-brand-600 text-white'
             : 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
         }`}
+        aria-hidden
       >
         <UploadIcon className="h-7 w-7" />
       </div>
@@ -149,7 +154,10 @@ export function DropZone({
       <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">
         {isDragging ? dragging : idle}
       </p>
-      <p className="mt-1 max-w-sm text-sm text-slate-500 dark:text-slate-400">
+      <p
+        id={`${id}-hint`}
+        className="mt-1 max-w-sm text-sm text-slate-500 dark:text-slate-400"
+      >
         {hint}
       </p>
     </div>

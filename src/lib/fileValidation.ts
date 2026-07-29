@@ -83,22 +83,70 @@ export function formatLimitMb(bytes: number): number {
   return Math.round(bytes / (1024 * 1024));
 }
 
-/** Conta páginas de um PDF (após validar tamanho). */
+type PdfDocLike = {
+  numPages: number;
+  destroy?: () => void | Promise<void>;
+};
+
+async function destroyPdf(pdf: PdfDocLike | null | undefined): Promise<void> {
+  if (!pdf?.destroy) return;
+  try {
+    await pdf.destroy();
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Conta páginas de um PDF **sem** materializar o arquivo inteiro em um
+ * `Uint8Array` no caminho principal.
+ *
+ * Estratégia:
+ * 1) `URL.createObjectURL(file)` + pdf.js com `disableAutoFetch: true`
+ *    — o parser lê sob demanda (blob range/slice), não um arrayBuffer completo.
+ * 2) Fallback (arquivos ≤ 2 MB ou falha do stream): `arrayBuffer()` clássico.
+ *
+ * Limitações: o worker do pdf.js ainda pode alocar buffers internos; o ganho
+ * principal é evitar um segundo/duplicado arrayBuffer grande na main thread
+ * só para validação. A contagem (`numPages`) permanece a do documento real.
+ */
 export async function getPdfPageCount(file: File): Promise<number> {
   const pdfjs = await loadPdfJs();
-  const data = new Uint8Array(await file.arrayBuffer());
-  const loadingTask = pdfjs.getDocument({ data });
+
+  // —— Caminho leve: blob URL + fetch sob demanda ——
+  const objectUrl = URL.createObjectURL(file);
+  let pdf: PdfDocLike | null = null;
   try {
-    const pdf = await loadingTask.promise;
+    const loadingTask = pdfjs.getDocument({
+      url: objectUrl,
+      // Não pré-busca o PDF inteiro após abrir o header/xref
+      disableAutoFetch: true,
+      // Stream a partir do blob (slice), em vez de carregar tudo de uma vez
+      disableStream: false,
+      // Não precisa de páginas renderizadas para numPages
+      stopAtErrors: false,
+    });
+    pdf = (await loadingTask.promise) as PdfDocLike;
     const count = pdf.numPages;
-    // destroy() exists at runtime; some pdfjs type packages omit it
-    const destroy = (pdf as { destroy?: () => void | Promise<void> }).destroy;
-    if (destroy) await destroy.call(pdf);
-    return count;
+    if (typeof count === 'number' && count >= 0) {
+      return count;
+    }
+    throw new Error('numPages inválido');
   } catch {
-    throw new Error(
-      'Não foi possível ler este PDF. O arquivo pode estar danificado ou protegido.'
-    );
+    // —— Fallback: arrayBuffer (quando o stream do blob falha) ——
+    try {
+      const data = new Uint8Array(await file.arrayBuffer());
+      const loadingTask = pdfjs.getDocument({ data });
+      pdf = (await loadingTask.promise) as PdfDocLike;
+      return pdf.numPages;
+    } catch {
+      throw new Error(
+        'Não foi possível ler este PDF. O arquivo pode estar danificado ou protegido.'
+      );
+    }
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+    await destroyPdf(pdf);
   }
 }
 
