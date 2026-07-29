@@ -20,8 +20,12 @@ export type BlogPostMeta = {
    * Meta description SEO (~155 chars). Se omitido, usa `excerpt`.
    */
   seoDescription?: string;
-  /** ISO date YYYY-MM-DD */
+  /** ISO date YYYY-MM-DD (datePublished) */
   date: string;
+  /**
+   * ISO date YYYY-MM-DD (dateModified). Se omitido, schema usa `date`.
+   */
+  dateModified?: string;
   /** Ex.: "6 min" */
   readTime: string;
   /** Tags opcionais para UI */

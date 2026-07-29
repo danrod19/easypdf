@@ -4,11 +4,16 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ArrowLeft, Clock } from 'lucide-react';
 import { Seo } from '../components/Seo';
+import { JsonLd } from '../components/JsonLd';
 import {
   formatBlogDate,
   getBlogPostBySlug,
 } from '../data/blogPosts';
 import { SITE_NAME } from '../data/seo';
+import {
+  buildBlogPostingSchema,
+  buildBreadcrumbListSchema,
+} from '../data/schema';
 
 type LoadState =
   | { status: 'loading' }
@@ -74,6 +79,13 @@ export default function BlogPostPage() {
     );
   }
 
+  const articleSchema = buildBlogPostingSchema(meta);
+  const breadcrumbSchema = buildBreadcrumbListSchema([
+    { name: 'Início', path: '/' },
+    { name: 'Blog', path: '/blog' },
+    { name: meta.title, path: `/blog/${meta.slug}` },
+  ]);
+
   return (
     <>
       <Seo
@@ -81,6 +93,8 @@ export default function BlogPostPage() {
         description={meta.seoDescription ?? meta.excerpt}
         path={`/blog/${meta.slug}`}
       />
+      <JsonLd id={`article-${meta.slug}`} data={articleSchema} />
+      <JsonLd id={`breadcrumb-blog-${meta.slug}`} data={breadcrumbSchema} />
 
       <article className="mx-auto max-w-3xl">
         <Link

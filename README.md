@@ -34,19 +34,42 @@ npm install
 npm run dev
 ```
 
-## Build estático (Azure SWA)
+## Build estático (Cloudflare Pages / Azure SWA)
 
 ```bash
+# 1ª vez (e no CI): baixar Chromium do Playwright
+npm run playwright:install
+
 npm run build
 ```
 
-A pasta `dist/` contém os arquivos estáticos. O `public/staticwebapp.config.json` configura o fallback de SPA para deep-links.
+`npm run build` = `tsc` + `vite build` + **prerender** (`scripts/prerender.mjs`).
+
+A pasta `dist/` contém:
+- assets JS/CSS do Vite
+- **HTML pré-renderizado por rota** (ex.: `dist/juntar-pdf/index.html`) com title, meta, canonical, H1 e conteúdo já no HTML — sem depender de JS para o Googlebot “enxergar” a página.
+
+Pular prerender (emergência): `npm run build:skip-prerender` ou `SKIP_PRERENDER=1 npm run build`.
+
+### Pré-render (SEO)
+
+| Item | Detalhe |
+|------|---------|
+| Como funciona | Pós-build: servidor local do `dist` + Playwright visita cada rota, grava o HTML renderizado |
+| Lista de rotas | `scripts/prerender-routes.mjs` |
+| Nova rota | 1) rota no `App.tsx` 2) path em `PRERENDER_ROUTES` 3) `npm run build` |
+| Validar | Abrir `dist/juntar-pdf/index.html` e buscar `easypdf-prerender`, `<title>`, `canonical`, `<h1>` |
+| Cloudflare Pages | Build command: `npm ci && npx playwright install chromium && npm run build` · Output: `dist` |
+| SPA client | Inalterada (`createRoot`); o HTML estático só melhora o 1º documento dos crawlers |
+
+**Limitações:** precisa de Chromium no ambiente de build; CookieBanner/ads podem aparecer no HTML capturado; estado 100% dinâmico (resultado de upload) não é pré-renderizado.
 
 ### Azure Static Web Apps
 
 - **App location**: `/` (raiz do repo ou `pdf-local`)
 - **Output location**: `dist`
 - **API location**: (vazio — sem backend)
+- `public/staticwebapp.config.json` — fallback SPA só quando o arquivo da rota **não** existe (prerender tem prioridade)
 
 ## Privacidade
 

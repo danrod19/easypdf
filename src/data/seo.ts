@@ -49,9 +49,9 @@ export const seoByPath: Record<string, SeoMeta> = {
     path: '/',
   },
   '/juntar-pdf': {
-    title: 'Juntar PDF Online e Seguro | Sem Upload para a Nuvem',
+    title: 'Juntar PDF Online Grátis | Sem Upload e Sem Cadastro',
     description:
-      'Una vários PDFs em um só arquivo, grátis e no navegador. Merge com pdf-lib no seu dispositivo — zero upload, privacidade total. Sem cadastro.',
+      'Junte vários PDFs grátis no navegador, sem upload e sem cadastro. Merge local, ordem das páginas e privacidade total no seu dispositivo.',
     path: '/juntar-pdf',
   },
   '/dividir-pdf': {
@@ -79,9 +79,9 @@ export const seoByPath: Record<string, SeoMeta> = {
     path: '/desenhar-pdf',
   },
   '/word-para-pdf': {
-    title: 'Word para PDF Online Grátis | Conversão Local Segura',
+    title: 'Word para PDF Online Grátis | Sem Upload e Sem Instalar',
     description:
-      'Converta DOCX em PDF no navegador, sem enviar o documento para servidores. Conversão client-side, privada e gratuita. Sem cadastro.',
+      'Converta Word (DOCX) para PDF grátis no navegador, sem instalar programa, sem upload e sem cadastro. Conversão 100% local.',
     path: '/word-para-pdf',
   },
   '/imagem-para-pdf': {
@@ -115,10 +115,16 @@ export const seoByPath: Record<string, SeoMeta> = {
     path: '/remover-paginas',
   },
   '/comprimir-pdf': {
-    title: 'Comprimir PDF Online Grátis | Reduzir Tamanho Local Seguro',
+    title: 'Comprimir PDF Online Grátis | Sem Upload no Navegador',
     description:
-      'Comprima PDF no navegador sem upload. Ideal para scans e fotos pesadas — escolha o nível e baixe um arquivo mais leve, privado e grátis.',
+      'Comprima PDF grátis no navegador ou no celular, sem app, sem upload e sem cadastro. Reduza tamanho com privacidade local.',
     path: '/comprimir-pdf',
+  },
+  '/pdf-sem-upload': {
+    title: 'PDF sem Upload | Ferramentas Locais no Navegador',
+    description:
+      'Processe PDFs no navegador sem enviar arquivos para a nuvem. Privacidade, LGPD e ferramentas grátis sem cadastro — Easy PDF Local.',
+    path: '/pdf-sem-upload',
   },
   '/privacidade': {
     title: 'Política de Privacidade | Easy PDF Local',

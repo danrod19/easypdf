@@ -20,6 +20,12 @@ export function Footer() {
             Juntar PDF
           </Link>
           <Link
+            to="/pdf-sem-upload"
+            className="hover:text-brand-600 dark:hover:text-brand-400"
+          >
+            PDF sem upload
+          </Link>
+          <Link
             to="/dividir-pdf"
             className="hover:text-brand-600 dark:hover:text-brand-400"
           >

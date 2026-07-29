@@ -18,7 +18,34 @@ export type SeoFaq = {
   answer: string;
 };
 
+export type SeoUseCase = {
+  title: string;
+  description: string;
+};
+
+export type SeoRelatedLink = {
+  path: string;
+  label: string;
+  description?: string;
+};
+
 export type ToolSeoBlock = {
+  /**
+   * Nome da ferramenta para schema WebApplication / breadcrumb
+   * (ex.: "Juntar PDF").
+   */
+  toolName?: string;
+  /**
+   * Parágrafos de visão geral (abaixo da UI, antes do passo a passo).
+   * Preferir 2–4 blocos para profundidade SEO sem wall of text.
+   */
+  overview?: string[];
+  /** Para quem é a ferramenta */
+  audienceTitle?: string;
+  audience?: string;
+  /** Casos de uso práticos */
+  useCasesTitle?: string;
+  useCases?: SeoUseCase[];
   /** H2 principal do bloco (passo a passo) */
   howToTitle: string;
   /** Intro opcional sob o H2 */
@@ -28,9 +55,22 @@ export type ToolSeoBlock = {
   benefitsTitle: string;
   benefitsIntro?: string;
   benefits: SeoBenefit[];
+  /** Limites técnicos honestos */
+  limitsTitle?: string;
+  limitsIntro?: string;
+  /** Itens curtos de limite (rótulo + valor/texto) */
+  limits?: { label: string; text: string }[];
   /** H3 FAQ textual (além do accordion, se houver) */
   faqTitle: string;
   faqs: SeoFaq[];
+  /** Links internos para tools/posts relacionados */
+  relatedTitle?: string;
+  related?: SeoRelatedLink[];
+  /**
+   * Descrição curta para schema WebApplication
+   * (fallback: howToIntro).
+   */
+  schemaDescription?: string;
 };
 
 /** Home — bloco de conteúdo SEO abaixo do hero/grid */
@@ -100,74 +140,158 @@ export const homeSeoContent: ToolSeoBlock = {
   ],
 };
 
-/** /juntar-pdf — modelo de conteúdo SEO para página de ferramenta */
+/** /juntar-pdf — conteúdo SEO expandido (tool top) */
 export const juntarPdfSeoContent: ToolSeoBlock = {
-  howToTitle: 'Como juntar arquivos PDF de forma segura',
+  toolName: 'Juntar PDF',
+  schemaDescription:
+    'Junte vários PDFs grátis no navegador, sem upload e sem cadastro. Merge local com pdf-lib no seu dispositivo.',
+  overview: [
+    'Juntar PDF (também chamado de unir ou mesclar PDFs) é a operação de combinar dois ou mais arquivos em um único documento, na ordem que você definir. No Easy PDF Local isso acontece 100% no navegador: você seleciona os PDFs no computador ou no celular, reordena a fila se precisar e gera o arquivo unificado sem enviar nada para um servidor nosso.',
+    'A maioria dos sites “juntar PDF online” pede upload. O arquivo sobe, é processado na nuvem e volta no download. Funciona, mas contratos, laudos, material de estudo e documentos pessoais passam por um ambiente que você não controla. Aqui o modelo é o inverso: a ferramenta roda no seu dispositivo; o diferencial é privacidade e simplicidade — grátis e sem cadastro.',
+    'O merge usa pdf-lib em JavaScript (com Web Worker quando disponível, e fallback na thread principal). As páginas originais são copiadas para o PDF final: não é uma reimpressão por imagem, então a qualidade de texto e vetores em geral se mantém. Depois você confere a pré-visualização e baixa quando quiser.',
+  ],
+  audienceTitle: 'Para quem serve juntar PDF sem upload',
+  audience:
+    'Profissionais que montam propostas com anexos; estudantes que unem capítulos e listas; quem recebe vários PDFs no WhatsApp e precisa de um só arquivo; suporte e administrativo que consolidam comprovantes. Também quem lida com LGPD ou política interna de não enviar documentos a conversores de terceiros.',
+  useCasesTitle: 'Casos de uso práticos',
+  useCases: [
+    {
+      title: 'Proposta + anexos técnicos',
+      description:
+        'Una a apresentação, o escopo e os apêndices em um único PDF na ordem certa antes de enviar ao cliente.',
+    },
+    {
+      title: 'Material de estudo',
+      description:
+        'Junte slides, resumos e exercícios em um arquivo para revisar offline no tablet ou no celular.',
+    },
+    {
+      title: 'Comprovantes e formulários',
+      description:
+        'Reúna boletos, RG digitalizado e formulários preenchidos em um pacote único para protocolo.',
+    },
+    {
+      title: 'No celular, sem instalar app',
+      description:
+        'Abra a página no navegador, selecione os PDFs da pasta Downloads e baixe o resultado — sem conta e sem app extra.',
+    },
+  ],
+  howToTitle: 'Como juntar PDFs no navegador (passo a passo)',
   howToIntro:
-    'Com a ferramenta Juntar PDF do Easy PDF Local você une dois ou mais documentos em um único arquivo, na ordem que escolher, sem enviar nada para a nuvem.',
+    'O fluxo fica no topo da página. Em poucos passos você une os arquivos localmente, sem cadastro e sem upload para a nuvem da ferramenta.',
   steps: [
     {
       title: 'Adicione 2 ou mais PDFs',
       description:
-        'Arraste os arquivos para a área de upload ou clique para selecioná-los no computador ou celular. Aceitamos apenas PDF; a validação ocorre no navegador.',
+        'Arraste os arquivos ou clique para escolher no dispositivo. Só PDF; a validação de tipo e tamanho roda no navegador.',
     },
     {
-      title: 'Reordene a lista (opcional)',
+      title: 'Reordene a lista',
       description:
-        'Use as setas para definir a sequência das páginas no PDF final. O primeiro da lista será o início do documento unificado.',
+        'Use subir/descer para definir a sequência das páginas no arquivo final. O primeiro da fila será o início do PDF unido.',
     },
     {
-      title: 'Clique em Juntar e baixe o resultado',
+      title: 'Clique em juntar',
       description:
-        'O merge roda localmente com pdf-lib. Em segundos (conforme o tamanho), o PDF unificado é gerado e o download inicia no seu dispositivo.',
+        'O merge roda no seu aparelho (Worker quando possível). Acompanhe o progresso na barra; em arquivos grandes pode demorar conforme a CPU e a RAM.',
+    },
+    {
+      title: 'Pré-visualize e baixe',
+      description:
+        'Confira o resultado no modal e salve o PDF no dispositivo. O original de cada arquivo permanece onde estava — você só cria uma cópia unificada.',
     },
   ],
-  benefitsTitle: 'Benefícios de juntar PDF no navegador (sem upload)',
+  benefitsTitle: 'Por que juntar PDF aqui (sem upload e sem cadastro)',
   benefitsIntro:
-    'Unir PDFs online costuma significar enviar contratos e dados sensíveis a um servidor. Aqui o fluxo é o oposto: o servidor não recebe o arquivo.',
+    'Unir PDFs “online” não precisa significar entregar o documento a um data center. O valor está no processamento local e no fluxo sem atrito.',
   benefits: [
     {
-      title: 'Privacidade total com processamento client-side',
+      title: 'Seu arquivo não sobe para processar',
       description:
-        'O merge acontece via JavaScript (pdf-lib) na memória do navegador. Não há upload para a Easy PDF Local nem armazenamento temporário em nuvem.',
+        'Os PDFs ficam na memória do navegador durante o merge. Não há armazenamento do conteúdo em servidor nosso para “juntar na nuvem”.',
     },
     {
-      title: 'Controle da ordem das páginas',
+      title: 'Controle total da ordem',
       description:
-        'Antes de mesclar, você organiza a lista. Ideal para relatórios, apostilas, anexos de proposta comercial e documentos digitalizados em partes.',
+        'A fila editável evita o erro clássico de anexo na ordem errada — comum quando se unem arquivos às pressas.',
     },
     {
-      title: 'Sem cadastro e sem cota diária de uso',
+      title: 'Grátis, no navegador, sem conta',
       description:
-        'Não criamos usuário nem exigimos login. Você pode juntar PDFs quantas vezes precisar no dia a dia. Há limites técnicos de tamanho e quantidade de arquivos para o merge local permanecer estável no navegador.',
+        'Sem e-mail obrigatório, sem trial e sem instalar suíte desktop só para um merge pontual.',
     },
     {
-      title: 'Adequado a arquivos confidenciais',
+      title: 'Qualidade das páginas preservada no merge',
       description:
-        'Como o PDF não trafega para nossos servidores, o risco de interceptação ou retenção do documento no backend deixa de existir neste fluxo.',
+        'Ao copiar páginas com pdf-lib, o fluxo não rasteriza o documento só por unir — diferente da compressão por imagem desta suíte.',
     },
   ],
-  faqTitle: 'FAQ: juntar PDF com segurança',
+  limitsTitle: 'Limites técnicos (para o navegador não travar)',
+  limitsIntro:
+    'Como tudo roda no seu aparelho, há tetos de segurança — não são “cota de plano pago”, e sim proteção de memória (sobretudo no celular).',
+  limits: [
+    { label: 'Por arquivo', text: 'Até cerca de 50 MB cada PDF.' },
+    { label: 'Quantidade', text: 'Até 20 arquivos por operação de merge.' },
+    { label: 'Total da fila', text: 'Até cerca de 80 MB somados.' },
+    {
+      label: 'Se passar do limite',
+      text: 'Junte em lotes menores ou comprima scans pesados antes. Em PCs fracos, prefira menos arquivos por vez.',
+    },
+  ],
+  faqTitle: 'Perguntas frequentes sobre juntar PDF',
   faqs: [
     {
-      question: 'Meus arquivos são enviados para a internet?',
+      question: 'Juntar PDF online aqui envia meu arquivo para a nuvem?',
       answer:
-        'Não. Ao selecionar os PDFs, eles ficam na memória local do navegador. O algoritmo de união (pdf-lib) roda no seu dispositivo e o arquivo final é baixado dali. Nossos servidores não recebem o conteúdo dos documentos.',
+        'Não para processar o merge. Os PDFs permanecem no navegador; o algoritmo de união roda no dispositivo e o download parte dali. A rede só é usada para carregar a página e os scripts da ferramenta.',
     },
     {
-      question: 'Posso usar offline?',
+      question: 'Preciso me cadastrar ou pagar?',
       answer:
-        'Sim, no sentido de que o merge em si não envia arquivos. Você precisa carregar o site uma vez (com internet) para baixar a aplicação. Depois disso, a junção dos PDFs não depende de upload. Em abas já abertas, o processamento continua local.',
+        'Não. A ferramenta é grátis e sem cadastro. Pode haver anúncios no site para manter o serviço; o uso do merge em si não exige conta.',
     },
     {
-      question: 'Quantos PDFs posso juntar de uma vez?',
+      question: 'Quantos PDFs posso unir de uma vez?',
       answer:
-        'Até 20 arquivos por vez, com cerca de 50 MB por arquivo e 80 MB no total — limites técnicos do navegador (não de “conta” na nuvem). Para lotes muito grandes, use um computador com mais RAM ou divida em etapas. Não há fila de servidor porque o merge é local.',
+        'Até 20 arquivos, com cerca de 50 MB cada e 80 MB no total da fila. São limites técnicos do cliente, não de “plano”.',
     },
     {
-      question: 'A qualidade do PDF cai ao juntar?',
+      question: 'A qualidade cai ao juntar?',
       answer:
-        'Não. O merge com pdf-lib preserva as páginas originais (texto, vetores e imagens embutidas) na ordem definida — sem recomprimir o conteúdo só por unir os arquivos.',
+        'No merge com pdf-lib as páginas são copiadas; não há recompressão obrigatória só por unir. Texto e imagens embutidas tendem a se manter como no original.',
+    },
+    {
+      question: 'Funciona no celular?',
+      answer:
+        'Sim, no navegador do telefone. Em aparelhos com pouca RAM, use menos arquivos ou tamanhos menores por operação.',
+    },
+    {
+      question: 'E se um PDF tiver senha?',
+      answer:
+        'Arquivos protegidos costumam precisar ser desbloqueados antes (com a senha correta) na ferramenta Desbloquear PDF; depois você junta as cópias liberadas.',
+    },
+  ],
+  relatedTitle: 'Próximos passos e guias',
+  related: [
+    {
+      path: '/comprimir-pdf',
+      label: 'Comprimir PDF',
+      description: 'Reduzir tamanho após unir scans pesados',
+    },
+    {
+      path: '/dividir-pdf',
+      label: 'Dividir PDF',
+      description: 'Extrair só as páginas que importam',
+    },
+    {
+      path: '/blog/juntar-pdf-online-sem-upload',
+      label: 'Guia: juntar PDF sem upload',
+      description: 'Artigo completo no blog',
+    },
+    {
+      path: '/pdf-sem-upload',
+      label: 'PDF sem upload',
+      description: 'Como funciona o modelo local',
     },
   ],
 };
@@ -460,74 +584,162 @@ export const desenharPdfSeoContent: ToolSeoBlock = {
   ],
 };
 
-/** /word-para-pdf */
+/** /word-para-pdf — conteúdo SEO expandido (tool top) */
 export const wordParaPdfSeoContent: ToolSeoBlock = {
-  howToTitle: 'Como converter Word (DOCX) para PDF com segurança',
+  toolName: 'Word para PDF',
+  schemaDescription:
+    'Converta Word (DOCX) para PDF grátis no navegador, sem instalar programa e sem upload. Conversão local e sem cadastro.',
+  overview: [
+    'Converter Word para PDF é o caminho usual quando você precisa enviar um documento com layout mais estável: currículo, trabalho acadêmico, ofício, proposta ou relatório. O PDF reduz surpresas de fonte e formatação entre Windows, Mac e celular.',
+    'No Easy PDF Local a conversão de DOCX para PDF roda no navegador. O arquivo não é enviado a um servidor nosso de conversão: a leitura do DOCX e a geração do PDF acontecem no seu dispositivo. É grátis, sem cadastro e sem instalar Microsoft Word no computador atual.',
+    'O fluxo prático usa bibliotecas client-side (leitura do DOCX e montagem do PDF). Documentos de texto do dia a dia costumam sair bem. Layouts muito complexos, campos avançados ou diagramação editorial podem divergir do Word desktop — por isso a recomendação é sempre revisar o PDF antes de prazos críticos.',
+  ],
+  audienceTitle: 'Para quem converter Word para PDF no navegador',
+  audience:
+    'Estudantes sem suíte Office no PC da biblioteca; candidatos enviando currículo; profissionais que precisam de PDF somente leitura; quem está no celular com um DOCX baixado do e-mail e precisa anexar em PDF; quem não quer subir textos sensíveis a conversores com upload.',
+  useCasesTitle: 'Casos de uso práticos',
+  useCases: [
+    {
+      title: 'Currículo e carta de apresentação',
+      description:
+        'Gere PDF a partir do DOCX para portais de emprego e e-mail, sem instalar Word no PC emprestado.',
+    },
+    {
+      title: 'Trabalho da faculdade',
+      description:
+        'Exporte o texto final em PDF para o prazo do professor, revisando quebras de página antes de enviar.',
+    },
+    {
+      title: 'Documentos internos e checklists',
+      description:
+        'Transforme procedimentos em PDF para distribuição somente leitura na equipe.',
+    },
+    {
+      title: 'Privacidade de dados pessoais',
+      description:
+        'Textos com CPF, endereço ou cláusulas contratuais não precisam atravessar a internet só para mudar de extensão.',
+    },
+  ],
+  howToTitle: 'Como converter Word (DOCX) para PDF sem instalar',
   howToIntro:
-    'Com a ferramenta Word para PDF do Easy PDF Local você transforma documentos DOCX em PDF direto no navegador, sem enviar o arquivo para servidores de conversão.',
+    'Ferramenta no topo da página: selecione o DOCX, converta no navegador e baixe o PDF. Sem conta e sem upload de processamento.',
   steps: [
     {
       title: 'Selecione o arquivo DOCX',
       description:
-        'Escolha o documento Word (.docx) no seu dispositivo. Formatos antigos .doc podem não ser suportados; o DOCX é lido localmente no navegador.',
+        'Escolha o .docx no dispositivo. O foco é DOCX (Office Open XML); .doc legado pode precisar ser salvo como DOCX antes.',
     },
     {
       title: 'Inicie a conversão local',
       description:
-        'O conteúdo é processado no cliente (bibliotecas JS no navegador) e montado em PDF — sem fila na nuvem e sem conta obrigatória.',
+        'O conteúdo é interpretado no cliente e montado em PDF — sem fila em servidor de conversão e sem cadastro.',
     },
     {
-      title: 'Baixe o PDF gerado',
+      title: 'Revise e baixe',
       description:
-        'Ao concluir, o download do PDF parte do seu dispositivo. O DOCX original permanece onde estava; nada fica armazenado conosco.',
+        'Abra o PDF no leitor do sistema, confira layout e imagens, e só então envie a terceiros. O DOCX original permanece no seu disco.',
     },
   ],
-  benefitsTitle: 'Benefícios de converter Word para PDF no navegador',
+  benefitsTitle: 'Por que converter aqui (sem upload e sem programa)',
   benefitsIntro:
-    'Conversores online clássicos fazem upload do DOCX. Currículos, contratos e trabalhos acadêmicos merecem um fluxo sem depósito em servidor de terceiros.',
+    'Conversores clássicos pedem upload do DOCX. Para currículos e textos sensíveis, o modelo local reduz exposição desnecessária.',
   benefits: [
     {
-      title: 'Conversão client-side (sem upload do documento)',
+      title: 'Sem instalar suíte desktop',
       description:
-        'O processamento ocorre no seu aparelho com JavaScript. Reduz a exposição de textos confidenciais em trânsito para APIs de conversão.',
+        'O navegador é o runtime. Útil em máquinas gerenciadas, labs e empréstimos de notebook.',
     },
     {
-      title: 'PDF estável para envio e impressão',
+      title: 'Documento não sobe para “converter na nuvem”',
       description:
-        'Gere um PDF para anexar em e-mail, protocolo ou impressão, mantendo o DOCX editável no seu disco como fonte.',
-    },
-    {
-      title: 'Sem instalar Microsoft Word ou suíte desktop',
-      description:
-        'Útil em computadores compartilhados ou quando você só precisa de um PDF rápido a partir do DOCX já baixado.',
+        'Processamento client-side: o texto do DOCX não precisa depositar-se em API de terceiros só para virar PDF.',
     },
     {
       title: 'Grátis e sem cadastro',
       description:
-        'Converta sob demanda, sem trial nem cartão. Limites práticos vêm da complexidade do documento e da memória do navegador.',
+        'Sem trial com cartão e sem “3 conversões por dia” amarradas a login neste fluxo.',
+    },
+    {
+      title: 'Encaixa no restante da suíte local',
+      description:
+        'Depois você pode comprimir, juntar anexos ou proteger o PDF — sempre no mesmo modelo sem upload de processamento.',
     },
   ],
-  faqTitle: 'FAQ: Word para PDF com segurança',
+  limitsTitle: 'Limites e expectativas honestas',
+  limitsIntro:
+    'Conversão no navegador tem teto de memória e fidelidade de layout — melhor ser transparente do que prometer “pixel perfect” em qualquer DOCX.',
+  limits: [
+    {
+      label: 'Formato',
+      text: 'Foco em DOCX. Arquivos .doc antigos: salve como DOCX em outro editor antes.',
+    },
+    {
+      label: 'Tamanho',
+      text: 'Ordem de até cerca de 50 MB por arquivo (limite geral do site).',
+    },
+    {
+      label: 'Layout',
+      text: 'Textos, títulos e listas do dia a dia costumam ir bem; caixas flutuantes e artes complexas podem divergir.',
+    },
+    {
+      label: 'Celular',
+      text: 'DOCX muito pesados (muitas imagens) pedem mais RAM — em falha, tente no desktop.',
+    },
+  ],
+  faqTitle: 'Perguntas frequentes sobre Word para PDF',
   faqs: [
     {
-      question: 'Meus arquivos são enviados para a internet?',
+      question: 'Posso converter sem instalar o Microsoft Word?',
       answer:
-        'Não. O DOCX é lido e convertido na memória do navegador. O PDF resultante é baixado localmente; nossos servidores não recebem o texto do documento.',
+        'Sim. A conversão roda no navegador. Você precisa do arquivo DOCX acessível no dispositivo, não da suíte instalada.',
     },
     {
-      question: 'Posso usar offline?',
+      question: 'O DOCX é enviado para a nuvem?',
       answer:
-        'Depois de carregar o site, a conversão não faz upload do DOCX. Internet é necessária para a primeira carga da aplicação web.',
+        'No Easy PDF Local o processamento é client-side: não usamos o modelo “upload → servidor converte → download” para o seu documento.',
     },
     {
-      question: 'A formatação fica idêntica ao Word?',
+      question: 'Precisa de cadastro?',
       answer:
-        'A conversão client-side via HTML/JS cobre bem textos e estruturas comuns, mas layouts muito complexos (campos avançados, alguns objetos) podem divergir. Para diagramação crítica, revise o PDF antes de enviar.',
+        'Não. Grátis e sem conta para usar a ferramenta nesta página.',
     },
     {
-      question: 'Aceita arquivos .doc antigos?',
+      question: 'O PDF fica idêntico ao Word?',
       answer:
-        'O foco é DOCX (Office Open XML). Se tiver .doc legado, abra no Word ou LibreOffice e salve como DOCX antes de converter aqui.',
+        'Para o uso cotidiano, em geral fica adequado. Layouts avançados podem divergir — revise sempre antes de prazos importantes.',
+    },
+    {
+      question: 'Aceita .doc antigo?',
+      answer:
+        'O fluxo é pensado para DOCX. Converta .doc para DOCX em outro programa se necessário.',
+    },
+    {
+      question: 'E se o PDF ficar grande demais?',
+      answer:
+        'Use em seguida a ferramenta Comprimir PDF, ciente de que a compressão por imagem afeta a seleção de texto no arquivo gerado.',
+    },
+  ],
+  relatedTitle: 'Próximos passos e guias',
+  related: [
+    {
+      path: '/comprimir-pdf',
+      label: 'Comprimir PDF',
+      description: 'Se o portal limitar o tamanho do anexo',
+    },
+    {
+      path: '/juntar-pdf',
+      label: 'Juntar PDF',
+      description: 'Unir o PDF a anexos extras',
+    },
+    {
+      path: '/blog/word-para-pdf-online-sem-instalar',
+      label: 'Guia: Word para PDF sem instalar',
+      description: 'Artigo no blog',
+    },
+    {
+      path: '/pdf-sem-upload',
+      label: 'PDF sem upload',
+      description: 'Privacidade e modelo local',
     },
   ],
 };
@@ -892,74 +1104,161 @@ export const desbloquearPdfSeoContent: ToolSeoBlock = {
   ],
 };
 
-/** /comprimir-pdf */
+/** /comprimir-pdf — conteúdo SEO expandido (tool top) */
 export const comprimirPdfSeoContent: ToolSeoBlock = {
-  howToTitle: 'Como comprimir PDF com segurança no navegador',
+  toolName: 'Comprimir PDF',
+  schemaDescription:
+    'Comprima PDF grátis no navegador, sem upload e sem app. Reduza tamanho no celular ou PC — processamento local e sem cadastro.',
+  overview: [
+    'Comprimir PDF significa gerar uma cópia mais leve para caber em e-mail, WhatsApp, portal de RH ou formulário com limite de megabytes. No Easy PDF Local a compressão roda no navegador — inclusive no celular, sem instalar app e sem enviar o arquivo para um servidor de compressão nosso.',
+    'O método local é deliberado: cada página é renderizada (pdf.js), convertida em JPEG conforme o nível (baixa, média ou alta compressão) e remontada em um PDF novo (pdf-lib). Isso costuma reduzir muito scans e PDFs com fotos. Em troca, as páginas viram imagem: o texto em geral deixa de ser selecionável ou pesquisável no arquivo gerado.',
+    'Não prometemos “mesma qualidade de gráfica com 90% menos tamanho” em todos os casos. PDFs já leves ou só de texto vetorial podem encolher pouco — a tela mostra tamanho original, final e porcentagem de redução com honestidade. O arquivo original no seu disco não é apagado automaticamente.',
+  ],
+  audienceTitle: 'Para quem comprimir PDF sem upload',
+  audience:
+    'Quem precisa enviar laudo ou contrato digitalizado; estudantes com apostila pesada; quem só tem o celular e um PDF grande na pasta Downloads; profissionais que esbarram em limite de anexo sem querer subir o documento a um compressor na nuvem.',
+  useCasesTitle: 'Casos de uso práticos',
+  useCases: [
+    {
+      title: 'E-mail e WhatsApp',
+      description:
+        'Reduza scans e capturas para o anexo ser aceito ou enviar mais rápido no celular.',
+    },
+    {
+      title: 'Portais e formulários',
+      description:
+        'Muitos sistemas públicos e de RH limitam MB — a compressão local evita upload intermediário só para “passar no limite”.',
+    },
+    {
+      title: 'Antes de juntar vários PDFs',
+      description:
+        'Comprimir scans pesados antes do merge reduz o uso de memória ao unir arquivos.',
+    },
+    {
+      title: 'Documentos pessoais sensíveis',
+      description:
+        'Exames e identidade digitalizada não precisam atravessar a internet só para ficarem menores.',
+    },
+  ],
+  howToTitle: 'Como comprimir PDF no navegador (passo a passo)',
   howToIntro:
-    'Com a ferramenta Comprimir PDF do Easy PDF Local você reduz o peso de documentos pesados (scans, fotos, capturas) sem enviar o arquivo para servidores de compressão.',
+    'A ferramenta fica no topo. Escolha o nível, comprima localmente e compare os tamanhos antes de baixar — grátis e sem cadastro.',
   steps: [
     {
-      title: 'Envie o PDF',
+      title: 'Selecione o PDF no dispositivo',
       description:
-        'Arraste ou selecione o arquivo no seu dispositivo. O conteúdo permanece na memória do navegador — sem upload para a nuvem.',
+        'Arraste ou escolha o arquivo. Ele permanece na memória do navegador durante o processo.',
     },
     {
       title: 'Escolha o nível de compressão',
       description:
-        'Baixa prioriza nitidez; Média equilibra tamanho e qualidade (recomendado); Alta gera o menor arquivo possível, com mais perda visual.',
+        'Baixa (melhor nitidez), Média (equilíbrio recomendado) ou Alta (menor arquivo, mais perda visual).',
     },
     {
-      title: 'Comprima e baixe',
+      title: 'Comprima e acompanhe as páginas',
       description:
-        'Clique em Comprimir PDF, acompanhe o progresso por página e baixe a cópia menor. Veja o tamanho final e a porcentagem de redução na tela.',
+        'Cada página é processada no aparelho. Em PDFs longos ou celulares modestos pode demorar — a CPU local faz o trabalho.',
+    },
+    {
+      title: 'Compare tamanhos e baixe a cópia',
+      description:
+        'Veja MB original vs. comprimido e a % de redução. Baixe só se estiver satisfeito; o original não é sobrescrito sozinho.',
     },
   ],
-  benefitsTitle: 'Benefícios de comprimir PDF localmente',
+  benefitsTitle: 'Por que comprimir PDF localmente',
   benefitsIntro:
-    'Servidores de compressão online exigem upload. Aqui o fluxo é client-side: útil para laudos, contratos digitalizados e PDFs com imagens grandes que precisam caber em e-mail ou formulários.',
+    'Compressores online pedem upload. Aqui o fluxo é client-side: privacidade e uso no celular sem app nativo obrigatório.',
   benefits: [
     {
-      title: 'Sem upload — privacidade total',
+      title: 'Sem upload de processamento',
       description:
-        'pdf.js e pdf-lib rodam no seu aparelho. O PDF original não é armazenado em nossos servidores; só você baixa a versão comprimida.',
+        'pdf.js e canvas rodam no seu dispositivo. Não depositamos o PDF em servidor nosso para comprimir.',
     },
     {
-      title: 'Ideal para scans e fotos pesadas',
+      title: 'Três níveis de qualidade',
       description:
-        'A rasterização (páginas → JPEG) costuma reduzir muito arquivos escaneados ou com imagens em alta resolução, onde a compressão vetorial clássica ajuda pouco.',
+        'Você escolhe o trade-off entre nitidez e tamanho — útil para impressão vs. envio rápido.',
     },
     {
-      title: 'Controle de qualidade em 3 níveis',
+      title: 'Funciona no celular sem app',
       description:
-        'Ajuste qualidade JPEG e escala de renderização conforme o uso: impressão (Baixa), uso geral (Média) ou envio rápido (Alta).',
+        'Navegador atualizado basta. Menos instalação e menos permissões de app de PDF.',
     },
     {
       title: 'Grátis e sem cadastro',
       description:
-        'Comprima sob demanda, sem trial. Limites práticos vêm da memória do navegador e do número de páginas do documento.',
+        'Sem conta para liberar download. Limites vêm da memória do aparelho e do número de páginas.',
     },
   ],
-  faqTitle: 'FAQ: comprimir PDF com rasterização local',
+  limitsTitle: 'Limites técnicos e trade-offs',
+  limitsIntro:
+    'Rasterizar páginas é pesado. Por isso há tetos — e o texto vira imagem. Isso é o preço de comprimir 100% no cliente com privacidade.',
+  limits: [
+    { label: 'Tamanho do arquivo', text: 'Até cerca de 50 MB.' },
+    { label: 'Páginas', text: 'Até cerca de 50 páginas na compressão.' },
+    {
+      label: 'Texto selecionável',
+      text: 'Em geral não permanece: páginas viram JPEG no PDF de saída.',
+    },
+    {
+      label: 'PDFs já leves',
+      text: 'Podem encolher pouco ou, em casos raros, ficar parecidos/maiores — a UI mostra o resultado real.',
+    },
+  ],
+  faqTitle: 'Perguntas frequentes sobre comprimir PDF',
   faqs: [
     {
-      question: 'Por que o texto deixa de ser selecionável?',
+      question: 'Comprimir PDF online aqui faz upload?',
       answer:
-        'Para garantir privacidade e compressão 100% no navegador (sem Ghostscript no servidor), cada página vira imagem JPEG. O visual permanece; texto pesquisável e links embutidos não são preservados. É o trade-off deste método client-side.',
+        'Não para o processamento. A compressão ocorre no navegador; o arquivo não sobe para um servidor nosso de otimização.',
     },
     {
-      question: 'Meus arquivos sobem para a internet?',
+      question: 'Preciso de aplicativo no celular?',
       answer:
-        'Não. A compressão ocorre na memória do navegador. Nossos servidores não recebem o conteúdo do PDF.',
+        'Não. Use o navegador nesta página — grátis e sem cadastro.',
     },
     {
-      question: 'O arquivo sempre fica menor?',
+      question: 'Vou perder qualidade?',
       answer:
-        'Na maioria dos scans e PDFs com fotos, sim. PDFs já leves, só com texto vetorial ou bem otimizados podem ficar parecidos ou até um pouco maiores — a tela mostra o tamanho e a % de redução honestamente.',
+        'Há perda controlada típica de JPEG, maior no nível alto. Comece em Média e só suba para Alta se ainda estiver acima do limite do destino.',
     },
     {
-      question: 'Funciona em PDF com senha?',
+      question: 'Por que o texto não seleciona mais?',
       answer:
-        'Não diretamente. Remova a senha em Desbloquear PDF (com a senha correta) e depois comprima a cópia sem proteção.',
+        'O método local transforma cada página em imagem para comprimir sem servidor. Se você precisa copiar texto depois, prefira extrair páginas ou não rasterizar.',
+    },
+    {
+      question: 'Qual o limite de páginas?',
+      answer:
+        'Cerca de 50 páginas e 50 MB por arquivo. Acima disso, divida o PDF ou use um PC com mais memória.',
+    },
+    {
+      question: 'O original é apagado?',
+      answer:
+        'Não. Você baixa uma cópia comprimida; o arquivo original permanece no dispositivo salvo se você o substituir manualmente.',
+    },
+  ],
+  relatedTitle: 'Próximos passos e guias',
+  related: [
+    {
+      path: '/juntar-pdf',
+      label: 'Juntar PDF',
+      description: 'Unir arquivos depois de aliviar o peso',
+    },
+    {
+      path: '/dividir-pdf',
+      label: 'Dividir PDF',
+      description: 'Comprimir só o trecho necessário',
+    },
+    {
+      path: '/blog/comprimir-pdf-online-celular-sem-app',
+      label: 'Guia: comprimir no celular',
+      description: 'Artigo no blog',
+    },
+    {
+      path: '/pdf-sem-upload',
+      label: 'PDF sem upload',
+      description: 'Privacidade e modelo local',
     },
   ],
 };

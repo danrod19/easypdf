@@ -22,6 +22,7 @@ const SobrePage = lazy(() => import('./pages/SobrePage'));
 const ContatoPage = lazy(() => import('./pages/ContatoPage'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
 const BlogPostPage = lazy(() => import('./pages/BlogPostPage'));
+const PdfSemUploadPage = lazy(() => import('./pages/PdfSemUploadPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function RouteFallback() {
@@ -68,6 +69,7 @@ export default function App() {
             <Route path="contato" element={<ContatoPage />} />
             <Route path="blog" element={<BlogPage />} />
             <Route path="blog/:slug" element={<BlogPostPage />} />
+            <Route path="pdf-sem-upload" element={<PdfSemUploadPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

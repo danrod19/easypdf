@@ -18,12 +18,17 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Seo } from '../components/Seo';
+import { JsonLd } from '../components/JsonLd';
 import { HowItWorks } from '../components/HowItWorks';
 import { FaqAccordion } from '../components/FaqAccordion';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { getSeoForPath } from '../data/seo';
 import { homeSeoContent } from '../data/toolSeoContent';
 import { tools, toolAccentStyles } from '../data/tools';
+import {
+  buildOrganizationSchema,
+  buildWebSiteSchema,
+} from '../data/schema';
 
 const iconComponents: Record<string, LucideIcon> = {
   merge: Combine,
@@ -42,10 +47,15 @@ const iconComponents: Record<string, LucideIcon> = {
 
 export default function HomePage() {
   const seo = getSeoForPath('/');
+  const orgSchema = buildOrganizationSchema();
+  const webSiteSchema = buildWebSiteSchema();
 
   return (
     <>
       <Seo title={seo.title} description={seo.description} path={seo.path} />
+      {/* JSON-LD home: Organization + WebSite (SoftwareApplication no Layout) */}
+      <JsonLd id="organization" data={orgSchema} />
+      <JsonLd id="website" data={webSiteSchema} />
 
       <div className="space-y-16 pb-8 sm:space-y-20">
         {/* Hero + Grid de ferramentas */}
@@ -77,6 +87,12 @@ export default function HomePage() {
               <a href="#como-funciona" className="btn-secondary">
                 Como funciona
               </a>
+              <Link
+                to="/pdf-sem-upload"
+                className="btn-secondary"
+              >
+                PDF sem upload
+              </Link>
             </div>
           </div>
 
