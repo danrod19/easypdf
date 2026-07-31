@@ -48,13 +48,21 @@ A pasta `dist/` contém:
 - assets JS/CSS do Vite
 - **HTML pré-renderizado por rota** (quando o Playwright sobe) — ex.: `dist/juntar-pdf/index.html`
 
-### Cloudflare Pages (build command)
+### Deploy em produção (HTML por rota de verdade)
 
-```bash
-npm ci && npm run build
-```
+**Caminho principal:** GitHub Actions + imagem Playwright → deploy do `dist/` via Wrangler.
 
-**Fail-soft:** se o Chromium não lançar (libs de sistema / sem `install-deps`), o prerender **loga um AVISO e termina com exit 0**. O deploy **não quebra**; o site sobe como SPA Vite (sem HTML por rota). Detalhes: [`docs/PRERENDER.md`](docs/PRERENDER.md).
+| Item | Detalhe |
+|------|---------|
+| Workflow | [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) |
+| Trigger | push em `main` + `workflow_dispatch` |
+| Secrets | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (+ opcional `CLOUDFLARE_PAGES_PROJECT_NAME`) |
+| Validação | `npm run validate:prerender` (exige `easypdf-prerender` nas rotas-chave) |
+| Docs | [`docs/PRERENDER.md`](docs/PRERENDER.md) |
+
+**Painel Cloudflare:** desative **Builds automáticos** ligados ao Git, senão um build SPA (fail-soft, sem Chromium) sobrescreve o deploy do Action.
+
+**Fail-soft local/CF build nativo:** se alguém rodar `npm run build` num ambiente sem Chromium, o prerender avisa e **não** derruba o exit code — útil como fallback, **não** como produção SEO. Detalhes em `docs/PRERENDER.md`.
 
 Pular prerender de propósito: `npm run build:skip-prerender` ou `SKIP_PRERENDER=1 npm run build`.
 
@@ -64,12 +72,10 @@ Pular prerender de propósito: `npm run build:skip-prerender` ou `SKIP_PRERENDER
 |------|---------|
 | Como funciona | Pós-build: server local + Playwright grava HTML por rota |
 | Lista de rotas | `scripts/prerender-routes.mjs` |
-| Nova rota | 1) `App.tsx` 2) `PRERENDER_ROUTES` 3) `npm run build` (local) |
-| Validar | `dist/juntar-pdf/index.html` → `easypdf-prerender`, `<title>`, `canonical`, `<h1>` |
-| Cloudflare | `npm ci && npm run build` · Output: `dist` · browser opcional |
+| Nova rota | 1) `App.tsx` 2) `PRERENDER_ROUTES` 3) build com Playwright |
+| Validar | `dist/juntar-pdf/index.html` → `easypdf-prerender`, title, canonical, H1 |
+| Produção | GitHub Action (não o build command do painel CF) |
 | SPA client | Inalterada (`createRoot`) |
-
-**Limitações:** no CF o prerender pode ser pulado (fail-soft); local com Playwright gera HTML rico. CookieBanner/ads podem aparecer no HTML capturado.
 
 ### Azure Static Web Apps
 

@@ -72,17 +72,57 @@ npm ci && npx playwright install chromium && npm run build
 
 **Não** dependa de `playwright install-deps` no Cloudflare (sem sudo).
 
-### Gerar HTML pré-renderizado “de verdade”
+### Gerar HTML pré-renderizado “de verdade” (recomendado: GitHub Actions)
 
-Rode em máquina local (ou CI com browser completo) e publique o `dist` já com as pastas por rota:
+O painel Cloudflare **não** é o lugar certo para o prerender. Use o workflow:
+
+**`.github/workflows/deploy.yml`**
+
+1. Roda em `mcr.microsoft.com/playwright:v1.49.1-jammy` (Chromium + libs).
+2. `npm ci` → `npm run build` com `PRERENDER_STRICT=1` (sem fail-soft).
+3. `npm run validate:prerender` (exige `easypdf-prerender` + title/canonical em rotas-chave).
+4. `wrangler pages deploy dist` com secrets.
+
+#### Secrets no GitHub
+
+Repo → **Settings** → **Secrets and variables** → **Actions** → New repository secret:
+
+| Secret | Onde obter |
+|--------|------------|
+| `CLOUDFLARE_API_TOKEN` | Cloudflare → My Profile → API Tokens → Create Token → template **Edit Cloudflare Pages** (ou custom: Account → Cloudflare Pages → Edit) |
+| `CLOUDFLARE_ACCOUNT_ID` | Dashboard → qualquer domínio/Workers → sidebar **Account ID** |
+| `CLOUDFLARE_PAGES_PROJECT_NAME` | *(opcional)* Nome do projeto Pages (default no workflow: `easypdflocal`) |
+
+#### Desative o deploy automático duplicado no Cloudflare
+
+Se o projeto Pages estiver ligado ao GitHub com **Builds** ativos, o CF pode fazer um segundo deploy (`npm run build` **sem** Chromium) e **sobrescrever** o dist pré-renderizado do Action.
+
+No painel **Cloudflare Pages → seu projeto → Settings → Builds & deployments**:
+
+1. **Desative builds automáticos** (Disconnect do repositório **ou** pause automatic deployments), **ou**
+2. Mantenha o repo só para o **GitHub Action** fazer o deploy via Wrangler (recomendado).
+
+Não commite a pasta `dist/` no git.
+
+#### Validar após o primeiro Action verde
+
+1. GitHub → Actions → workflow verde.
+2. Abra `https://easypdflocal.com.br/juntar-pdf` → **Ver código-fonte** (não Inspecionar).
+3. Deve conter:
+   - `<!-- easypdf-prerender: /juntar-pdf -->`
+   - `<title>` com “Juntar PDF” (não só o title genérico da home)
+   - `canonical` …`/juntar-pdf`
+   - `<h1>` da ferramenta
+4. Se ainda for shell da home: o deploy do painel CF está ganhando do Action — desative o build automático do painel.
+
+#### Local (alternativa)
 
 ```bash
 npm run playwright:install
 npm run build
+npm run validate:prerender
 # confira dist/juntar-pdf/index.html
 ```
-
-Alguns times fazem prerender no GitHub Actions com container Playwright e só fazem upload do `dist` ao Cloudflare.
 
 ## Comandos
 
