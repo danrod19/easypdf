@@ -55,27 +55,27 @@ export const seoByPath: Record<string, SeoMeta> = {
     path: '/juntar-pdf',
   },
   '/dividir-pdf': {
-    title: 'Dividir PDF Online Grátis | Processamento Local Seguro',
+    title: 'Dividir PDF Online Grátis | Sem Upload e Sem Cadastro',
     description:
-      'Extraia páginas ou intervalos de um PDF no navegador. Sem envio para servidores: divisão 100% local, rápida e privada. Grátis e sem conta.',
+      'Extraia páginas de PDF grátis no navegador, sem upload e sem cadastro. Intervalos (1, 3-5) com privacidade local.',
     path: '/dividir-pdf',
   },
   '/girar-pdf': {
-    title: 'Girar PDF Online Grátis | Rotação Local e Segura',
+    title: 'Girar PDF Online Grátis | Sem Upload no Navegador',
     description:
-      'Gire páginas de PDF 90° à esquerda ou à direita, todas ou por intervalo. Processamento local no navegador — sem upload e sem perda de qualidade.',
+      'Gire páginas de PDF grátis no navegador, sem upload e sem cadastro. 90° esquerda/direita, todas ou por intervalo.',
     path: '/girar-pdf',
   },
   '/marca-dagua': {
-    title: "Marca d'água em PDF Online | Texto Local e Privado",
+    title: "Marca d'água em PDF Grátis | Sem Upload e Sem Cadastro",
     description:
-      "Adicione marca d'água de texto (ex.: CONFIDENCIAL) em todas as páginas do PDF. 100% no navegador, sem upload para a nuvem. Grátis e seguro.",
+      "Adicione marca d'água de texto grátis no navegador, sem upload e sem cadastro. Opacidade e estilo 100% locais.",
     path: '/marca-dagua',
   },
   '/desenhar-pdf': {
-    title: 'Desenhar e Assinar PDF Online | 100% no Navegador',
+    title: 'Desenhar e Assinar PDF Grátis | Sem Upload no Navegador',
     description:
-      'Assine ou desenhe livremente no PDF direto no navegador. Sem upload de arquivos — processamento local com privacidade total. Grátis.',
+      'Assine ou desenhe no PDF grátis no navegador, sem upload e sem cadastro. Mouse ou toque — processamento local.',
     path: '/desenhar-pdf',
   },
   '/word-para-pdf': {
@@ -85,33 +85,33 @@ export const seoByPath: Record<string, SeoMeta> = {
     path: '/word-para-pdf',
   },
   '/imagem-para-pdf': {
-    title: 'Imagem para PDF Online Grátis | JPG/PNG sem Upload',
+    title: 'Imagem para PDF Online Grátis | Sem Upload e Sem Cadastro',
     description:
-      'Transforme JPG, PNG ou WebP em PDF no navegador. Várias imagens em um arquivo, ordem personalizada, zero envio para a nuvem.',
+      'Converta JPG, PNG ou WebP em PDF grátis no navegador, sem upload e sem cadastro. Várias imagens, ordem personalizada.',
     path: '/imagem-para-pdf',
   },
   '/extrair-texto': {
-    title: 'Extrair Texto de PDF Online | Nativo e OCR Local Seguro',
+    title: 'Extrair Texto de PDF Grátis | Sem Upload no Navegador',
     description:
-      'Extraia texto de PDF no navegador com pdf.js ou OCR (Tesseract) em scans. 100% local, sem upload. Português, grátis e sem cadastro.',
+      'Extraia texto de PDF grátis no navegador, sem upload e sem cadastro. Nativo (pdf.js) ou OCR em português local.',
     path: '/extrair-texto',
   },
   '/proteger-pdf': {
-    title: 'Proteger PDF com Senha Online | Criptografia Local Segura',
+    title: 'Proteger PDF com Senha Grátis | Sem Upload e Sem Cadastro',
     description:
-      'Bloqueie PDF com senha no navegador, sem upload. Criptografia client-side, grátis e privada — seus arquivos não sobem para a nuvem.',
+      'Proteja PDF com senha grátis no navegador, sem upload e sem cadastro. Criptografia local no seu dispositivo.',
     path: '/proteger-pdf',
   },
   '/desbloquear-pdf': {
-    title: 'Desbloquear PDF Online | Remover Senha Local e Seguro',
+    title: 'Desbloquear PDF Online Grátis | Sem Upload e Sem Cadastro',
     description:
-      'Remova a senha de um PDF no navegador quando você já a conhece. Sem upload, grátis e privado — desbloqueio 100% local.',
+      'Remova senha de PDF grátis no navegador quando já a conhece. Sem upload, sem cadastro — desbloqueio 100% local.',
     path: '/desbloquear-pdf',
   },
   '/remover-paginas': {
-    title: 'Remover Páginas de PDF Online | Exclusão Local Grátis',
+    title: 'Remover Páginas de PDF Grátis | Sem Upload e Sem Cadastro',
     description:
-      'Apague páginas indesejadas do PDF com miniaturas no navegador. Sem upload: remoção 100% local com pdf-lib. Grátis e sem cadastro.',
+      'Apague páginas de PDF grátis no navegador, sem upload e sem cadastro. Miniaturas locais e cópia nova com o que restar.',
     path: '/remover-paginas',
   },
   '/comprimir-pdf': {

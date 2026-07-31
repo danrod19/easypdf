@@ -296,290 +296,632 @@ export const juntarPdfSeoContent: ToolSeoBlock = {
   ],
 };
 
-/** /dividir-pdf */
+/** /dividir-pdf — conteúdo SEO expandido */
 export const dividirPdfSeoContent: ToolSeoBlock = {
-  howToTitle: 'Como dividir um PDF de forma segura',
+  toolName: 'Dividir PDF',
+  schemaDescription:
+    'Extraia páginas de PDF grátis no navegador, sem upload e sem cadastro. Divisão local com intervalos (ex.: 1, 3-5).',
+  overview: [
+    'Dividir PDF aqui significa extrair páginas ou intervalos de um documento e gerar um PDF novo só com o trecho escolhido. Você informa algo como 1, 3-5, 8 e baixa o resultado — sem enviar o arquivo para um servidor nosso.',
+    'Diferente de sites que pedem upload do PDF inteiro para “cortar na nuvem”, o Easy PDF Local conta as páginas e copia as escolhidas com pdf-lib no navegador. O original no seu disco não é sobrescrito; só a cópia extraída é baixada.',
+    'É grátis, sem cadastro e útil quando você precisa compartilhar só um anexo (capítulo, laudo, capa) sem expor o dossiê completo.',
+  ],
+  audienceTitle: 'Para quem serve',
+  audience:
+    'Quem recebe um PDF longo e precisa enviar só algumas páginas; estudantes que recortam capítulos; suporte e RH que separam anexos de um pacote; quem prefere não subir contratos a conversores online.',
+  useCasesTitle: 'Casos de uso práticos',
+  useCases: [
+    {
+      title: 'Enviar só o anexo certo',
+      description:
+        'Extraia o contrato ou o relatório sem o restante do dossiê de 40 páginas.',
+    },
+    {
+      title: 'Material de estudo',
+      description:
+        'Separe um capítulo ou lista de exercícios para revisar no celular.',
+    },
+    {
+      title: 'Antes de comprimir',
+      description:
+        'Recorte as páginas que importam e só então comprima — menos páginas, menos peso.',
+    },
+    {
+      title: 'Privacidade seletiva',
+      description:
+        'Compartilhe o trecho necessário sem divulgar páginas com dados sensíveis.',
+    },
+  ],
+  howToTitle: 'Como dividir PDF no navegador (passo a passo)',
   howToIntro:
-    'Com a ferramenta Dividir PDF do Easy PDF Local você extrai páginas ou intervalos de um documento e gera um novo arquivo — tudo no navegador, sem upload para a nuvem.',
+    'Ferramenta no topo da página: selecione o PDF, digite o intervalo e extraia localmente — grátis e sem cadastro.',
   steps: [
     {
-      title: 'Selecione o PDF no seu dispositivo',
+      title: 'Selecione o PDF no dispositivo',
       description:
-        'Arraste o arquivo para a área de envio ou clique para escolher. O PDF fica apenas na memória do navegador; a contagem de páginas é lida localmente com pdf-lib.',
+        'Arraste ou escolha o arquivo. A contagem de páginas é lida no navegador; o PDF fica só na memória da sessão.',
     },
     {
-      title: 'Informe as páginas ou o intervalo',
+      title: 'Informe páginas ou intervalos',
       description:
-        'Digite páginas avulsas ou intervalos (ex.: 1-3, 5, 8-10). A extração usa só o que você pediu — o restante do documento original não é alterado no seu disco até você baixar o resultado.',
+        'Exemplos: 1 · 3-5 · 1, 3-5, 8. A numeração começa em 1. Intervalos inválidos são rejeitados localmente.',
     },
     {
-      title: 'Extraia e baixe o novo PDF',
+      title: 'Extraia e confira a pré-visualização',
       description:
-        'Clique para processar. A divisão roda 100% no cliente; o PDF gerado é baixado automaticamente no seu aparelho, sem passar por servidores da Easy PDF Local.',
+        'O merge parcial roda no cliente (Worker quando possível). Veja o PDF gerado antes de baixar.',
+    },
+    {
+      title: 'Baixe a cópia',
+      description:
+        'Salve o arquivo no dispositivo. O original permanece intacto no seu disco.',
     },
   ],
-  benefitsTitle: 'Benefícios de dividir PDF no navegador (sem upload)',
+  benefitsTitle: 'Por que dividir PDF aqui (sem upload)',
   benefitsIntro:
-    'Extrair páginas “online” em sites tradicionais costuma enviar o arquivo inteiro para um servidor. Aqui o recorte acontece no seu dispositivo.',
+    'Extrair páginas “online” costuma significar upload. Aqui o recorte é client-side e a privacidade acompanha o fluxo.',
   benefits: [
     {
-      title: 'Processamento client-side com pdf-lib',
+      title: 'Arquivo não sobe para processar',
       description:
-        'A leitura do número de páginas e a montagem do PDF parcial usam JavaScript no navegador. Não há fila de servidor nem cópia temporária dos seus documentos conosco.',
+        'pdf-lib no navegador. Sem cópia temporária do seu PDF em servidor nosso de divisão.',
     },
     {
-      title: 'Privacidade para contratos e laudos',
+      title: 'Intervalos flexíveis',
       description:
-        'Ideal quando você precisa enviar só um anexo (páginas específicas) sem expor o dossiê completo a um conversor na nuvem.',
-    },
-    {
-      title: 'Controle fino do intervalo',
-      description:
-        'Escolha páginas isoladas ou faixas contínuas. O resultado é um PDF novo só com o trecho solicitado, pronto para compartilhar ou arquivar.',
-    },
-    {
-      title: 'Grátis e sem cadastro',
-      description:
-        'Use a divisão quantas vezes precisar, sem criar conta e sem instalar programa. A velocidade depende do seu hardware e do tamanho do arquivo.',
-    },
-  ],
-  faqTitle: 'FAQ: dividir PDF com segurança',
-  faqs: [
-    {
-      question: 'Meus arquivos são enviados para a internet?',
-      answer:
-        'Não. O PDF selecionado permanece na memória do navegador. A extração de páginas e a geração do arquivo final ocorrem localmente; nossos servidores não recebem o conteúdo do documento.',
-    },
-    {
-      question: 'Posso usar offline?',
-      answer:
-        'Após carregar o site (e as bibliotecas JS), a divisão em si não envia o PDF pela rede. Você precisa de internet na primeira carga da página; o processamento do arquivo é local.',
-    },
-    {
-      question: 'O PDF original é apagado ou modificado?',
-      answer:
-        'Não. A ferramenta gera um arquivo novo com as páginas escolhidas. O PDF original no seu disco só muda se você o substituir manualmente ao salvar o download.',
-    },
-    {
-      question: 'Qual o formato do intervalo de páginas?',
-      answer:
-        'Em geral você pode combinar números e faixas, por exemplo 1-3, 5, 8-10. A validação ocorre no navegador antes de extrair; páginas inválidas ou fora do total geram aviso sem enviar dados a um servidor.',
-    },
-  ],
-};
-
-/** /girar-pdf */
-export const girarPdfSeoContent: ToolSeoBlock = {
-  howToTitle: 'Como girar páginas de um PDF com segurança',
-  howToIntro:
-    'Com a ferramenta Girar PDF do Easy PDF Local você corrige a orientação de páginas (90° à esquerda ou à direita), no documento inteiro ou só em um intervalo — sem upload.',
-  steps: [
-    {
-      title: 'Abra o PDF no navegador',
-      description:
-        'Selecione o arquivo no computador ou celular. A contagem de páginas e o estado de rotação ficam só na sessão local do navegador.',
-    },
-    {
-      title: 'Escolha todas as páginas ou um intervalo',
-      description:
-        'Gire o documento completo ou informe páginas específicas (ex.: 2, 4-6). Ajuste 90° à esquerda ou à direita até a orientação ficar correta.',
-    },
-    {
-      title: 'Salve o PDF rotacionado',
-      description:
-        'Ao confirmar, o pdf-lib aplica a rotação localmente e inicia o download. Nada do arquivo trafega para a nuvem da Easy PDF Local.',
-    },
-  ],
-  benefitsTitle: 'Benefícios de girar PDF localmente (client-side)',
-  benefitsIntro:
-    'Scans de celular e documentos digitalizados costumam vir de lado. Corrigir a rotação sem enviar o PDF a um site de terceiros protege dados sensíveis.',
-  benefits: [
-    {
-      title: 'Rotação sem recompactar o conteúdo',
-      description:
-        'No PDF, a orientação é metadado de página. Em geral não há reprocessamento destrutivo de imagens: o conteúdo vetorial e as imagens embutidas permanecem intactos.',
-    },
-    {
-      title: 'Zero upload = privacidade total',
-      description:
-        'O processamento roda no seu CPU via JavaScript. Ideal para exames, contratos e documentos de identidade digitalizados na orientação errada.',
-    },
-    {
-      title: 'Páginas específicas ou o arquivo inteiro',
-      description:
-        'Corrija só a folha 3 de um relatório de 20 páginas, ou gire tudo de uma vez — flexibilidade sem instalar Adobe Reader ou app desktop.',
-    },
-    {
-      title: 'Grátis, rápido e sem conta',
-      description:
-        'Sem fila de servidor: o tempo depende do tamanho do PDF e do aparelho. Não pedimos login nem cartão.',
-    },
-  ],
-  faqTitle: 'FAQ: girar PDF com segurança',
-  faqs: [
-    {
-      question: 'Meus arquivos são enviados para a internet?',
-      answer:
-        'Não. O PDF fica na memória do navegador. A rotação e o download do arquivo corrigido acontecem no seu dispositivo, sem envio do conteúdo para nossos servidores.',
-    },
-    {
-      question: 'Posso usar offline?',
-      answer:
-        'Sim, no sentido de que a rotação não faz upload. Carregue a página uma vez com internet; depois o ajuste de orientação e o save são locais.',
-    },
-    {
-      question: 'Girar o PDF reduz a qualidade?',
-      answer:
-        'Em condições normais, não. A rotação de página no PDF não é o mesmo que “girar e reexportar como imagem”. O conteúdo original é preservado com o novo ângulo de visualização.',
-    },
-    {
-      question: 'Consigo girar só uma página?',
-      answer:
-        'Sim. Use o campo de intervalo com o número da página (ou faixas) e aplique a rotação apenas a esse subconjunto antes de salvar o PDF completo.',
-    },
-  ],
-};
-
-/** /marca-dagua */
-export const marcaDaguaSeoContent: ToolSeoBlock = {
-  howToTitle: "Como adicionar marca d'água em PDF de forma segura",
-  howToIntro:
-    "Com a ferramenta Marca d'água do Easy PDF Local você aplica texto (ex.: CONFIDENCIAL, RASCUNHO ou seu nome) em todas as páginas, com opacidade e estilo — 100% no navegador.",
-  steps: [
-    {
-      title: 'Selecione o PDF',
-      description:
-        'Envie o arquivo pela área de seleção local. O documento não sobe para a nuvem: só a aba do navegador tem acesso ao conteúdo durante o processo.',
-    },
-    {
-      title: "Configure o texto da marca d'água",
-      description:
-        'Digite o texto, ajuste opacidade, tamanho e estilo conforme as opções da tela. A pré-visualização e a aplicação usam processamento no cliente.',
-    },
-    {
-      title: "Aplique e baixe o PDF com marca d'água",
-      description:
-        "Clique para gravar. O pdf-lib desenha o texto nas páginas localmente e o download do arquivo marcado inicia no seu dispositivo.",
-    },
-  ],
-  benefitsTitle: "Benefícios de marca d'água local (sem upload)",
-  benefitsIntro:
-    "Proteger rascunhos e cópias de revisão com marca d'água não deveria exigir enviar o PDF a um servidor de terceiros.",
-  benefits: [
-    {
-      title: 'Processamento client-side com privacidade',
-      description:
-        "A aplicação da marca d'água ocorre via JavaScript no navegador. Contratos, propostas e materiais internos não ficam armazenados em servidores nossos.",
-    },
-    {
-      title: 'Identifique cópias e reduza uso indevido',
-      description:
-        "Textos como CONFIDENCIAL, CÓPIA ou o e-mail do destinatário deixam claro que o arquivo é controlado — útil em compartilhamentos por e-mail ou drive.",
-    },
-    {
-      title: 'Opacidade e estilo sob seu controle',
-      description:
-        'Equilibre legibilidade do documento e visibilidade da marca. Ajustes finos sem instalar software de edição profissional.',
-    },
-    {
-      title: 'Grátis e sem cadastro',
-      description:
-        "Use quantas vezes precisar no fluxo de trabalho. Sem plano pago obrigatório para a marca d'água básica de texto.",
-    },
-  ],
-  faqTitle: "FAQ: marca d'água em PDF com segurança",
-  faqs: [
-    {
-      question: 'Meus arquivos são enviados para a internet?',
-      answer:
-        "Não. O PDF e o texto da marca d'água são processados na memória do navegador. O arquivo final baixado não transitou por um backend que armazene o documento.",
-    },
-    {
-      question: 'Posso usar offline?',
-      answer:
-        'Depois de carregar a aplicação no navegador, a aplicação da marca não depende de upload. Internet é necessária sobretudo para abrir o site na primeira vez.',
-    },
-    {
-      question: "A marca d'água vai em todas as páginas?",
-      answer:
-        'Sim — a ferramenta aplica o texto configurado em todas as páginas do PDF selecionado, de forma uniforme, conforme as opções definidas na interface.',
-    },
-    {
-      question: "Consigo remover a marca d'água depois?",
-      answer:
-        "A marca d'água de texto é incorporada ao PDF gerado. Para um original limpo, guarde o arquivo sem marca; não há “desfazer na nuvem” porque não guardamos o seu PDF.",
-    },
-  ],
-};
-
-/** /desenhar-pdf */
-export const desenharPdfSeoContent: ToolSeoBlock = {
-  howToTitle: 'Como desenhar ou assinar um PDF de forma segura',
-  howToIntro:
-    'Com a ferramenta Desenhar no PDF do Easy PDF Local você rabisca, destaca ou assina à mão livre na primeira página — mouse ou toque — sem enviar o arquivo para a nuvem.',
-  steps: [
-    {
-      title: 'Carregue o PDF localmente',
-      description:
-        'Selecione o arquivo no dispositivo. A pré-visualização da página usa pdf.js no navegador; o conteúdo não é transmitido para nossos servidores.',
-    },
-    {
-      title: 'Desenhe com o dedo ou o mouse',
-      description:
-        'Escolha cor e espessura do pincel e desenhe sobre a página 1. Ideal para assinaturas simples, circulados ou anotações rápidas.',
-    },
-    {
-      title: 'Exporte o PDF com o desenho',
-      description:
-        'Ao salvar, o traço é mesclado ao PDF via pdf-lib no cliente e o download começa no seu aparelho — processamento 100% local.',
-    },
-  ],
-  benefitsTitle: 'Benefícios de assinar/desenhar PDF no navegador',
-  benefitsIntro:
-    'Assinatura e anotações “online” em muitos sites implicam upload. Aqui o canvas e a exportação rodam só no seu dispositivo.',
-  benefits: [
-    {
-      title: 'pdf.js + pdf-lib 100% no cliente',
-      description:
-        'Visualização e gravação do desenho acontecem no navegador (JavaScript). Não há storage remoto do seu PDF assinado ou anotado.',
-    },
-    {
-      title: 'Funciona com mouse e toque',
-      description:
-        'Use no desktop ou no celular para uma assinatura rápida em contratos e formulários, sem instalar app de assinatura.',
-    },
-    {
-      title: 'Privacidade em documentos sensíveis',
-      description:
-        'Propostas, autorizações e papéis pessoais permanecem no aparelho durante todo o fluxo de desenho e exportação.',
+        'Páginas avulsas e faixas no mesmo campo — controle fino do que entra no PDF final.',
     },
     {
       title: 'Grátis e sem conta',
       description:
-        'Sem cadastro para rabiscar e baixar. Perfeito para uso pontual quando você só precisa assinar uma folha.',
+        'Sem login e sem cota diária inventada. Limites vêm do tamanho do arquivo e da memória do aparelho.',
+    },
+    {
+      title: 'Qualidade das páginas preservada',
+      description:
+        'As páginas são copiadas, não reimpressas como imagem — texto e vetores tendem a se manter.',
     },
   ],
-  faqTitle: 'FAQ: desenhar no PDF com segurança',
+  limitsTitle: 'Limites técnicos honestos',
+  limitsIntro:
+    'Processamento local tem teto de memória. Os limites abaixo protegem o navegador (especialmente no celular).',
+  limits: [
+    { label: 'Tamanho', text: 'Até cerca de 50 MB por PDF.' },
+    {
+      label: 'Páginas (geral)',
+      text: 'Ordem de até cerca de 150 páginas em operações leves — em aparelhos fracos, prefira arquivos menores.',
+    },
+    {
+      label: 'Saída',
+      text: 'Um único PDF com as páginas escolhidas (não gera ZIP de arquivos separados).',
+    },
+    {
+      label: 'Senha',
+      text: 'PDFs protegidos costumam precisar ser desbloqueados antes.',
+    },
+  ],
+  faqTitle: 'Perguntas frequentes sobre dividir PDF',
   faqs: [
     {
-      question: 'Meus arquivos são enviados para a internet?',
+      question: 'Dividir PDF online aqui faz upload?',
       answer:
-        'Não. O PDF e os traços ficam na sessão do navegador. A exportação mescla o desenho localmente; o servidor da Easy PDF Local não recebe o documento.',
+        'Não para processar. O PDF fica no navegador; a extração e o download são locais.',
     },
     {
-      question: 'Posso usar offline?',
+      question: 'Preciso me cadastrar?',
       answer:
-        'Após carregar a página e as bibliotecas, desenhar e exportar não exigem upload do PDF. A primeira visita ao site precisa de conexão para baixar o app web.',
+        'Não. Grátis e sem cadastro para usar a ferramenta.',
     },
     {
-      question: 'Em qual página posso desenhar?',
+      question: 'Como digito o intervalo?',
       answer:
-        'A ferramenta foca na primeira página do PDF (página 1), ideal para capas de assinatura e formulários de uma folha. Planeje o arquivo com a página alvo na frente se necessário.',
+        'Use vírgulas e hífens, por exemplo 1, 3-5, 8. A validação ocorre no navegador antes de extrair.',
     },
     {
-      question: 'A assinatura é juridicamente válida?',
+      question: 'O original é apagado?',
       answer:
-        'Trata-se de uma assinatura manuscrita digitalizada no PDF, útil no dia a dia. Validade legal depende da legislação e do contexto do documento — a ferramenta não emite certificado ICP-Brasil nem e-sign qualificado.',
+        'Não. Geramos um PDF novo; o arquivo original permanece no seu dispositivo.',
+    },
+    {
+      question: 'Funciona no celular?',
+      answer:
+        'Sim, no navegador. Em PDFs muito grandes, um desktop com mais RAM costuma ser mais confortável.',
+    },
+    {
+      question: 'E se o PDF tiver senha?',
+      answer:
+        'Desbloqueie primeiro (com a senha correta) na ferramenta Desbloquear PDF e depois extraia as páginas da cópia liberada.',
+    },
+  ],
+  relatedTitle: 'Ferramentas e guias relacionados',
+  related: [
+    {
+      path: '/juntar-pdf',
+      label: 'Juntar PDF',
+      description: 'Unir trechos ou arquivos de novo',
+    },
+    {
+      path: '/remover-paginas',
+      label: 'Remover páginas',
+      description: 'Excluir com miniaturas visuais',
+    },
+    {
+      path: '/comprimir-pdf',
+      label: 'Comprimir PDF',
+      description: 'Aliviar o peso do recorte',
+    },
+    {
+      path: '/pdf-sem-upload',
+      label: 'PDF sem upload',
+      description: 'Como funciona o modelo local',
+    },
+  ],
+};
+
+/** /girar-pdf — conteúdo SEO expandido */
+export const girarPdfSeoContent: ToolSeoBlock = {
+  toolName: 'Girar PDF',
+  schemaDescription:
+    'Gire páginas de PDF grátis no navegador, sem upload e sem cadastro. 90° esquerda/direita, todas ou por intervalo.',
+  overview: [
+    'Girar PDF corrige páginas deitadas ou de cabeça para baixo — comum em scans de celular e digitalizações. No Easy PDF Local você gira 90° à esquerda ou à direita, em todas as páginas ou só em um intervalo, e salva uma cópia — sem upload para a nuvem da ferramenta.',
+    'A rotação no PDF é, em geral, metadado de orientação: o conteúdo não precisa ser reimpresso como imagem. Texto e vetores tendem a manter a qualidade. O fluxo é grátis, sem cadastro e 100% no navegador.',
+    'Você pode combinar várias rotações (estado local) e só então clicar em salvar para aplicar com pdf-lib e baixar o arquivo.',
+  ],
+  audienceTitle: 'Para quem serve',
+  audience:
+    'Quem digitaliza documentos no celular; escritórios que recebem PDFs tortos; estudantes com apostilas escaneadas; qualquer pessoa que precise corrigir orientação sem instalar Adobe ou app pago.',
+  useCasesTitle: 'Casos de uso práticos',
+  useCases: [
+    {
+      title: 'Scan de celular de lado',
+      description:
+        'Gire todas as páginas 90° e baixe o PDF legível na vertical.',
+    },
+    {
+      title: 'Só uma página errada',
+      description:
+        'Use o intervalo (ex.: 3 ou 2-4) para girar apenas o que está invertido.',
+    },
+    {
+      title: 'Antes de juntar ou enviar',
+      description:
+        'Padronize a orientação e depois una arquivos ou anexe no e-mail.',
+    },
+    {
+      title: 'Documentos sensíveis',
+      description:
+        'Exames e contratos corrigidos localmente, sem upload a um site de terceiros.',
+    },
+  ],
+  howToTitle: 'Como girar PDF no navegador (passo a passo)',
+  howToIntro:
+    'A UI fica no topo: carregue o PDF, escolha o modo (todas ou intervalo), gire e salve localmente.',
+  steps: [
+    {
+      title: 'Abra o PDF no dispositivo',
+      description:
+        'Selecione o arquivo. A contagem de páginas e o estado de rotação ficam na sessão do navegador.',
+    },
+    {
+      title: 'Escolha todas as páginas ou um intervalo',
+      description:
+        'Gire o documento inteiro ou informe páginas (ex.: 1, 3-5). Use esquerda ou direita em passos de 90°.',
+    },
+    {
+      title: 'Ajuste quantas vezes precisar',
+      description:
+        'As rotações ficam pendentes até você salvar — combine giros antes de gerar o arquivo.',
+    },
+    {
+      title: 'Salve e baixe',
+      description:
+        'pdf-lib aplica os ângulos no cliente. Confira a pré-visualização e baixe a cópia rotacionada.',
+    },
+  ],
+  benefitsTitle: 'Por que girar PDF sem upload',
+  benefitsIntro:
+    'Corrigir orientação não deveria exigir enviar o documento a um servidor. Aqui o processamento é local e transparente.',
+  benefits: [
+    {
+      title: 'Sem perda típica de “reexportar imagem”',
+      description:
+        'Rotação de página no PDF preserva conteúdo embutido na maioria dos casos — não é o mesmo que capturar tela e girar JPEG.',
+    },
+    {
+      title: 'Privacidade no dispositivo',
+      description:
+        'Arquivo e ângulos ficam no navegador até o download da cópia.',
+    },
+    {
+      title: 'Grátis e sem cadastro',
+      description:
+        'Sem conta e sem instalar leitor desktop só para um ajuste pontual.',
+    },
+    {
+      title: 'Controle por página',
+      description:
+        'Intervalos permitem corrigir só o que está errado em relatórios longos.',
+    },
+  ],
+  limitsTitle: 'Limites técnicos honestos',
+  limitsIntro:
+    'Como nas outras tools, há tetos de arquivo e páginas para estabilidade no navegador.',
+  limits: [
+    { label: 'Tamanho', text: 'Até cerca de 50 MB por PDF.' },
+    {
+      label: 'Páginas',
+      text: 'Ordem de até cerca de 150 páginas em operações gerais — aparelhos fracos preferem menos.',
+    },
+    {
+      label: 'Ângulos',
+      text: 'Passos de 90° (esquerda/direita), não rotação livre em graus arbitrários na UI.',
+    },
+    {
+      label: 'Senha',
+      text: 'PDFs protegidos devem ser desbloqueados antes, se necessário.',
+    },
+  ],
+  faqTitle: 'Perguntas frequentes sobre girar PDF',
+  faqs: [
+    {
+      question: 'Girar PDF online aqui envia o arquivo?',
+      answer:
+        'Não para processar. A rotação roda no navegador; o download parte do seu dispositivo.',
+    },
+    {
+      question: 'A qualidade cai?',
+      answer:
+        'Em condições normais, não: orientação de página não equivale a recompactar tudo como imagem.',
+    },
+    {
+      question: 'Consigo girar só uma página?',
+      answer:
+        'Sim. Use o modo de páginas específicas com o número ou intervalo desejado.',
+    },
+    {
+      question: 'Preciso de cadastro?',
+      answer: 'Não. Grátis e sem conta.',
+    },
+    {
+      question: 'Funciona no celular?',
+      answer:
+        'Sim. Toque e botões de 90° funcionam no navegador mobile.',
+    },
+    {
+      question: 'Por que preciso clicar em Salvar?',
+      answer:
+        'Os botões de girar ajustam o estado local; “Salvar” aplica tudo de uma vez e gera o PDF para download.',
+    },
+  ],
+  relatedTitle: 'Ferramentas e guias relacionados',
+  related: [
+    {
+      path: '/juntar-pdf',
+      label: 'Juntar PDF',
+      description: 'Unir após padronizar orientação',
+    },
+    {
+      path: '/dividir-pdf',
+      label: 'Dividir PDF',
+      description: 'Recortar páginas antes ou depois',
+    },
+    {
+      path: '/remover-paginas',
+      label: 'Remover páginas',
+      description: 'Tirar folhas em branco',
+    },
+    {
+      path: '/pdf-sem-upload',
+      label: 'PDF sem upload',
+      description: 'Modelo local e privacidade',
+    },
+  ],
+};
+
+/** /marca-dagua — conteúdo SEO expandido */
+export const marcaDaguaSeoContent: ToolSeoBlock = {
+  toolName: "Marca d'água",
+  schemaDescription:
+    "Adicione marca d'água de texto em PDF grátis no navegador, sem upload e sem cadastro. Opacidade e estilo locais.",
+  overview: [
+    "Marca d'água em PDF serve para marcar rascunhos, cópias controladas ou documentos confidenciais com um texto visível (ex.: CONFIDENCIAL, RASCUNHO, seu nome). No Easy PDF Local a aplicação é 100% no navegador: o arquivo não sobe para processar em servidor nosso.",
+    'Você configura o texto e opções de estilo/opacidade na interface; o pdf-lib desenha a marca nas páginas localmente e você baixa a cópia marcada. O original no disco permanece intacto se você não o substituir.',
+    'Grátis e sem cadastro — adequado para fluxos de revisão e compartilhamento em que a privacidade do PDF importa.',
+  ],
+  audienceTitle: 'Para quem serve',
+  audience:
+    'Escritórios que enviam rascunhos; freelancers que marcam propostas; times jurídicos e de compliance; quem compartilha PDFs e quer deixar claro o status do documento.',
+  useCasesTitle: 'Casos de uso práticos',
+  useCases: [
+    {
+      title: 'Rascunho / não final',
+      description:
+        'Marque “RASCUNHO” ou “CÓPIA” antes de enviar para revisão.',
+    },
+    {
+      title: 'Confidencial',
+      description:
+        'Texto “CONFIDENCIAL” em relatórios e contratos em circulação interna.',
+    },
+    {
+      title: 'Identificar destinatário',
+      description:
+        'Inclua nome ou e-mail na marca para rastrear cópias compartilhadas.',
+    },
+    {
+      title: 'Sem instalar editor pago',
+      description:
+        'Ajuste no navegador e baixe — sem suíte desktop só para um texto.',
+    },
+  ],
+  howToTitle: "Como adicionar marca d'água no navegador",
+  howToIntro:
+    'Ferramenta no topo: selecione o PDF, configure o texto e baixe a cópia marcada — sem upload e sem conta.',
+  steps: [
+    {
+      title: 'Selecione o PDF',
+      description:
+        'Escolha o arquivo no dispositivo. O conteúdo fica na memória do navegador durante o processo.',
+    },
+    {
+      title: "Configure a marca d'água",
+      description:
+        'Digite o texto e ajuste opacidade, tamanho e estilo conforme as opções da tela.',
+    },
+    {
+      title: 'Aplique e baixe',
+      description:
+        'O pdf-lib desenha o texto nas páginas no cliente. Baixe o PDF marcado e guarde o original limpo se precisar.',
+    },
+  ],
+  benefitsTitle: "Por que marca d'água sem upload",
+  benefitsIntro:
+    'Marcar documentos sensíveis em sites com upload cria uma cópia temporária alheia. Aqui o fluxo é local.',
+  benefits: [
+    {
+      title: 'Processamento no dispositivo',
+      description:
+        'Texto e PDF não precisam depositar-se em servidor nosso para receber a marca.',
+    },
+    {
+      title: 'Todas as páginas de forma uniforme',
+      description:
+        'A marca configurada é aplicada em todas as páginas do documento selecionado.',
+    },
+    {
+      title: 'Grátis e sem cadastro',
+      description: 'Sem trial e sem login obrigatório para o uso típico.',
+    },
+    {
+      title: 'Controle visual',
+      description:
+        'Opacidade e estilo ajudam a equilibrar legibilidade e visibilidade da marca.',
+    },
+  ],
+  limitsTitle: 'Limites técnicos honestos',
+  limitsIntro:
+    'Marca de texto embutida; não é DRM avançado nem certificado digital.',
+  limits: [
+    { label: 'Tamanho', text: 'Até cerca de 50 MB por PDF.' },
+    {
+      label: 'Tipo de marca',
+      text: "Texto configurável — não é marca d'água de imagem complexa nesta ferramenta.",
+    },
+    {
+      label: 'Escopo',
+      text: 'Aplicação em todas as páginas do arquivo selecionado.',
+    },
+    {
+      label: 'Remoção',
+      text: 'A marca entra no PDF gerado; guarde o original sem marca se precisar de cópia limpa.',
+    },
+  ],
+  faqTitle: "Perguntas frequentes sobre marca d'água",
+  faqs: [
+    {
+      question: "A marca d'água sobe o PDF para a nuvem?",
+      answer:
+        'Não para processar. Tudo roda no navegador; você baixa a cópia marcada no dispositivo.',
+    },
+    {
+      question: 'Preciso de cadastro?',
+      answer: 'Não. Grátis e sem conta.',
+    },
+    {
+      question: "Vai em todas as páginas?",
+      answer:
+        'Sim. O texto configurado é aplicado de forma uniforme em todas as páginas do PDF.',
+    },
+    {
+      question: "Consigo remover depois?",
+      answer:
+        'Não há “desfazer na nuvem”. Mantenha o arquivo original sem marca se precisar de versão limpa.',
+    },
+    {
+      question: 'Funciona no celular?',
+      answer: 'Sim, no navegador, com os mesmos limites de tamanho de arquivo.',
+    },
+    {
+      question: 'Isso impede cópia do PDF?',
+      answer:
+        'Não é proteção criptográfica. A marca é visual; para senha de abertura use Proteger PDF.',
+    },
+  ],
+  relatedTitle: 'Ferramentas e guias relacionados',
+  related: [
+    {
+      path: '/proteger-pdf',
+      label: 'Proteger PDF',
+      description: 'Senha de abertura no arquivo',
+    },
+    {
+      path: '/desenhar-pdf',
+      label: 'Desenhar no PDF',
+      description: 'Assinatura ou anotações à mão',
+    },
+    {
+      path: '/juntar-pdf',
+      label: 'Juntar PDF',
+      description: 'Unir antes ou depois de marcar',
+    },
+    {
+      path: '/pdf-sem-upload',
+      label: 'PDF sem upload',
+      description: 'Privacidade e modelo local',
+    },
+  ],
+};
+
+/** /desenhar-pdf — conteúdo SEO expandido */
+export const desenharPdfSeoContent: ToolSeoBlock = {
+  toolName: 'Desenhar no PDF',
+  schemaDescription:
+    'Desenhe ou assine PDF grátis no navegador, sem upload e sem cadastro. Mouse ou toque na página 1 — processamento local.',
+  overview: [
+    'Desenhar no PDF serve para anotações rápidas, circulados e assinaturas à mão livre. No Easy PDF Local você carrega o arquivo, desenha com mouse ou toque e exporta — sem upload do documento para um servidor nosso.',
+    'A pré-visualização usa pdf.js; o traço é mesclado ao PDF com pdf-lib no cliente. O foco da ferramenta é a **primeira página** (página 1) — ideal para capas de assinatura e formulários de uma folha.',
+    'É grátis e sem cadastro. Não substitui assinatura digital com certificado (ICP-Brasil): é uma assinatura/anotação manuscrita embutida no PDF, útil no dia a dia.',
+  ],
+  audienceTitle: 'Para quem serve',
+  audience:
+    'Quem precisa assinar um formulário simples; professores que marcam provas digitalizadas; profissionais em celular que querem um “ok” visual sem app de assinatura; quem evita upload de contratos a sites de e-sign desconhecidos.',
+  useCasesTitle: 'Casos de uso práticos',
+  useCases: [
+    {
+      title: 'Assinatura rápida na página 1',
+      description:
+        'Coloque a página de assinatura na frente do PDF e assine com o dedo no celular.',
+    },
+    {
+      title: 'Circulares e destaques',
+      description:
+        'Marque trechos visualmente antes de devolver o arquivo por e-mail.',
+    },
+    {
+      title: 'Sem instalar app de assinatura',
+      description:
+        'Navegador basta — útil em PCs emprestados ou restritos.',
+    },
+    {
+      title: 'Documentos pessoais',
+      description:
+        'Autorizações e papéis que não devem subir a um serviço de nuvem só para rabiscar.',
+    },
+  ],
+  howToTitle: 'Como desenhar ou assinar PDF no navegador',
+  howToIntro:
+    'Ferramenta no topo: carregue o PDF, desenhe na página 1 e exporte localmente — grátis e sem conta.',
+  steps: [
+    {
+      title: 'Carregue o PDF no dispositivo',
+      description:
+        'Selecione o arquivo. A pré-visualização da página 1 usa pdf.js no navegador.',
+    },
+    {
+      title: 'Desenhe com mouse ou toque',
+      description:
+        'Escolha cor e espessura do pincel e desenhe sobre a página. Ideal para assinatura e anotações rápidas.',
+    },
+    {
+      title: 'Exporte o PDF com o desenho',
+      description:
+        'Ao salvar, o traço é mesclado no cliente e o download começa no seu aparelho.',
+    },
+  ],
+  benefitsTitle: 'Por que desenhar PDF sem upload',
+  benefitsIntro:
+    'Muitos “assine online” pedem conta e upload. Aqui o canvas e a exportação são locais.',
+  benefits: [
+    {
+      title: 'Processamento no dispositivo',
+      description:
+        'PDF e traços não são enviados a servidor nosso para assinar ou anotar.',
+    },
+    {
+      title: 'Desktop e celular',
+      description: 'Mouse ou dedo — mesmo fluxo no navegador.',
+    },
+    {
+      title: 'Grátis e sem cadastro',
+      description: 'Sem trial para um rabisco pontual.',
+    },
+    {
+      title: 'Transparência do que a tool faz',
+      description:
+        'Página 1 e assinatura manuscrita embutida — sem prometer ICP-Brasil.',
+    },
+  ],
+  limitsTitle: 'Limites técnicos honestos',
+  limitsIntro:
+    'Ferramenta focada e simples — saiba o que ela não faz.',
+  limits: [
+    {
+      label: 'Página',
+      text: 'Desenho na página 1 do PDF. Coloque a folha alvo na frente se precisar.',
+    },
+    { label: 'Tamanho', text: 'Até cerca de 50 MB por arquivo.' },
+    {
+      label: 'Assinatura legal',
+      text: 'Não emite certificado digital; validade jurídica depende do contexto e da lei.',
+    },
+    {
+      label: 'Edição avançada',
+      text: 'Não é editor completo de formulários AcroForm ou multi-página de anotações.',
+    },
+  ],
+  faqTitle: 'Perguntas frequentes sobre desenhar no PDF',
+  faqs: [
+    {
+      question: 'O PDF sobe para a nuvem?',
+      answer:
+        'Não para processar. Desenho e exportação rodam no navegador.',
+    },
+    {
+      question: 'Em qual página desenho?',
+      answer:
+        'Na página 1. Reordene o PDF (dividir/juntar) se a assinatura estiver em outra folha.',
+    },
+    {
+      question: 'A assinatura vale juridicamente?',
+      answer:
+        'É manuscrita digitalizada. Validade depende do caso — não é e-sign com certificado ICP-Brasil.',
+    },
+    {
+      question: 'Preciso de cadastro?',
+      answer: 'Não. Grátis e sem conta.',
+    },
+    {
+      question: 'Funciona no celular?',
+      answer: 'Sim, com toque no canvas da página 1.',
+    },
+    {
+      question: 'Posso desfazer o traço?',
+      answer:
+        'Use os controles da interface (desfazer/limpar) antes de exportar, conforme disponíveis na tela.',
+    },
+  ],
+  relatedTitle: 'Ferramentas e guias relacionados',
+  related: [
+    {
+      path: '/proteger-pdf',
+      label: 'Proteger PDF',
+      description: 'Senha após assinar',
+    },
+    {
+      path: '/marca-dagua',
+      label: "Marca d'água",
+      description: 'Texto em todas as páginas',
+    },
+    {
+      path: '/juntar-pdf',
+      label: 'Juntar PDF',
+      description: 'Unir páginas de assinatura',
+    },
+    {
+      path: '/pdf-sem-upload',
+      label: 'PDF sem upload',
+      description: 'Privacidade local',
     },
   ],
 };
@@ -744,362 +1086,773 @@ export const wordParaPdfSeoContent: ToolSeoBlock = {
   ],
 };
 
-/** /imagem-para-pdf */
+/** /imagem-para-pdf — conteúdo SEO expandido */
 export const imagemParaPdfSeoContent: ToolSeoBlock = {
-  howToTitle: 'Como converter imagens em PDF de forma segura',
+  toolName: 'Imagem para PDF',
+  schemaDescription:
+    'Converta JPG, PNG ou WebP em PDF grátis no navegador, sem upload e sem cadastro. Várias imagens, uma página cada.',
+  overview: [
+    'Imagem para PDF transforma fotos e scans em um único arquivo PDF — uma página por imagem — na ordem que você definir. No Easy PDF Local o empacotamento roda no navegador: as imagens não sobem para um servidor nosso de conversão.',
+    'Aceita formatos comuns como JPG/JPEG, PNG e WebP. Ideal para juntar comprovantes fotografados no celular, digitalizações e prints em um anexo estável para e-mail ou protocolo.',
+    'Grátis e sem cadastro. Limites de quantidade e tamanho existem para o navegador não travar (especialmente no mobile).',
+  ],
+  audienceTitle: 'Para quem serve',
+  audience:
+    'Quem tira foto de documentos no celular; quem monta um PDF de recibos; estudantes que digitalizam folhas; profissionais que precisam de um único anexo a partir de várias imagens.',
+  useCasesTitle: 'Casos de uso práticos',
+  useCases: [
+    {
+      title: 'Documentos fotografados',
+      description:
+        'RG, comprovante e formulário em fotos → um PDF ordenado.',
+    },
+    {
+      title: 'Scans e recibos',
+      description:
+        'Várias imagens de gastos ou notas em um arquivo para reembolso.',
+    },
+    {
+      title: 'Prints de tela',
+      description:
+        'Empacote capturas em PDF para enviar por e-mail sem pasta zip.',
+    },
+    {
+      title: 'Sem app nativo',
+      description:
+        'Conversão no navegador do telefone, sem instalar “foto para PDF”.',
+    },
+  ],
+  howToTitle: 'Como converter imagens em PDF no navegador',
   howToIntro:
-    'Com a ferramenta Imagem para PDF do Easy PDF Local você transforma JPG, PNG ou WebP em um único PDF — uma página por imagem — sem enviar fotos para a nuvem.',
+    'Ferramenta no topo: adicione imagens, ordene e gere o PDF localmente — sem upload e sem conta.',
   steps: [
     {
       title: 'Adicione uma ou mais imagens',
       description:
-        'Arraste ou selecione JPG, PNG ou WebP. As imagens ficam na memória do navegador; você pode reordenar a lista antes de gerar o PDF.',
+        'Arraste ou selecione JPG, PNG ou WebP. As imagens ficam na memória do navegador.',
     },
     {
       title: 'Organize a ordem das páginas',
       description:
-        'Defina a sequência das fotos ou scans. A primeira da lista será a página 1 do PDF final.',
+        'Reordene a lista: a primeira imagem será a página 1 do PDF.',
     },
     {
       title: 'Gere e baixe o PDF',
       description:
-        'A montagem do PDF roda no cliente. O arquivo é baixado no seu dispositivo — ideal para digitalizações e comprovantes sem upload.',
+        'A montagem roda no cliente. Baixe o arquivo no dispositivo — uma página por imagem.',
     },
   ],
-  benefitsTitle: 'Benefícios de imagem para PDF local (sem upload)',
+  benefitsTitle: 'Por que imagem para PDF sem upload',
   benefitsIntro:
-    'Juntar prints e fotos em PDF em sites com upload expõe imagens pessoais. Aqui o empacotamento é client-side.',
+    'Sites com upload recebem suas fotos. Aqui o empacotamento é client-side e a privacidade acompanha o fluxo.',
   benefits: [
     {
-      title: 'Processamento no navegador',
+      title: 'Fotos não sobem para converter',
       description:
-        'As imagens são embutidas em PDF no seu aparelho. Não há armazenamento das fotos em servidores da Easy PDF Local.',
+        'Processamento no aparelho; download do PDF parte da sessão local.',
     },
     {
-      title: 'Várias imagens, um só arquivo',
-      description:
-        'Perfeito para envio de documentos digitalizados, portfólios simples, recibos e conjuntos de prints em um único anexo.',
+      title: 'Várias imagens, um arquivo',
+      description: 'Um anexo em vez de dezenas de fotos soltas.',
     },
     {
-      title: 'Ordem personalizada',
-      description:
-        'Reorganize páginas antes de exportar — essencial quando o celular tira fotos fora de ordem.',
+      title: 'Ordem sob controle',
+      description: 'Corrija a sequência antes de gerar o PDF.',
     },
     {
-      title: 'Grátis, sem conta e sem app',
-      description:
-        'Funciona no navegador do celular ou PC. Sem instalar conversor nativo só para “juntar imagens em PDF”.',
+      title: 'Grátis e sem cadastro',
+      description: 'Sem conta e sem app obrigatório no celular.',
     },
   ],
-  faqTitle: 'FAQ: imagem para PDF com segurança',
+  limitsTitle: 'Limites técnicos honestos',
+  limitsIntro:
+    'Memória do navegador limita quantas imagens grandes cabem de uma vez.',
+  limits: [
+    {
+      label: 'Por imagem',
+      text: 'Até cerca de 50 MB cada (mesmo teto geral de arquivo).',
+    },
+    {
+      label: 'Quantidade',
+      text: 'Até cerca de 20 imagens por operação (mesmo espírito do merge).',
+    },
+    {
+      label: 'Formatos',
+      text: 'JPG/JPEG, PNG, WebP. HEIC e outros: converta no aparelho antes.',
+    },
+    {
+      label: 'Layout',
+      text: 'Uma página por imagem; não é diagramador de revista.',
+    },
+  ],
+  faqTitle: 'Perguntas frequentes sobre imagem para PDF',
   faqs: [
     {
-      question: 'Meus arquivos são enviados para a internet?',
+      question: 'As fotos sobem para a internet?',
       answer:
-        'Não. JPG, PNG e WebP permanecem no navegador durante a conversão. O PDF gerado é baixado localmente, sem upload do conteúdo das imagens.',
+        'Não para processar. Ficam no navegador até você baixar o PDF gerado.',
     },
     {
-      question: 'Posso usar offline?',
+      question: 'Quais formatos aceita?',
       answer:
-        'Após carregar a ferramenta, a conversão não depende de enviar as imagens pela rede. A primeira abertura do site precisa de conexão.',
+        'Em geral JPG, PNG e WebP. Outros formatos devem ser convertidos antes.',
     },
     {
-      question: 'Quais formatos de imagem são aceitos?',
+      question: 'A qualidade cai?',
       answer:
-        'Em geral JPEG/JPG, PNG e WebP. Outros formatos podem ser convertidos antes (por exemplo, HEIC → JPG no próprio celular) e então adicionados aqui.',
+        'O fluxo embute as imagens; a nitidez final depende da resolução original e do visualizador.',
     },
     {
-      question: 'A qualidade da imagem cai no PDF?',
+      question: 'Preciso de cadastro?',
+      answer: 'Não. Grátis e sem conta.',
+    },
+    {
+      question: 'Funciona no celular?',
       answer:
-        'O fluxo prioriza embutir as imagens sem “passar por servidor”. A nitidez final depende da resolução original e de como o visualizador renderiza o PDF; evite recompactar demais as fotos na origem.',
+        'Sim. Em muitas fotos pesadas, o aparelho pode demorar ou falhar por memória — use menos imagens por vez.',
+    },
+    {
+      question: 'Posso misturar com PDFs?',
+      answer:
+        'Esta tool é imagem → PDF. Para unir PDFs depois, use Juntar PDF.',
+    },
+  ],
+  relatedTitle: 'Ferramentas e guias relacionados',
+  related: [
+    {
+      path: '/juntar-pdf',
+      label: 'Juntar PDF',
+      description: 'Unir o PDF gerado a outros arquivos',
+    },
+    {
+      path: '/comprimir-pdf',
+      label: 'Comprimir PDF',
+      description: 'Se o PDF de fotos ficar pesado',
+    },
+    {
+      path: '/word-para-pdf',
+      label: 'Word para PDF',
+      description: 'Texto DOCX em PDF',
+    },
+    {
+      path: '/pdf-sem-upload',
+      label: 'PDF sem upload',
+      description: 'Modelo local e privacidade',
     },
   ],
 };
 
-/** /extrair-texto (PDF nativo + OCR) */
+/** /extrair-texto — conteúdo SEO expandido (nativo + OCR) */
 export const extrairTextoSeoContent: ToolSeoBlock = {
-  howToTitle: 'Como extrair texto de PDF de forma segura',
+  toolName: 'Extrair Texto',
+  schemaDescription:
+    'Extraia texto de PDF grátis no navegador, sem upload e sem cadastro. Modo nativo (pdf.js) ou OCR em português (Tesseract) local.',
+  overview: [
+    'Extrair texto de PDF serve para copiar conteúdo, indexar trechos ou reaproveitar texto de documentos digitais e scans. No Easy PDF Local o fluxo é local: o PDF não sobe para uma API de OCR na nuvem nossa.',
+    'Há dois caminhos: **nativo** (pdf.js lê a camada de texto — rápido e preciso em PDFs “digitais”) e **OCR** (Tesseract.js em português, páginas renderizadas em canvas — para scans). O OCR é mais lento e tem limite de páginas.',
+    'Grátis e sem cadastro. Você pode editar o resultado, copiar ou baixar como .txt. Sempre revise nomes e números críticos após o OCR.',
+  ],
+  audienceTitle: 'Para quem serve',
+  audience:
+    'Quem precisa copiar trechos de contratos e relatórios; estudantes com apostilas digitais; quem recebe scan e precisa de texto editável; times que não podem enviar laudos a serviços de OCR na nuvem.',
+  useCasesTitle: 'Casos de uso práticos',
+  useCases: [
+    {
+      title: 'PDF com texto selecionável',
+      description:
+        'Modo nativo: extração rápida página a página sem OCR.',
+    },
+    {
+      title: 'Scan ou foto de documento',
+      description:
+        'Ative Forçar OCR (português) e revise o resultado com calma.',
+    },
+    {
+      title: 'Copiar valores e cláusulas',
+      description:
+        'Gere .txt e cole em planilha ou editor — com checagem humana.',
+    },
+    {
+      title: 'Privacidade de laudos e RH',
+      description:
+        'Texto reconhecido no dispositivo, sem API de nuvem para o conteúdo.',
+    },
+  ],
+  howToTitle: 'Como extrair texto de PDF no navegador',
   howToIntro:
-    'Com a ferramenta Extrair Texto do Easy PDF Local você copia texto de PDFs digitais (pdf.js) ou usa OCR (Tesseract.js, português) em PDFs escaneados — 100% no navegador, sem upload.',
+    'Ferramenta no topo: selecione o PDF, escolha nativo ou OCR e baixe o texto — sem upload e sem conta.',
   steps: [
     {
       title: 'Selecione o PDF no dispositivo',
       description:
-        'Arraste ou escolha um arquivo PDF. Ele permanece na memória do navegador; nada é enviado para servidores da Easy PDF Local.',
+        'O arquivo fica na memória do navegador. Validação de tamanho e páginas ocorre localmente.',
     },
     {
-      title: 'Escolha o modo: nativo ou Forçar OCR',
+      title: 'Escolha nativo ou Forçar OCR',
       description:
-        'Deixe o OCR desligado para PDFs com texto selecionável (rápido, getTextContent). Ative “Forçar OCR” só em scans — cada página é renderizada em canvas e lida com Tesseract.',
+        'Nativo para texto embutido. OCR só em scans — cada página vira imagem e o Tesseract roda no CPU.',
     },
     {
-      title: 'Extraia, revise e baixe como .txt',
+      title: 'Extraia, revise e exporte',
       description:
-        'Acompanhe “Lendo página X de Y…”, edite o resultado se preciso, copie para a área de transferência ou baixe um arquivo de texto.',
+        'Acompanhe o progresso, edite se quiser, copie ou baixe .txt.',
     },
   ],
-  benefitsTitle: 'Benefícios da extração local (pdf.js + Tesseract)',
+  benefitsTitle: 'Por que extrair texto sem upload',
   benefitsIntro:
-    'Extrair texto “online” em muitos sites implica upload do PDF. Aqui o fluxo é client-side: nativo para documentos digitais e OCR opcional para papel digitalizado.',
+    'OCR na nuvem envia o documento inteiro. Aqui nativo e Tesseract são client-side; o modelo de idioma é asset público, não o seu PDF.',
   benefits: [
     {
-      title: 'Modo nativo rápido com pdf.js',
+      title: 'Dois modos honestos',
       description:
-        'PDFs gerados por Word, sistemas e impressoras virtuais costumam ter camada de texto. A leitura por página com getTextContent é leve e precisa.',
+        'Rápido quando há texto; OCR opcional quando é imagem — sem misturar as expectativas.',
     },
     {
-      title: 'OCR opcional para scans',
+      title: 'Português no OCR',
       description:
-        'Com Forçar OCR, cada página vira imagem no canvas e o Tesseract reconhece em português (por) no seu CPU — sem API de OCR na nuvem.',
+        'Modelo por/pt disponível no fluxo local (primeira carga pode baixar o asset de idioma).',
     },
     {
-      title: 'Privacidade total',
+      title: 'Privacidade do conteúdo',
       description:
-        'Contratos, boletos e laudos não precisam atravessar a internet só para virar texto editável. O download .txt parte do seu dispositivo.',
+        'O texto do seu PDF não é processado em servidor nosso de OCR.',
     },
     {
       title: 'Grátis e sem cadastro',
-      description:
-        'Use sob demanda. OCR é mais lento e depende da nitidez do scan; o modo nativo é o padrão recomendado sempre que o texto for selecionável.',
+      description: 'Sem conta para copiar ou baixar o .txt.',
     },
   ],
-  faqTitle: 'FAQ: extrair texto de PDF com segurança',
+  limitsTitle: 'Limites técnicos honestos',
+  limitsIntro:
+    'OCR é pesado. Por isso há tetos claros — não use “forçar OCR” em dezenas de páginas no celular de entrada sem expectativa de tempo.',
+  limits: [
+    { label: 'Tamanho do PDF', text: 'Até cerca de 50 MB.' },
+    {
+      label: 'OCR',
+      text: 'Até cerca de 30 páginas no fluxo de OCR (Tesseract + canvas).',
+    },
+    {
+      label: 'Precisão do OCR',
+      text: 'Não é 100%. Revise números, nomes e valores críticos.',
+    },
+    {
+      label: 'Performance',
+      text: 'OCR depende da CPU; scans tortos ou escuros pioram o resultado.',
+    },
+  ],
+  faqTitle: 'Perguntas frequentes sobre extrair texto',
   faqs: [
     {
-      question: 'Meus arquivos são enviados para a internet?',
+      question: 'O PDF sobe para a internet?',
       answer:
-        'Não. O PDF fica no navegador. A extração nativa e o OCR rodam localmente. No OCR, só o modelo público de idioma do Tesseract pode ser baixado na primeira vez — o conteúdo do seu PDF não sobe para nossos servidores.',
+        'Não para extrair. Nativo e OCR rodam no navegador. Assets públicos (ex.: modelo de idioma) podem ser baixados na primeira vez — o conteúdo do seu PDF não vai para nossos servidores.',
     },
     {
-      question: 'Posso usar offline?',
+      question: 'Quando usar Forçar OCR?',
       answer:
-        'Após carregar o site (e, no OCR, o modelo de idioma em cache), a extração não envia o PDF pela rede. A primeira visita e o primeiro OCR podem precisar de internet para assets da aplicação.',
+        'Só se o modo nativo vier vazio e o PDF for scan/foto. OCR é bem mais lento.',
     },
     {
-      question: 'Quando devo ativar Forçar OCR?',
+      question: 'Quantas páginas no OCR?',
       answer:
-        'Somente se o PDF for imagem de scanner/foto e o modo normal retornar vazio ou quase nada. OCR é bem mais lento e pode errar em textos tortos ou de baixa resolução.',
+        'Cerca de 30 páginas no limite do produto. Acima disso, divida o PDF ou use desktop com mais recursos.',
     },
     {
-      question: 'O OCR é 100% preciso?',
+      question: 'O OCR erra?',
       answer:
-        'Não. Revise números, nomes e valores críticos. Melhore scans (nitidez, contraste, páginas retas) para resultados melhores.',
+        'Sim, especialmente em baixa resolução. Sempre revise antes de usar o texto em produção.',
+    },
+    {
+      question: 'Preciso de cadastro?',
+      answer: 'Não. Grátis e sem conta.',
+    },
+    {
+      question: 'Funciona offline?',
+      answer:
+        'Após carregar o site e o modelo de idioma (OCR), a extração do PDF não faz upload do documento.',
+    },
+  ],
+  relatedTitle: 'Ferramentas e guias relacionados',
+  related: [
+    {
+      path: '/dividir-pdf',
+      label: 'Dividir PDF',
+      description: 'OCR só nas páginas necessárias',
+    },
+    {
+      path: '/comprimir-pdf',
+      label: 'Comprimir PDF',
+      description: 'Atenção: compressão por imagem remove texto selecionável',
+    },
+    {
+      path: '/word-para-pdf',
+      label: 'Word para PDF',
+      description: 'Caminho inverso: texto → PDF',
+    },
+    {
+      path: '/pdf-sem-upload',
+      label: 'PDF sem upload',
+      description: 'Privacidade e modelo local',
     },
   ],
 };
 
-/** /proteger-pdf */
+/** /proteger-pdf — conteúdo SEO expandido */
 export const protegerPdfSeoContent: ToolSeoBlock = {
-  howToTitle: 'Como proteger PDF com senha com segurança',
+  toolName: 'Proteger PDF',
+  schemaDescription:
+    'Proteja PDF com senha grátis no navegador, sem upload e sem cadastro. Criptografia local no seu dispositivo.',
+  overview: [
+    'Proteger PDF com senha de abertura reduz o risco de leitura por quem intercepta um e-mail ou encontra o arquivo em um pen drive. No Easy PDF Local a criptografia roda no navegador: o documento e a senha não sobem para um servidor nosso.',
+    'Você escolhe o PDF (sem senha prévia), define e confirma a senha e baixa a cópia cifrada. Leitores comuns (Chrome, Adobe, Preview) pedem a senha ao abrir.',
+    'Grátis e sem cadastro. Se esquecer a senha, não há recuperação conosco — guarde-a com cuidado. Para remover senha quando você ainda a conhece, use Desbloquear PDF.',
+  ],
+  audienceTitle: 'Para quem serve',
+  audience:
+    'Quem envia contratos e laudos por e-mail; freelancers que protegem propostas; RH e jurídico; qualquer pessoa que queira uma camada simples de senha sem instalar software desktop.',
+  useCasesTitle: 'Casos de uso práticos',
+  useCases: [
+    {
+      title: 'Anexo de e-mail',
+      description:
+        'Cifre o PDF antes de enviar; informe a senha por outro canal.',
+    },
+    {
+      title: 'Documentos pessoais',
+      description:
+        'Exames e identidade digitalizada com senha de abertura.',
+    },
+    {
+      title: 'Compartilhamento em pastas',
+      description:
+        'Reduz leitura casual se o arquivo for copiado sem autorização.',
+    },
+    {
+      title: 'PC compartilhado',
+      description:
+        'Proteja e baixe sem instalar suíte paga no computador da empresa.',
+    },
+  ],
+  howToTitle: 'Como proteger PDF com senha no navegador',
   howToIntro:
-    'Com a ferramenta Proteger PDF do Easy PDF Local você criptografa o documento com senha de abertura direto no navegador, sem enviar o arquivo para serviços de conversão na nuvem.',
+    'Ferramenta no topo: selecione o PDF, defina a senha e baixe a cópia cifrada — sem upload e sem conta.',
   steps: [
     {
-      title: 'Selecione o PDF',
+      title: 'Selecione o PDF sem senha',
       description:
-        'Escolha o arquivo no seu dispositivo. O PDF deve estar sem senha prévia para que a nova proteção possa ser aplicada localmente.',
+        'O arquivo deve estar legível (sem proteção prévia) para aplicar a nova senha localmente.',
     },
     {
       title: 'Defina e confirme a senha',
       description:
-        'Digite a senha desejada e repita no campo de confirmação. Use pelo menos 4 caracteres; prefira combinações mais longas e difíceis de adivinhar.',
+        'Mínimo prático de 4 caracteres; prefira senhas longas e únicas. Confirme no segundo campo.',
     },
     {
       title: 'Criptografe e baixe',
       description:
-        'Clique em Criptografar e Baixar. A proteção é aplicada no cliente e o download do PDF cifrado inicia no seu dispositivo.',
+        'A proteção é aplicada no cliente. Guarde a senha — não a recuperamos.',
     },
   ],
-  benefitsTitle: 'Benefícios de proteger PDF no navegador',
+  benefitsTitle: 'Por que proteger PDF sem upload',
   benefitsIntro:
-    'Proteger contratos, laudos e documentos pessoais com senha reduz o risco de leitura por terceiros — especialmente se o arquivo for anexado por e-mail ou compartilhado em pastas.',
+    'Criptografar “online” com upload expõe o arquivo no momento em que você quer mais sigilo. Aqui o processo é local.',
   benefits: [
     {
-      title: 'Criptografia client-side (sem upload)',
+      title: 'Senha e PDF só no dispositivo',
       description:
-        'O PDF e a senha processam só na memória do navegador. Nossos servidores não recebem o conteúdo nem a senha escolhida.',
+        'Nada disso é enviado a backend nosso para “proteger na nuvem”.',
     },
     {
-      title: 'Senha de abertura em leitores comuns',
+      title: 'Compatível com leitores comuns',
       description:
-        'O arquivo protegido pede senha ao abrir no Adobe Reader, Chrome, Preview e outros visualizadores compatíveis com PDF padrão.',
-    },
-    {
-      title: 'Controle de permissões básicas',
-      description:
-        'Além da senha de usuário, o fluxo aplica restrições de edição e cópia no nível do documento (conforme o handler de segurança do PDF).',
+        'Senha de abertura no padrão PDF — Adobe, Chrome, Preview etc.',
     },
     {
       title: 'Grátis e sem cadastro',
+      description: 'Sem trial e sem instalar desktop só para uma senha.',
+    },
+    {
+      title: 'Ciclo com Desbloquear',
       description:
-        'Proteja sob demanda, sem trial e sem instalar software desktop. Ideal para uso pontual em computadores compartilhados.',
+        'Depois, se precisar da cópia aberta e ainda souber a senha, use Desbloquear PDF.',
     },
   ],
-  faqTitle: 'FAQ: proteger PDF com senha',
+  limitsTitle: 'Limites técnicos honestos',
+  limitsIntro:
+    'Proteção útil no dia a dia — não é cofre militar nem recuperação de senha.',
+  limits: [
+    { label: 'Tamanho', text: 'Até cerca de 50 MB por PDF.' },
+    {
+      label: 'PDF já com senha',
+      text: 'Desbloqueie/salve sem senha antes de aplicar uma nova proteção aqui.',
+    },
+    {
+      label: 'Recuperação',
+      text: 'Não recuperamos senhas esquecidas.',
+    },
+    {
+      label: 'Modelo de senha',
+      text: 'Por simplicidade, user e owner usam a mesma string na UI atual.',
+    },
+  ],
+  faqTitle: 'Perguntas frequentes sobre proteger PDF',
   faqs: [
     {
-      question: 'Meus arquivos ou a senha sobem para a internet?',
+      question: 'A senha sobe para a internet?',
       answer:
-        'Não. A criptografia roda no navegador. O PDF original e a senha não são enviados aos servidores da Easy PDF Local.',
+        'Não. Criptografia no navegador; não enviamos PDF nem senha a servidores nossos.',
     },
     {
       question: 'E se eu esquecer a senha?',
       answer:
-        'Não recuperamos senhas. Guarde-a em gerenciador de senhas ou local seguro. Sem a senha, leitores padrão não abrem o conteúdo cifrado.',
+        'Não há recuperação. Use gerenciador de senhas ou anote em local seguro.',
     },
     {
-      question: 'Posso proteger um PDF que já tem senha?',
-      answer:
-        'Não neste fluxo. Remova a proteção no leitor original (com a senha atual) e salve uma cópia sem senha antes de aplicar uma nova proteção aqui.',
+      question: 'Preciso de cadastro?',
+      answer: 'Não. Grátis e sem conta.',
     },
     {
-      question: 'A senha é a mesma para usuário e proprietário?',
+      question: 'Posso proteger PDF que já tem senha?',
       answer:
-        'Sim. Por simplicidade, userPassword e ownerPassword usam a mesma string que você digita — abrem o documento e definem o dono no handler de segurança.',
+        'Não neste fluxo. Remova a senha atual (com a senha conhecida) e depois proteja de novo.',
+    },
+    {
+      question: 'Funciona no celular?',
+      answer: 'Sim, no navegador, com os limites de tamanho de arquivo.',
+    },
+    {
+      question: 'Isso impede tudo?',
+      answer:
+        'É senha de abertura padrão PDF. Boas práticas de compartilhamento ainda importam (canal da senha, permissões da pasta, etc.).',
+    },
+  ],
+  relatedTitle: 'Ferramentas e guias relacionados',
+  related: [
+    {
+      path: '/desbloquear-pdf',
+      label: 'Desbloquear PDF',
+      description: 'Remover senha quando você a conhece',
+    },
+    {
+      path: '/marca-dagua',
+      label: "Marca d'água",
+      description: 'Marcação visual além da senha',
+    },
+    {
+      path: '/juntar-pdf',
+      label: 'Juntar PDF',
+      description: 'Unir antes de proteger',
+    },
+    {
+      path: '/pdf-sem-upload',
+      label: 'PDF sem upload',
+      description: 'Privacidade e modelo local',
     },
   ],
 };
 
-/** /remover-paginas */
+/** /remover-paginas — conteúdo SEO expandido */
 export const removerPaginasSeoContent: ToolSeoBlock = {
-  howToTitle: 'Como remover páginas de um PDF com segurança',
+  toolName: 'Remover Páginas',
+  schemaDescription:
+    'Remova páginas de PDF grátis no navegador, sem upload e sem cadastro. Miniaturas locais e PDF novo com o que restar.',
+  overview: [
+    'Remover páginas de PDF serve para tirar capas em branco, anexos errados ou folhas confidenciais antes de enviar o arquivo. No Easy PDF Local você marca páginas nas miniaturas e baixa um PDF novo — sem upload para a nuvem da ferramenta.',
+    'As miniaturas usam pdf.js no navegador; a montagem do arquivo final usa pdf-lib. O original no disco não é apagado automaticamente. É obrigatório manter ao menos uma página no resultado.',
+    'Grátis e sem cadastro. Alternativa visual ao “dividir por intervalo” quando você prefere ver o conteúdo página a página.',
+  ],
+  audienceTitle: 'Para quem serve',
+  audience:
+    'Quem limpa scans com folhas extras; quem remove anexos errados de um pacote; quem precisa ocultar páginas sensíveis antes de compartilhar; quem prefere UI com miniaturas a digitar intervalos.',
+  useCasesTitle: 'Casos de uso práticos',
+  useCases: [
+    {
+      title: 'Capas e páginas em branco',
+      description: 'Marque e exclua folhas vazias de um scan.',
+    },
+    {
+      title: 'Tirar anexo errado',
+      description:
+        'Remova páginas que entraram no PDF por engano antes de enviar.',
+    },
+    {
+      title: 'Privacidade seletiva',
+      description:
+        'Tire páginas com dados pessoais e compartilhe só o restante.',
+    },
+    {
+      title: 'Limpar antes de comprimir ou juntar',
+      description:
+        'Menos páginas = arquivo mais leve e merge mais simples.',
+    },
+  ],
+  howToTitle: 'Como remover páginas de PDF no navegador',
   howToIntro:
-    'Com a ferramenta Remover Páginas do Easy PDF Local você exclui páginas indesejadas visualmente, com miniaturas, e baixa um PDF novo — sem upload para a nuvem.',
+    'Ferramenta no topo: carregue o PDF, marque as miniaturas e gere a cópia — grátis e sem conta.',
   steps: [
     {
       title: 'Envie o PDF',
       description:
-        'Arraste ou selecione o arquivo. As miniaturas de cada página são geradas no navegador com pdf.js para você revisar o conteúdo.',
+        'Arraste ou selecione. Miniaturas são geradas localmente com pdf.js.',
     },
     {
-      title: 'Marque as páginas a excluir',
+      title: 'Marque o que excluir',
       description:
-        'Clique no ícone de lixeira em cada miniatura que deseja remover. Páginas marcadas ficam destacadas; clique de novo para desmarcar.',
+        'Clique na lixeira de cada miniatura. Clique de novo para desmarcar. Deixe ao menos uma página.',
     },
     {
       title: 'Gere o novo PDF',
       description:
-        'Clique em Gerar Novo PDF. O pdf-lib remove as páginas selecionadas (mantendo ao menos uma) e inicia o download do arquivo resultante.',
+        'pdf-lib monta o arquivo sem as páginas marcadas. Baixe a cópia; o original permanece no disco.',
     },
   ],
-  benefitsTitle: 'Benefícios de apagar páginas de PDF no navegador',
+  benefitsTitle: 'Por que remover páginas sem upload',
   benefitsIntro:
-    'Remover capas em branco, anexos errados ou páginas confidenciais antes de enviar o documento é mais seguro quando o processamento não passa por servidores de terceiros.',
+    'Apagar páginas “online” com upload expõe o documento inteiro. Aqui seleção e geração são locais.',
   benefits: [
     {
-      title: 'Seleção visual com miniaturas',
-      description:
-        'Em vez de digitar intervalos numéricos, você vê cada página e marca exatamente o que deve sair do arquivo final.',
+      title: 'Seleção visual',
+      description: 'Veja o conteúdo antes de excluir — menos erro de número de página.',
     },
     {
-      title: 'Processamento 100% local',
-      description:
-        'pdf.js (miniaturas) e pdf-lib (remoção) rodam no dispositivo. O original não é sobrescrito; só o novo PDF é baixado.',
+      title: 'Original preservado',
+      description: 'Só a cópia nova é baixada; o arquivo de origem não é sobrescrito sozinho.',
     },
     {
-      title: 'Sem perder o restante do documento',
+      title: 'Qualidade das páginas restantes',
       description:
-        'As páginas não marcadas permanecem na ordem original, com conteúdo e qualidade preservados (sem re-rasterizar o PDF inteiro).',
+        'Páginas mantidas são copiadas, sem re-rasterizar o PDF inteiro só por remover folhas.',
     },
     {
       title: 'Grátis e sem cadastro',
-      description:
-        'Use sob demanda em qualquer navegador moderno. Ideal para limpar scans e PDFs de e-mail antes de arquivar ou compartilhar.',
+      description: 'Sem conta para limpar um scan pontual.',
     },
   ],
-  faqTitle: 'FAQ: remover páginas de PDF',
+  limitsTitle: 'Limites técnicos honestos',
+  limitsIntro:
+    'Miniaturas consomem memória — PDFs enormes no celular podem demorar.',
+  limits: [
+    { label: 'Tamanho', text: 'Até cerca de 50 MB por PDF.' },
+    {
+      label: 'Páginas',
+      text: 'Ordem de até cerca de 150 páginas em operações gerais; UI com thumbs pode pesar em aparelhos fracos.',
+    },
+    {
+      label: 'Mínimo',
+      text: 'É obrigatório manter ao menos uma página no PDF final.',
+    },
+    {
+      label: 'Senha',
+      text: 'PDFs com senha de abertura precisam ser desbloqueados antes.',
+    },
+  ],
+  faqTitle: 'Perguntas frequentes sobre remover páginas',
   faqs: [
     {
-      question: 'O arquivo original é alterado no disco?',
+      question: 'O original é alterado no disco?',
       answer:
-        'Não. Geramos um PDF novo com as páginas restantes. O original permanece onde estava no seu dispositivo.',
+        'Não. Geramos um PDF novo com as páginas restantes.',
     },
     {
-      question: 'Posso remover todas as páginas?',
+      question: 'Posso apagar todas as páginas?',
       answer:
-        'Não. É obrigatório manter ao menos uma página no documento final. Desmarque alguma miniatura se tiver marcado todas.',
+        'Não. Deve restar ao menos uma página no arquivo final.',
     },
     {
-      question: 'Meus arquivos são enviados para a internet?',
+      question: 'Faz upload?',
       answer:
-        'Não. Miniaturas e remoção ocorrem na memória do navegador. Nada do conteúdo do PDF sobe para nossos servidores.',
+        'Não para processar. Miniaturas e remoção rodam no navegador.',
     },
     {
-      question: 'Funciona em PDF com senha?',
+      question: 'Preciso de cadastro?',
+      answer: 'Não. Grátis e sem conta.',
+    },
+    {
+      question: 'Diferença para Dividir PDF?',
       answer:
-        'PDFs já criptografados precisam ser abertos/desprotegidos antes. Esta ferramenta trabalha com PDFs legíveis sem senha de abertura.',
+        'Dividir extrai por intervalo de texto; Remover usa miniaturas e descarta o que você marcar. Ambos geram um PDF novo.',
+    },
+    {
+      question: 'Funciona no celular?',
+      answer:
+        'Sim, com ressalva de memória em PDFs longos com muitas thumbs.',
+    },
+  ],
+  relatedTitle: 'Ferramentas e guias relacionados',
+  related: [
+    {
+      path: '/dividir-pdf',
+      label: 'Dividir PDF',
+      description: 'Extrair por intervalo numérico',
+    },
+    {
+      path: '/juntar-pdf',
+      label: 'Juntar PDF',
+      description: 'Reunir após limpar',
+    },
+    {
+      path: '/comprimir-pdf',
+      label: 'Comprimir PDF',
+      description: 'Reduzir peso depois',
+    },
+    {
+      path: '/pdf-sem-upload',
+      label: 'PDF sem upload',
+      description: 'Modelo local',
     },
   ],
 };
 
-/** /desbloquear-pdf */
+/** /desbloquear-pdf — conteúdo SEO expandido */
 export const desbloquearPdfSeoContent: ToolSeoBlock = {
-  howToTitle: 'Como desbloquear PDF (remover senha) com segurança',
+  toolName: 'Desbloquear PDF',
+  schemaDescription:
+    'Desbloqueie PDF com senha conhecida grátis no navegador, sem upload e sem cadastro. Remove proteção localmente — não quebra senha.',
+  overview: [
+    'Desbloquear PDF aqui significa **remover a senha de abertura quando você já a conhece**, gerando uma cópia sem proteção no navegador. Não é serviço de “quebrar senha” nem recuperação de senha esquecida.',
+    'O fluxo é o complemento de Proteger PDF: você protegeu o arquivo antes, ainda tem a senha, e precisa de uma cópia aberta para editar, arquivar ou reenviar. Tudo roda no dispositivo — sem upload do PDF nem da senha para servidor nosso.',
+    'Grátis e sem cadastro. Senha errada gera aviso local; senha correta gera download da cópia legível em leitores comuns.',
+  ],
+  audienceTitle: 'Para quem serve',
+  audience:
+    'Quem protegeu o próprio PDF e esqueceu de guardar uma cópia aberta; quem recebeu um PDF com senha que já foi compartilhada; quem precisa desproteger antes de juntar, comprimir ou editar em outra tool.',
+  useCasesTitle: 'Casos de uso práticos',
+  useCases: [
+    {
+      title: 'Cópia aberta para arquivar',
+      description:
+        'Gere versão sem senha para pasta interna, mantendo a cifrada para envio externo.',
+    },
+    {
+      title: 'Antes de outras tools',
+      description:
+        'Desbloqueie e depois junte, comprima ou remova páginas.',
+    },
+    {
+      title: 'Reenvio sem digitar senha toda vez',
+      description:
+        'Quando o destinatário já é confiável e a senha se tornou atrito.',
+    },
+    {
+      title: 'Sem software desktop',
+      description:
+        'Remoção local no navegador, sem instalar suíte paga.',
+    },
+  ],
+  howToTitle: 'Como desbloquear PDF no navegador',
   howToIntro:
-    'Com a ferramenta Desbloquear PDF do Easy PDF Local você remove a senha de abertura quando já a conhece — sem enviar o arquivo para servidores de conversão.',
+    'Ferramenta no topo: PDF + senha correta → cópia sem proteção. Grátis, sem cadastro e sem upload.',
   steps: [
     {
-      title: 'Envie o PDF protegido',
+      title: 'Selecione o PDF protegido',
       description:
-        'Selecione o arquivo com senha de abertura no seu dispositivo. O processamento permanece no navegador.',
+        'Escolha o arquivo no dispositivo. O processamento permanece na sessão do navegador.',
     },
     {
       title: 'Informe a senha atual',
       description:
-        'Digite a senha correta do documento. Sem ela não é possível abrir nem gerar a cópia desprotegida — não há quebra de senha.',
+        'Digite a senha correta. Sem ela não há desbloqueio — não tentamos força bruta.',
     },
     {
       title: 'Baixe o PDF sem proteção',
       description:
-        'Clique em Remover Senha e Baixar. Uma cópia sem senha de abertura é gerada localmente e o download inicia no seu dispositivo.',
+        'Gere a cópia aberta localmente e salve no dispositivo.',
     },
   ],
-  benefitsTitle: 'Benefícios de remover senha de PDF no navegador',
+  benefitsTitle: 'Por que desbloquear sem upload',
   benefitsIntro:
-    'Útil quando você precisa reenviar, arquivar ou editar um PDF que protegeu antes e ainda tem a senha em mãos — sem depender de software desktop pago.',
+    'Remover senha “na nuvem” envia o arquivo e a senha a terceiros. Aqui ambos ficam no cliente.',
   benefits: [
     {
-      title: 'Processamento client-side (sem upload)',
+      title: 'Senha e PDF no dispositivo',
       description:
-        'PDF e senha ficam na memória do navegador. Nossos servidores não recebem o conteúdo nem a senha digitada.',
+        'Validação e geração da cópia aberta no navegador.',
     },
     {
-      title: 'Complemento do Proteger PDF',
+      title: 'Par com Proteger PDF',
       description:
-        'Fecha o ciclo de segurança da suíte: proteja com senha em /proteger-pdf e remova depois em /desbloquear-pdf, quando fizer sentido.',
-    },
-    {
-      title: 'Aviso claro se a senha estiver errada',
-      description:
-        'Senhas incorretas geram mensagem amigável — você pode corrigir e tentar de novo sem recarregar a página.',
+        'Ciclo completo de senha de abertura na mesma suíte local.',
     },
     {
       title: 'Grátis e sem cadastro',
+      description: 'Sem conta para um desbloqueio pontual.',
+    },
+    {
+      title: 'Feedback de senha errada',
       description:
-        'Desbloqueie sob demanda, sem trial e sem instalar suítes desktop. Ideal em computadores compartilhados.',
+        'Mensagem clara para corrigir e tentar de novo.',
     },
   ],
-  faqTitle: 'FAQ: desbloquear PDF com senha conhecida',
-  faqs: [
+  limitsTitle: 'Limites técnicos honestos',
+  limitsIntro:
+    'Ferramenta de remoção com senha conhecida — não de cracking.',
+  limits: [
+    { label: 'Tamanho', text: 'Até cerca de 50 MB por PDF.' },
     {
-      question: 'Vocês recuperam senhas esquecidas?',
-      answer:
-        'Não. Só removemos a proteção quando a senha correta é informada. Guarde senhas em local seguro ou gerenciador de senhas.',
+      label: 'Senha esquecida',
+      text: 'Não recuperamos nem quebramos senhas.',
     },
     {
-      question: 'Meus arquivos sobem para a internet?',
+      label: 'Tipos de proteção',
+      text: 'Foco em senha de abertura que o fluxo local consiga validar; casos exóticos de DRM podem falhar.',
+    },
+    {
+      label: 'Segurança',
+      text: 'A cópia baixada fica sem senha — trate-a com o mesmo cuidado de qualquer PDF aberto.',
+    },
+  ],
+  faqTitle: 'Perguntas frequentes sobre desbloquear PDF',
+  faqs: [
+    {
+      question: 'Vocês recuperam senha esquecida?',
       answer:
-        'Não. A validação da senha e a geração do PDF sem proteção ocorrem no navegador. O conteúdo não é enviado à Easy PDF Local.',
+        'Não. Só removemos a proteção com a senha correta informada por você.',
+    },
+    {
+      question: 'O PDF ou a senha sobem para a internet?',
+      answer:
+        'Não para processar. Validação e download da cópia aberta são locais.',
+    },
+    {
+      question: 'Preciso de cadastro?',
+      answer: 'Não. Grátis e sem conta.',
     },
     {
       question: 'O PDF final abre em qualquer leitor?',
       answer:
-        'Sim. O download é um PDF sem senha de usuário, legível em Adobe, Chrome, Preview e outros leitores comuns.',
+        'Sim — sem senha de usuário, legível em leitores comuns.',
     },
     {
-      question: 'Posso usar offline?',
+      question: 'Funciona no celular?',
+      answer: 'Sim, no navegador, com os limites de tamanho.',
+    },
+    {
+      question: 'E se a senha estiver errada?',
       answer:
-        'Depois de carregar o site, o desbloqueio não faz upload do PDF. Internet é necessária para a primeira carga da aplicação.',
+        'A interface avisa. Corrija e tente de novo; nada é enviado a um servidor de “tentativas”.',
+    },
+  ],
+  relatedTitle: 'Ferramentas e guias relacionados',
+  related: [
+    {
+      path: '/proteger-pdf',
+      label: 'Proteger PDF',
+      description: 'Aplicar senha de abertura',
+    },
+    {
+      path: '/juntar-pdf',
+      label: 'Juntar PDF',
+      description: 'Unir após desbloquear',
+    },
+    {
+      path: '/comprimir-pdf',
+      label: 'Comprimir PDF',
+      description: 'Reduzir peso da cópia aberta',
+    },
+    {
+      path: '/pdf-sem-upload',
+      label: 'PDF sem upload',
+      description: 'Privacidade e modelo local',
     },
   ],
 };
