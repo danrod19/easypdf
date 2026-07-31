@@ -612,6 +612,11 @@ export const girarPdfSeoContent: ToolSeoBlock = {
       description: 'Tirar folhas em branco',
     },
     {
+      path: '/blog/girar-pdf-online-sem-upload',
+      label: 'Guia: girar PDF sem upload',
+      description: 'Artigo completo no blog',
+    },
+    {
       path: '/pdf-sem-upload',
       label: 'PDF sem upload',
       description: 'Modelo local e privacidade',
@@ -1686,14 +1691,14 @@ export const removerPaginasSeoContent: ToolSeoBlock = {
       description: 'Extrair por intervalo numérico',
     },
     {
+      path: '/blog/remover-paginas-pdf-sem-upload',
+      label: 'Guia: remover páginas sem upload',
+      description: 'Artigo completo no blog',
+    },
+    {
       path: '/juntar-pdf',
       label: 'Juntar PDF',
       description: 'Reunir após limpar',
-    },
-    {
-      path: '/comprimir-pdf',
-      label: 'Comprimir PDF',
-      description: 'Reduzir peso depois',
     },
     {
       path: '/pdf-sem-upload',
@@ -1840,14 +1845,14 @@ export const desbloquearPdfSeoContent: ToolSeoBlock = {
       description: 'Aplicar senha de abertura',
     },
     {
+      path: '/blog/desbloquear-pdf-senha-conhecida-sem-upload',
+      label: 'Guia: desbloquear PDF (senha conhecida)',
+      description: 'Artigo completo no blog',
+    },
+    {
       path: '/juntar-pdf',
       label: 'Juntar PDF',
       description: 'Unir após desbloquear',
-    },
-    {
-      path: '/comprimir-pdf',
-      label: 'Comprimir PDF',
-      description: 'Reduzir peso da cópia aberta',
     },
     {
       path: '/pdf-sem-upload',

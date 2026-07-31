@@ -27,6 +27,9 @@ export const PRERENDER_ROUTES = [
   '/blog/dividir-pdf-online-sem-upload',
   '/blog/extrair-texto-pdf-sem-upload-ocr',
   '/blog/proteger-pdf-senha-sem-upload',
+  '/blog/girar-pdf-online-sem-upload',
+  '/blog/remover-paginas-pdf-sem-upload',
+  '/blog/desbloquear-pdf-senha-conhecida-sem-upload',
 
   // —— Média prioridade (tools restantes + institucionais) ——
   '/marca-dagua',

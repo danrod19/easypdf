@@ -34,6 +34,48 @@ export type BlogPostMeta = {
 
 export const blogPosts: BlogPostMeta[] = [
   {
+    id: 'girar-pdf-online-sem-upload',
+    slug: 'girar-pdf-online-sem-upload',
+    title:
+      'Girar PDF online sem upload: corrigir páginas no navegador',
+    excerpt:
+      'Rotacione páginas de PDF 90° no navegador, sem upload e sem cadastro. Corrija PDF de cabeça para baixo com privacidade local.',
+    seoTitle: 'Girar PDF online sem upload | Easy PDF Local',
+    seoDescription:
+      'Gire PDF no navegador sem upload e sem cadastro. 90° esquerda/direita, todas as páginas ou intervalo — limites honestos.',
+    date: '2026-07-31',
+    readTime: '8 min',
+    tags: ['Girar PDF', 'Privacidade', 'Sem upload'],
+  },
+  {
+    id: 'remover-paginas-pdf-sem-upload',
+    slug: 'remover-paginas-pdf-sem-upload',
+    title:
+      'Remover páginas de PDF sem upload: apagar folhas no navegador',
+    excerpt:
+      'Exclua páginas de PDF com miniaturas no navegador, grátis e sem cadastro. Sem upload — limites honestos e original preservado.',
+    seoTitle: 'Remover páginas de PDF sem upload | Grátis',
+    seoDescription:
+      'Apague páginas de PDF online grátis no navegador, sem upload e sem cadastro. Miniaturas locais e cópia nova do arquivo.',
+    date: '2026-07-31',
+    readTime: '8 min',
+    tags: ['Remover Páginas', 'Privacidade', 'Sem upload'],
+  },
+  {
+    id: 'desbloquear-pdf-senha-conhecida-sem-upload',
+    slug: 'desbloquear-pdf-senha-conhecida-sem-upload',
+    title:
+      'Desbloquear PDF com senha sem upload (você precisa saber a senha)',
+    excerpt:
+      'Remova senha de PDF no navegador quando já a conhece. Sem upload, sem cadastro — não quebramos senha esquecida.',
+    seoTitle: 'Desbloquear PDF com senha sem upload | Grátis',
+    seoDescription:
+      'Desbloqueie PDF grátis no navegador se souber a senha. Sem upload e sem cadastro. Não recuperamos nem quebramos senhas.',
+    date: '2026-07-31',
+    readTime: '8 min',
+    tags: ['Desbloquear PDF', 'Senha', 'Privacidade'],
+  },
+  {
     id: 'dividir-pdf-online-sem-upload',
     slug: 'dividir-pdf-online-sem-upload',
     title:
