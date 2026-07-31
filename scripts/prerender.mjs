@@ -11,11 +11,20 @@
  * Cloudflare Pages / Azure SWA: arquivos reais têm prioridade sobre fallback SPA.
  * O client-side React continua com createRoot (substitui #root ao hidratar).
  *
+ * Fail-soft (browser / deps de sistema):
+ *   Em CI (CF_PAGES, CI, …), se o Chromium não lançar (libs ausentes, sem
+ *   install-deps/sudo), loga AVISO e exit 0 — o deploy segue com SPA Vite.
+ *   Falhas de rota (title/H1/canonical) continuam falhando o build (bug de app).
+ *   Local com Playwright OK: comportamento estrito (exit 1 se rotas falharem).
+ *
  * Uso:
  *   node scripts/prerender.mjs
- *   SKIP_PRERENDER=1 npm run build   → pula (emergência)
+ *   SKIP_PRERENDER=1 npm run build     → pula de propósito
+ *   PRERENDER_STRICT=1                 → fail hard mesmo em CI
+ *   PRERENDER_SOFT=1                   → fail-soft de browser mesmo local
  *
  * Deps: playwright (devDependency) + `npx playwright install chromium`
+ * Docs: docs/PRERENDER.md
  */
 
 import http from 'node:http';
@@ -29,6 +38,99 @@ const ROOT = path.resolve(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
 const PORT = Number(process.env.PRERENDER_PORT || 4179);
 const ORIGIN = `http://127.0.0.1:${PORT}`;
+
+/** CI / Cloudflare Pages / provedores de build estático */
+function isCiEnvironment() {
+  return Boolean(
+    process.env.CI === 'true' ||
+      process.env.CI === '1' ||
+      process.env.CF_PAGES ||
+      process.env.CF_PAGES_COMMIT_SHA ||
+      process.env.CLOUDFLARE_ACCOUNT_ID ||
+      process.env.GITHUB_ACTIONS ||
+      process.env.GITLAB_CI ||
+      process.env.VERCEL ||
+      process.env.AZURE_HTTP_USER_AGENT ||
+      process.env.TF_BUILD // Azure Pipelines
+  );
+}
+
+/**
+ * Erros de ambiente: browser não sobe (binário ausente, libs do SO, etc.).
+ * NÃO inclui falhas de assertion de SEO por rota.
+ */
+function isBrowserEnvironmentError(err) {
+  const msg = String(err?.message ?? err ?? '').toLowerCase();
+  const stack = String(err?.stack ?? '').toLowerCase();
+  const text = `${msg}\n${stack}`;
+
+  const needles = [
+    'browsertype.launch',
+    'browserType.launch',
+    'failed to launch',
+    "executable doesn't exist",
+    'executable does not exist',
+    'could not find browser',
+    'browser has been closed',
+    'browser closed',
+    'target closed',
+    'host system is missing dependencies',
+    'missing dependencies',
+    'install-deps',
+    'npx playwright install',
+    'playwright install',
+    'error while loading shared libraries',
+    'shared libraries',
+    'libglib',
+    'libnss3',
+    'libnspr4',
+    'libatk',
+    'libdbus',
+    'libx11',
+    'libxcb',
+    'libxcomposite',
+    'cannot open shared object',
+    'no such file or directory',
+    'spawn ENOENT',
+    'enoent',
+    'chromium revision is not downloaded',
+    'browser was not found',
+    'download the browser binaries',
+  ];
+
+  return needles.some((n) => text.includes(n.toLowerCase()));
+}
+
+/** Soft = não derruba o build (exit 0) em falha de browser/ambiente */
+function shouldSoftSkipBrowserFailure() {
+  if (process.env.PRERENDER_STRICT === '1' || process.env.PRERENDER_STRICT === 'true') {
+    return false;
+  }
+  if (process.env.PRERENDER_SOFT === '1' || process.env.PRERENDER_SOFT === 'true') {
+    return true;
+  }
+  return isCiEnvironment();
+}
+
+function softSkip(reason, detail) {
+  console.warn('');
+  console.warn('[prerender] ══════════════════════════════════════════════════');
+  console.warn('[prerender] AVISO: pré-render PULADO (fail-soft) — build NÃO falha');
+  console.warn(`[prerender] Motivo: ${reason}`);
+  if (detail) {
+    const line = String(detail).split('\n')[0].slice(0, 280);
+    console.warn(`[prerender] Detalhe: ${line}`);
+  }
+  console.warn(
+    '[prerender] Deploy segue com dist do Vite (SPA). HTML por rota não gerado.'
+  );
+  console.warn(
+    '[prerender] Local: npm run playwright:install  |  docs/PRERENDER.md'
+  );
+  console.warn('[prerender] ══════════════════════════════════════════════════');
+  console.warn('');
+  process.exitCode = 0;
+}
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -292,6 +394,15 @@ async function prerenderRoute(page, route) {
   return { route, title, outFile };
 }
 
+function cleanupShellCache() {
+  const shellCachePathEnd = path.join(DIST, '.prerender-spa-shell.html');
+  try {
+    if (fs.existsSync(shellCachePathEnd)) fs.unlinkSync(shellCachePathEnd);
+  } catch {
+    // ignore
+  }
+}
+
 async function main() {
   if (process.env.SKIP_PRERENDER === '1' || process.env.SKIP_PRERENDER === 'true') {
     log('SKIP_PRERENDER ativo — saindo sem pré-renderizar.');
@@ -299,6 +410,7 @@ async function main() {
   }
 
   if (!fs.existsSync(DIST) || !fs.existsSync(path.join(DIST, 'index.html'))) {
+    // dist ausente = pipeline quebrado de verdade (não é “só browser”)
     fail('dist/index.html não encontrado. Rode `vite build` antes.');
     process.exit(1);
   }
@@ -310,7 +422,7 @@ async function main() {
    */
   const shellCachePath = path.join(DIST, '.prerender-spa-shell.html');
   const indexPath = path.join(DIST, 'index.html');
-  let indexHtml = fs.readFileSync(indexPath, 'utf8');
+  const indexHtml = fs.readFileSync(indexPath, 'utf8');
   if (!indexHtml.includes('easypdf-prerender:')) {
     fs.writeFileSync(shellCachePath, indexHtml, 'utf8');
   } else if (fs.existsSync(shellCachePath)) {
@@ -326,7 +438,15 @@ async function main() {
   let playwright;
   try {
     playwright = await import('playwright');
-  } catch {
+  } catch (err) {
+    if (shouldSoftSkipBrowserFailure()) {
+      softSkip(
+        'pacote "playwright" indisponível no ambiente de build',
+        err instanceof Error ? err.message : String(err)
+      );
+      cleanupShellCache();
+      return;
+    }
     fail(
       'Pacote "playwright" não encontrado. Rode: npm i -D playwright && npx playwright install chromium'
     );
@@ -334,17 +454,66 @@ async function main() {
   }
 
   log(`Servindo ${DIST} em ${ORIGIN}`);
-  const server = await startServer(spaShellHtml);
+  log(
+    `Ambiente: ${isCiEnvironment() ? 'CI' : 'local'} | soft-browser-fail: ${
+      shouldSoftSkipBrowserFailure() ? 'sim' : 'não'
+    }`
+  );
+
+  let server;
+  try {
+    server = await startServer(spaShellHtml);
+  } catch (err) {
+    cleanupShellCache();
+    if (shouldSoftSkipBrowserFailure()) {
+      softSkip(
+        'não foi possível subir o servidor local do dist',
+        err instanceof Error ? err.message : String(err)
+      );
+      return;
+    }
+    throw err;
+  }
 
   let browser;
   const results = [];
   const errors = [];
 
   try {
-    browser = await playwright.chromium.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-dev-shm-usage'],
-    });
+    try {
+      browser = await playwright.chromium.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-dev-shm-usage'],
+      });
+    } catch (launchErr) {
+      const detail =
+        launchErr instanceof Error ? launchErr.message : String(launchErr);
+      // Fecha server; finally também tenta fechar (idempotente o bastante)
+      try {
+        await new Promise((resolve) => server.close(resolve));
+      } catch {
+        // ignore
+      }
+      server = null;
+
+      // CI/Cloudflare (ou PRERENDER_SOFT): não derruba o deploy
+      if (shouldSoftSkipBrowserFailure()) {
+        softSkip(
+          'Chromium/Playwright não lançou (deps de sistema ou browser ausente)',
+          detail
+        );
+        return;
+      }
+
+      // Local: falha clara para o dev instalar o browser
+      fail(
+        `Falha ao lançar Chromium: ${detail}\n` +
+          '  → npm run playwright:install\n' +
+          '  → (Linux) npx playwright install-deps chromium (requer permissão)\n' +
+          '  → CI/Cloudflare: o script usa fail-soft automaticamente (CF_PAGES/CI)'
+      );
+      process.exit(1);
+    }
 
     const context = await browser.newContext({
       // Evita Service Worker da PWA interferir no HTML capturado
@@ -377,6 +546,11 @@ async function main() {
         const r = await prerenderRoute(page, route);
         results.push(r);
       } catch (err) {
+        // Se o browser morrer no meio (env), trata como soft em CI
+        if (isBrowserEnvironmentError(err) && shouldSoftSkipBrowserFailure()) {
+          await context.close().catch(() => {});
+          throw err; // sobe para o catch externo de browser
+        }
         const msg = err instanceof Error ? err.message : String(err);
         errors.push({ route, msg });
         console.error(`  ✗ ${route}: ${msg}`);
@@ -384,30 +558,45 @@ async function main() {
     }
 
     await context.close();
+  } catch (err) {
+    if (isBrowserEnvironmentError(err) && shouldSoftSkipBrowserFailure()) {
+      softSkip(
+        'Chromium/Playwright indisponível durante o prerender',
+        err instanceof Error ? err.message : String(err)
+      );
+      return;
+    }
+    throw err;
   } finally {
-    if (browser) await browser.close();
-    await new Promise((resolve) => server.close(resolve));
-  }
-
-  // Remove cache interno do shell (não deve ir para o deploy)
-  const shellCachePathEnd = path.join(DIST, '.prerender-spa-shell.html');
-  try {
-    if (fs.existsSync(shellCachePathEnd)) fs.unlinkSync(shellCachePathEnd);
-  } catch {
-    // ignore
+    if (browser) {
+      try {
+        await browser.close();
+      } catch {
+        // ignore
+      }
+    }
+    if (server) {
+      try {
+        await new Promise((resolve) => server.close(resolve));
+      } catch {
+        // ignore
+      }
+    }
+    cleanupShellCache();
   }
 
   log('—'.repeat(40));
   log(`OK: ${results.length}/${PRERENDER_ROUTES.length} rotas`);
   if (errors.length) {
-    log(`Falhas: ${errors.length}`);
+    log(`Falhas de rota (conteúdo/SEO): ${errors.length}`);
     for (const e of errors) log(`  - ${e.route}: ${e.msg}`);
-    // Falha o build se alguma rota prioritária quebrar
-    fail('Prerender incompleto — corrija antes do deploy.');
+    // Browser subiu: falha de rota = bug da app — falha o build (local e CI)
+    fail(
+      'Prerender incompleto — rotas falharam após o browser iniciar. Corrija title/H1/canonical ou timeouts.'
+    );
     process.exit(1);
   }
 
-  // Amostra rápida para o log de CI
   const sample = results.find((r) => r.route === '/juntar-pdf');
   if (sample) {
     log(`Amostra /juntar-pdf title: "${sample.title}"`);
@@ -416,6 +605,14 @@ async function main() {
 }
 
 main().catch((err) => {
+  if (isBrowserEnvironmentError(err) && shouldSoftSkipBrowserFailure()) {
+    softSkip(
+      'erro de ambiente do browser (fail-soft)',
+      err instanceof Error ? err.message : String(err)
+    );
+    cleanupShellCache();
+    return;
+  }
   console.error(err);
   process.exit(1);
 });

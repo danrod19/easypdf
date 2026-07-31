@@ -37,9 +37,8 @@ npm run dev
 ## Build estático (Cloudflare Pages / Azure SWA)
 
 ```bash
-# 1ª vez (e no CI): baixar Chromium do Playwright
+# Local (prerender completo): instalar Chromium uma vez
 npm run playwright:install
-
 npm run build
 ```
 
@@ -47,22 +46,30 @@ npm run build
 
 A pasta `dist/` contém:
 - assets JS/CSS do Vite
-- **HTML pré-renderizado por rota** (ex.: `dist/juntar-pdf/index.html`) com title, meta, canonical, H1 e conteúdo já no HTML — sem depender de JS para o Googlebot “enxergar” a página.
+- **HTML pré-renderizado por rota** (quando o Playwright sobe) — ex.: `dist/juntar-pdf/index.html`
 
-Pular prerender (emergência): `npm run build:skip-prerender` ou `SKIP_PRERENDER=1 npm run build`.
+### Cloudflare Pages (build command)
+
+```bash
+npm ci && npm run build
+```
+
+**Fail-soft:** se o Chromium não lançar (libs de sistema / sem `install-deps`), o prerender **loga um AVISO e termina com exit 0**. O deploy **não quebra**; o site sobe como SPA Vite (sem HTML por rota). Detalhes: [`docs/PRERENDER.md`](docs/PRERENDER.md).
+
+Pular prerender de propósito: `npm run build:skip-prerender` ou `SKIP_PRERENDER=1 npm run build`.
 
 ### Pré-render (SEO)
 
 | Item | Detalhe |
 |------|---------|
-| Como funciona | Pós-build: servidor local do `dist` + Playwright visita cada rota, grava o HTML renderizado |
+| Como funciona | Pós-build: server local + Playwright grava HTML por rota |
 | Lista de rotas | `scripts/prerender-routes.mjs` |
-| Nova rota | 1) rota no `App.tsx` 2) path em `PRERENDER_ROUTES` 3) `npm run build` |
-| Validar | Abrir `dist/juntar-pdf/index.html` e buscar `easypdf-prerender`, `<title>`, `canonical`, `<h1>` |
-| Cloudflare Pages | Build command: `npm ci && npx playwright install chromium && npm run build` · Output: `dist` |
-| SPA client | Inalterada (`createRoot`); o HTML estático só melhora o 1º documento dos crawlers |
+| Nova rota | 1) `App.tsx` 2) `PRERENDER_ROUTES` 3) `npm run build` (local) |
+| Validar | `dist/juntar-pdf/index.html` → `easypdf-prerender`, `<title>`, `canonical`, `<h1>` |
+| Cloudflare | `npm ci && npm run build` · Output: `dist` · browser opcional |
+| SPA client | Inalterada (`createRoot`) |
 
-**Limitações:** precisa de Chromium no ambiente de build; CookieBanner/ads podem aparecer no HTML capturado; estado 100% dinâmico (resultado de upload) não é pré-renderizado.
+**Limitações:** no CF o prerender pode ser pulado (fail-soft); local com Playwright gera HTML rico. CookieBanner/ads podem aparecer no HTML capturado.
 
 ### Azure Static Web Apps
 
