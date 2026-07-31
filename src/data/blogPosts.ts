@@ -34,6 +34,48 @@ export type BlogPostMeta = {
 
 export const blogPosts: BlogPostMeta[] = [
   {
+    id: 'marca-dagua-pdf-sem-upload',
+    slug: 'marca-dagua-pdf-sem-upload',
+    title:
+      "Marca d'água em PDF sem upload: texto no navegador",
+    excerpt:
+      "Adicione marca d'água de texto em PDF no navegador, grátis e sem cadastro. Sem upload — opacidade e estilo locais.",
+    seoTitle: "Marca d'água em PDF sem upload | Grátis",
+    seoDescription:
+      "Coloque marca d'água em PDF grátis no navegador, sem upload e sem cadastro. Texto em todas as páginas com privacidade local.",
+    date: '2026-08-01',
+    readTime: '8 min',
+    tags: ["Marca d'água", 'Privacidade', 'Sem upload'],
+  },
+  {
+    id: 'desenhar-pdf-online-sem-upload',
+    slug: 'desenhar-pdf-online-sem-upload',
+    title:
+      'Desenhar em PDF online sem upload: anotar e assinar no navegador',
+    excerpt:
+      'Anote ou assine PDF à mão livre na página 1 — no navegador, sem upload e sem cadastro. Simples, não é editor Adobe.',
+    seoTitle: 'Desenhar em PDF online sem upload | Grátis',
+    seoDescription:
+      'Desenhe ou assine PDF grátis no navegador, sem upload e sem cadastro. Anotação na página 1 — honesto sobre o que a tool faz.',
+    date: '2026-08-01',
+    readTime: '8 min',
+    tags: ['Desenhar PDF', 'Assinatura', 'Sem upload'],
+  },
+  {
+    id: 'imagem-para-pdf-sem-upload',
+    slug: 'imagem-para-pdf-sem-upload',
+    title:
+      'Converter imagem para PDF sem upload: JPG e PNG no navegador',
+    excerpt:
+      'Transforme JPG, PNG ou WebP em PDF no navegador. Várias fotos, ordem personalizada, grátis e sem cadastro.',
+    seoTitle: 'Imagem para PDF sem upload | JPG PNG grátis',
+    seoDescription:
+      'Converta JPG e PNG para PDF grátis no navegador, sem upload e sem cadastro. Várias imagens em um arquivo com privacidade local.',
+    date: '2026-08-01',
+    readTime: '8 min',
+    tags: ['Imagem para PDF', 'JPG', 'Sem upload'],
+  },
+  {
     id: 'girar-pdf-online-sem-upload',
     slug: 'girar-pdf-online-sem-upload',
     title:

@@ -761,14 +761,14 @@ export const marcaDaguaSeoContent: ToolSeoBlock = {
       description: 'Senha de abertura no arquivo',
     },
     {
+      path: '/blog/marca-dagua-pdf-sem-upload',
+      label: "Guia: marca d'água sem upload",
+      description: 'Artigo completo no blog',
+    },
+    {
       path: '/desenhar-pdf',
       label: 'Desenhar no PDF',
       description: 'Assinatura ou anotações à mão',
-    },
-    {
-      path: '/juntar-pdf',
-      label: 'Juntar PDF',
-      description: 'Unir antes ou depois de marcar',
     },
     {
       path: '/pdf-sem-upload',
@@ -914,14 +914,14 @@ export const desenharPdfSeoContent: ToolSeoBlock = {
       description: 'Senha após assinar',
     },
     {
+      path: '/blog/desenhar-pdf-online-sem-upload',
+      label: 'Guia: desenhar em PDF sem upload',
+      description: 'Artigo completo no blog',
+    },
+    {
       path: '/marca-dagua',
       label: "Marca d'água",
       description: 'Texto em todas as páginas',
-    },
-    {
-      path: '/juntar-pdf',
-      label: 'Juntar PDF',
-      description: 'Unir páginas de assinatura',
     },
     {
       path: '/pdf-sem-upload',
@@ -1230,14 +1230,14 @@ export const imagemParaPdfSeoContent: ToolSeoBlock = {
       description: 'Unir o PDF gerado a outros arquivos',
     },
     {
+      path: '/blog/imagem-para-pdf-sem-upload',
+      label: 'Guia: imagem para PDF sem upload',
+      description: 'Artigo completo no blog',
+    },
+    {
       path: '/comprimir-pdf',
       label: 'Comprimir PDF',
       description: 'Se o PDF de fotos ficar pesado',
-    },
-    {
-      path: '/word-para-pdf',
-      label: 'Word para PDF',
-      description: 'Texto DOCX em PDF',
     },
     {
       path: '/pdf-sem-upload',
