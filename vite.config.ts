@@ -51,12 +51,15 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
           {
-            urlPattern: ({ request }) => request.destination === 'font',
+            // Inter self-host em /fonts/inter/*.woff2
+            urlPattern: ({ request, url }) =>
+              request.destination === 'font' ||
+              url.pathname.startsWith('/fonts/'),
             handler: 'CacheFirst',
             options: {
-              cacheName: 'google-fonts',
+              cacheName: 'local-fonts',
               expiration: {
-                maxEntries: 12,
+                maxEntries: 20,
                 maxAgeSeconds: 60 * 60 * 24 * 365,
               },
               cacheableResponse: {

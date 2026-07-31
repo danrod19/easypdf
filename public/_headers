@@ -8,7 +8,7 @@
 #   - Web Workers locais (pdfWorker) + Tesseract.js OCR (jsDelivr)
 #   - pdf.js / pdf-lib (blob: / data:)
 #   - Imagens de afiliados (Amazon, Mercado Livre, CDNs HTTPS)
-#   - Google Fonts (Inter)
+#   - Fontes: Inter self-host em /fonts/inter (sem Google Fonts)
 #
 # Headers aplicados em /* :
 #   X-Frame-Options DENY .............. anti-clickjacking
@@ -25,23 +25,21 @@
 #     'self' + 'unsafe-inline' (snippets gtag/consent/AdSense no index.html).
 #     Google: GTM, GA, pagead2, googleadservices, doubleclick, tpc,
 #     fundingchoices, ep1/ep2 ad traffic quality (sodar), www.google.com,
-#     www.gstatic.com (libs auxiliares do Google).
-#     jsDelivr: tesseract.js worker (OCR em Extrair Texto).
+#     www.gstatic.com (libs auxiliares do Google — AdSense, não fontes).
 #     Cloudflare Insights (opcional).
 #
 #   style-src
-#     'self' + 'unsafe-inline' (CSS Vite/Tailwind) + fonts.googleapis.com.
+#     'self' + 'unsafe-inline' (CSS Vite/Tailwind). Sem fonts.googleapis.com.
 #
 #   img-src
 #     'self' data: blob: https: — previews PDF, ícones, OG, banners afiliados.
 #
 #   font-src
-#     'self' data: fonts.gstatic.com — Inter e fontes embutidas.
+#     'self' data: — Inter em /fonts/inter/*.woff2
 #
 #   connect-src
 #     Beacons GA4, AdSense/DoubleClick/TPC, Funding Choices, ep1/ep2,
-#     Google Fonts (CSS/fetch), jsDelivr (workers/lang data Tesseract),
-#     Cloudflare Insights + GTM.
+#     Cloudflare Insights + GTM. Sem fonts.googleapis / fonts.gstatic.
 #
 #   frame-src
 #     Iframes de anúncios, consent CMP, google.com e ep1/ep2.
@@ -69,13 +67,13 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://*.google-analytics.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google https://cloudflareinsights.com https://static.cloudflareinsights.com https://www.googletagmanager.com https://fonts.googleapis.com https://fonts.gstatic.com; frame-src 'self' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://fundingchoicesmessages.google.com https://www.google.com https://pagead2.googlesyndication.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; worker-src 'self' blob:; child-src 'self' blob:; media-src 'self' blob: data:; manifest-src 'self'
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://fundingchoicesmessages.google.com https://static.cloudflareinsights.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://*.google-analytics.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google https://cloudflareinsights.com https://static.cloudflareinsights.com https://www.googletagmanager.com; frame-src 'self' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://fundingchoicesmessages.google.com https://www.google.com https://pagead2.googlesyndication.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; worker-src 'self' blob:; child-src 'self' blob:; media-src 'self' blob: data:; manifest-src 'self'
 
 # =============================================================================
 # PÓS-DEPLOY — checklist obrigatório
 # 1) DevTools → Console: filtre "Content Security Policy" / "Refused to"
 # 2) Teste Extrair Texto com OCR (Tesseract self-host /tesseract/*)
-# 3) Confirme Google Fonts (sem erro em fonts.googleapis.com no connect-src)
+# 3) Network: fontes só /fonts/inter/*.woff2 — SEM fonts.googleapis.com
 # 4) Confirme AdSense (sodar2.js em ep2.adtrafficquality.google)
 # 5) Teste ferramenta PDF (upload + processar + preview) e Blog
 # 6) GA4 Realtime (page_view / tool_view)
