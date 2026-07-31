@@ -446,9 +446,9 @@ export const dividirPdfSeoContent: ToolSeoBlock = {
       description: 'Excluir com miniaturas visuais',
     },
     {
-      path: '/comprimir-pdf',
-      label: 'Comprimir PDF',
-      description: 'Aliviar o peso do recorte',
+      path: '/blog/dividir-pdf-online-sem-upload',
+      label: 'Guia: dividir PDF sem upload',
+      description: 'Artigo completo no blog',
     },
     {
       path: '/pdf-sem-upload',
@@ -1380,9 +1380,9 @@ export const extrairTextoSeoContent: ToolSeoBlock = {
       description: 'OCR só nas páginas necessárias',
     },
     {
-      path: '/comprimir-pdf',
-      label: 'Comprimir PDF',
-      description: 'Atenção: compressão por imagem remove texto selecionável',
+      path: '/blog/extrair-texto-pdf-sem-upload-ocr',
+      label: 'Guia: extrair texto sem upload',
+      description: 'Artigo completo no blog',
     },
     {
       path: '/word-para-pdf',
@@ -1534,14 +1534,14 @@ export const protegerPdfSeoContent: ToolSeoBlock = {
       description: 'Remover senha quando você a conhece',
     },
     {
+      path: '/blog/proteger-pdf-senha-sem-upload',
+      label: 'Guia: proteger PDF com senha',
+      description: 'Artigo completo no blog',
+    },
+    {
       path: '/marca-dagua',
       label: "Marca d'água",
       description: 'Marcação visual além da senha',
-    },
-    {
-      path: '/juntar-pdf',
-      label: 'Juntar PDF',
-      description: 'Unir antes de proteger',
     },
     {
       path: '/pdf-sem-upload',

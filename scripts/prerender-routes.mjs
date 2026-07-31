@@ -24,6 +24,9 @@ export const PRERENDER_ROUTES = [
   '/blog/juntar-pdf-online-sem-upload',
   '/blog/comprimir-pdf-online-celular-sem-app',
   '/blog/word-para-pdf-online-sem-instalar',
+  '/blog/dividir-pdf-online-sem-upload',
+  '/blog/extrair-texto-pdf-sem-upload-ocr',
+  '/blog/proteger-pdf-senha-sem-upload',
 
   // —— Média prioridade (tools restantes + institucionais) ——
   '/marca-dagua',

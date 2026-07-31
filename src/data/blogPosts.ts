@@ -34,6 +34,48 @@ export type BlogPostMeta = {
 
 export const blogPosts: BlogPostMeta[] = [
   {
+    id: 'dividir-pdf-online-sem-upload',
+    slug: 'dividir-pdf-online-sem-upload',
+    title:
+      'Dividir PDF online sem upload: extrair páginas no navegador',
+    excerpt:
+      'Extraia páginas de PDF sem enviar o arquivo à nuvem. Sem cadastro, intervalos (1, 3-5) e limites honestos no navegador.',
+    seoTitle: 'Dividir PDF online sem upload | Easy PDF Local',
+    seoDescription:
+      'Divida PDF e extraia páginas no navegador sem upload e sem cadastro. Passo a passo, privacidade local e limites reais.',
+    date: '2026-07-30',
+    readTime: '8 min',
+    tags: ['Dividir PDF', 'Privacidade', 'Sem upload'],
+  },
+  {
+    id: 'extrair-texto-pdf-sem-upload-ocr',
+    slug: 'extrair-texto-pdf-sem-upload-ocr',
+    title:
+      'Extrair texto de PDF sem upload: nativo e OCR no navegador',
+    excerpt:
+      'Copie texto de PDF digital ou use OCR em português em scans — tudo no navegador, sem upload e sem cadastro.',
+    seoTitle: 'Extrair texto de PDF sem upload | OCR no navegador',
+    seoDescription:
+      'Extraia texto de PDF sem upload: modo nativo ou OCR em português no navegador. Limites honestos, sem cadastro e privacidade local.',
+    date: '2026-07-30',
+    readTime: '9 min',
+    tags: ['Extrair Texto', 'OCR', 'Sem upload'],
+  },
+  {
+    id: 'proteger-pdf-senha-sem-upload',
+    slug: 'proteger-pdf-senha-sem-upload',
+    title:
+      'Proteger PDF com senha sem upload: cifrar no navegador',
+    excerpt:
+      'Coloque senha em PDF no navegador, grátis e sem cadastro. Criptografia local — sem enviar o arquivo para a nuvem.',
+    seoTitle: 'Proteger PDF com senha sem upload | Grátis',
+    seoDescription:
+      'Proteja PDF com senha grátis no navegador, sem upload e sem cadastro. Criptografia local e o que a senha resolve de verdade.',
+    date: '2026-07-30',
+    readTime: '8 min',
+    tags: ['Proteger PDF', 'Senha', 'Privacidade'],
+  },
+  {
     id: 'juntar-pdf-online-sem-upload',
     slug: 'juntar-pdf-online-sem-upload',
     title:
