@@ -50,19 +50,18 @@ A pasta `dist/` contém:
 
 ### Deploy em produção (HTML por rota de verdade)
 
-**Caminho principal:** GitHub Actions + imagem Playwright → deploy do `dist/` via Wrangler.
+**Este site roda como Cloudflare Worker + static assets** (`wrangler.toml`, Worker **`easypdf`**), **não** como projeto Cloudflare Pages.
 
 | Item | Detalhe |
 |------|---------|
 | Workflow | [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) |
 | Trigger | push em `main` + `workflow_dispatch` |
-| Secrets | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (+ opcional `CLOUDFLARE_PAGES_PROJECT_NAME`) |
-| Validação | `npm run validate:prerender` (exige `easypdf-prerender` nas rotas-chave) |
-| Docs | [`docs/PRERENDER.md`](docs/PRERENDER.md) |
+| Deploy | `wrangler deploy` (Worker) — **não** `wrangler pages deploy` |
+| Secrets | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (+ opcional `CLOUDFLARE_WORKER_NAME=easypdf`) |
+| Validação | `npm run validate:prerender` |
+| Docs | [`docs/PRERENDER.md`](docs/PRERENDER.md) · [`wrangler.toml`](wrangler.toml) |
 
-**Painel Cloudflare:** desative **Builds automáticos** ligados ao Git, senão um build SPA (fail-soft, sem Chromium) sobrescreve o deploy do Action.
-
-**Fail-soft local/CF build nativo:** se alguém rodar `npm run build` num ambiente sem Chromium, o prerender avisa e **não** derruba o exit code — útil como fallback, **não** como produção SEO. Detalhes em `docs/PRERENDER.md`.
+**Fail-soft:** build sem Chromium (ex.: ambiente pobre) avisa e não quebra o exit code — **não** use isso como deploy de produção SEO. O Action usa `PRERENDER_STRICT=1`.
 
 Pular prerender de propósito: `npm run build:skip-prerender` ou `SKIP_PRERENDER=1 npm run build`.
 

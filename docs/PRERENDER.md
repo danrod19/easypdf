@@ -72,48 +72,59 @@ npm ci && npx playwright install chromium && npm run build
 
 **Não** dependa de `playwright install-deps` no Cloudflare (sem sudo).
 
-### Gerar HTML pré-renderizado “de verdade” (recomendado: GitHub Actions)
+### Gerar HTML pré-renderizado “de verdade” (GitHub Actions + Worker)
 
-O painel Cloudflare **não** é o lugar certo para o prerender. Use o workflow:
+Este repo publica um **Cloudflare Worker** com **static assets** (`wrangler.toml` → `name = "easypdf"`), **não** um projeto Cloudflare Pages.
 
-**`.github/workflows/deploy.yml`**
+| | Cloudflare Pages | Este projeto (Worker + assets) |
+|--|------------------|-------------------------------|
+| Painel | Workers & Pages → tipo **Pages** | Workers & Pages → Worker **`easypdf`** |
+| Deploy CLI | `wrangler pages deploy dist` | **`wrangler deploy`** |
+| Config | `pages_build_output_dir` / project name | `wrangler.toml` + `[assets] directory = "./dist"` |
+| Erro típico se misturar | — | `Project not found [code: 8000007]` com `pages deploy` |
 
-1. Roda em `mcr.microsoft.com/playwright:v1.49.1-jammy` (Chromium + libs).
-2. `npm ci` → `npm run build` com `PRERENDER_STRICT=1` (sem fail-soft).
-3. `npm run validate:prerender` (exige `easypdf-prerender` + title/canonical em rotas-chave).
-4. `wrangler pages deploy dist` com secrets.
+**Workflow:** `.github/workflows/deploy.yml`
+
+1. Container `mcr.microsoft.com/playwright:v1.49.1-jammy`
+2. `npm ci` → `PRERENDER_STRICT=1 npm run build`
+3. `npm run validate:prerender`
+4. **`npx wrangler@3 deploy --name easypdf --config wrangler.toml`**
 
 #### Secrets no GitHub
 
-Repo → **Settings** → **Secrets and variables** → **Actions** → New repository secret:
+Repo → **Settings** → **Secrets and variables** → **Actions**:
 
-| Secret | Onde obter |
-|--------|------------|
-| `CLOUDFLARE_API_TOKEN` | Cloudflare → My Profile → API Tokens → Create Token → template **Edit Cloudflare Pages** (ou custom: Account → Cloudflare Pages → Edit) |
-| `CLOUDFLARE_ACCOUNT_ID` | Dashboard → qualquer domínio/Workers → sidebar **Account ID** |
-| `CLOUDFLARE_PAGES_PROJECT_NAME` | *(opcional)* Nome do projeto Pages (default no workflow: `easypdflocal`) |
+| Secret | Obrigatório | Valor |
+|--------|-------------|--------|
+| `CLOUDFLARE_API_TOKEN` | sim | Token com **Account → Workers Scripts → Edit** (e leitura da conta). Template “Edit Cloudflare Workers” ou custom. |
+| `CLOUDFLARE_ACCOUNT_ID` | sim | Account ID no dashboard |
+| `CLOUDFLARE_WORKER_NAME` | não | Default: **`easypdf`** |
 
-#### Desative o deploy automático duplicado no Cloudflare
+> Não use token só de “Cloudflare Pages” se o recurso for Worker — a API de Pages não encontra o projeto.
 
-Se o projeto Pages estiver ligado ao GitHub com **Builds** ativos, o CF pode fazer um segundo deploy (`npm run build` **sem** Chromium) e **sobrescrever** o dist pré-renderizado do Action.
+#### Deploy local (após build com Playwright)
 
-No painel **Cloudflare Pages → seu projeto → Settings → Builds & deployments**:
+```bash
+npm run playwright:install
+npm run build
+npm run validate:prerender
+npx wrangler@3 deploy
+# ou: npx wrangler@3 deploy --name easypdf
+```
 
-1. **Desative builds automáticos** (Disconnect do repositório **ou** pause automatic deployments), **ou**
-2. Mantenha o repo só para o **GitHub Action** fazer o deploy via Wrangler (recomendado).
+Variáveis de ambiente (shell): `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
 
 Não commite a pasta `dist/` no git.
 
 #### Validar após o primeiro Action verde
 
-1. GitHub → Actions → workflow verde.
-2. Abra `https://easypdflocal.com.br/juntar-pdf` → **Ver código-fonte** (não Inspecionar).
-3. Deve conter:
+1. GitHub → Actions → workflow verde (step **Deploy to Cloudflare Worker**).
+2. `https://easypdflocal.com.br/juntar-pdf` → **Ver código-fonte**:
    - `<!-- easypdf-prerender: /juntar-pdf -->`
-   - `<title>` com “Juntar PDF” (não só o title genérico da home)
+   - `<title>` com “Juntar PDF”
    - `canonical` …`/juntar-pdf`
    - `<h1>` da ferramenta
-4. Se ainda for shell da home: o deploy do painel CF está ganhando do Action — desative o build automático do painel.
+3. Se ainda for shell da home: outro pipeline (Pages build / deploy antigo) pode estar sobrescrevendo — use só este Action + `wrangler deploy`.
 
 #### Local (alternativa)
 

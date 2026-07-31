@@ -1,23 +1,18 @@
-# Deploy com HTML pré-renderizado de verdade → Cloudflare Pages
+# Build com Playwright (HTML por rota) + deploy Cloudflare Worker (assets)
 #
-# Por quê: o build nativo do Cloudflare não tem libs do Chromium (sem sudo).
-# O fail-soft do prerender evita deploy quebrado, mas deixa SPA crua em produção.
-#
-# Este workflow usa a imagem oficial do Playwright (Chromium + deps) e só
-# faz deploy do dist/ depois de validar easypdf-prerender nas rotas-chave.
+# Este projeto NÃO usa Cloudflare Pages.
+# O Worker de produção chama-se "easypdf" e é publicado com:
+#   wrangler deploy
+# (não `wrangler pages deploy`)
 #
 # Secrets (GitHub → Settings → Secrets and variables → Actions):
-#   CLOUDFLARE_API_TOKEN   — token com permissão Cloudflare Pages Edit
-#   CLOUDFLARE_ACCOUNT_ID  — Account ID do dashboard Cloudflare
-#   CLOUDFLARE_PAGES_PROJECT_NAME — (opcional) default: easypdflocal
+#   CLOUDFLARE_API_TOKEN   — token com Workers Scripts Edit (+ Account read)
+#   CLOUDFLARE_ACCOUNT_ID  — Account ID do dashboard
+#   CLOUDFLARE_WORKER_NAME — (opcional) default: easypdf
 #
-# Importante: desative o "Builds" automático no painel Cloudflare Pages
-# (ou deixe Build command vazio / desconecte o deploy por push) para não
-# sobrescrever este dist pré-renderizado com um build SPA fail-soft.
-#
-# Docs: docs/PRERENDER.md
+# Docs: docs/PRERENDER.md  |  wrangler.toml
 
-name: Build (Playwright prerender) + Deploy Cloudflare Pages
+name: Build (Playwright prerender) + Deploy Cloudflare Worker
 
 on:
   push:
@@ -26,7 +21,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-cloudflare-pages
+  group: deploy-cloudflare-worker
   cancel-in-progress: true
 
 permissions:
@@ -34,15 +29,12 @@ permissions:
 
 jobs:
   build-and-deploy:
-    name: Prerender + Deploy
-    # Imagem com Chromium + dependências de sistema (alinhada ao playwright do package.json)
+    name: Prerender + Deploy Worker
     runs-on: ubuntu-22.04
-    # Chromium + libs do SO (o build do painel CF não tem isso)
     container:
       image: mcr.microsoft.com/playwright:v1.49.1-jammy
 
     env:
-      # Browser deve funcionar — não aceitar fail-soft / SPA crua
       PRERENDER_STRICT: '1'
       CI: 'true'
 
@@ -50,7 +42,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # A imagem já inclui Node; setup-node alinha versão e habilita cache npm
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -60,7 +51,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Garante o Chromium do pacote npm (a imagem já tem deps de sistema)
       - name: Ensure Playwright Chromium
         run: npx playwright install chromium
 
@@ -77,22 +67,22 @@ jobs:
           path: dist
           retention-days: 7
 
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy to Cloudflare Worker (assets)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -e
           if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
-            echo "::error::Defina secrets CLOUDFLARE_API_TOKEN e CLOUDFLARE_ACCOUNT_ID no repositório GitHub"
+            echo "::error::Defina secrets CLOUDFLARE_API_TOKEN e CLOUDFLARE_ACCOUNT_ID"
             exit 1
           fi
-          PROJECT_NAME="${{ secrets.CLOUDFLARE_PAGES_PROJECT_NAME }}"
-          if [ -z "$PROJECT_NAME" ]; then
-            PROJECT_NAME="easypdflocal"
+          WORKER_NAME="${{ secrets.CLOUDFLARE_WORKER_NAME }}"
+          if [ -z "$WORKER_NAME" ]; then
+            WORKER_NAME="easypdf"
           fi
-          echo "Deploying dist/ → Cloudflare Pages project: $PROJECT_NAME (branch main)"
-          npx --yes wrangler@3 pages deploy dist \
-            --project-name="$PROJECT_NAME" \
-            --branch=main \
-            --commit-dirty=true
+          echo "Deploying dist/ → Cloudflare Worker (assets): $WORKER_NAME"
+          echo "NOT using pages deploy — this is a Worker project (see wrangler.toml)"
+          npx --yes wrangler@3 deploy \
+            --config wrangler.toml \
+            --name "$WORKER_NAME"

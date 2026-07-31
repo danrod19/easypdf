@@ -10,6 +10,7 @@
     "build:skip-prerender": "tsc --noEmit && vite build",
     "prerender": "node scripts/prerender.mjs",
     "validate:prerender": "node scripts/validate-prerender.mjs",
+    "deploy:cf": "wrangler deploy",
     "preview": "vite preview",
     "lint": "eslint .",
     "icons:pwa": "node scripts/gen-pwa-icons.mjs",
