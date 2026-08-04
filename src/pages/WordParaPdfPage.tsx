@@ -8,17 +8,14 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { FileLimitsNotice } from '../components/FileLimitsNotice';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { wordParaPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { useFileIntake } from '../hooks/useFileIntake';
 import { dropZoneLimitHint } from '../lib/fileValidation';
-import {
-  convertDocxToPdf,
-  DOCX_MIME,
-  isDocxFile,
-} from '../lib/wordToPdf';
+import { DOCX_MIME, isDocxFile } from '../lib/docxFile';
 import { downloadBlob, formatBytes } from '../lib/format';
 
 function buildConvertedFileName(originalName: string) {
@@ -109,6 +106,8 @@ export default function WordParaPdfPage() {
     const startedAt = ga.startProcess(1);
 
     try {
+      // mammoth + html2pdf só neste fluxo (import dinâmico em wordToPdf)
+      const { convertDocxToPdf } = await import('../lib/wordToPdf');
       const bytes = await convertDocxToPdf(file, ({ percent, message }) => {
         setProgress(percent);
         setProgressMsg(message);
@@ -171,19 +170,20 @@ export default function WordParaPdfPage() {
             Word para PDF
           </h1>
           <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Converta arquivos{' '}
+            Precisa enviar um documento Word com layout mais estável? Converta{' '}
             <strong className="font-semibold text-slate-800 dark:text-slate-200">
               .docx
             </strong>{' '}
-            em PDF sem upload. O fluxo usa{' '}
+            em PDF grátis, sem upload e sem cadastro. O fluxo usa{' '}
             <strong className="font-semibold text-slate-800 dark:text-slate-200">
               mammoth
             </strong>{' '}
-            (DOCX → HTML) e{' '}
+            e{' '}
             <strong className="font-semibold text-slate-800 dark:text-slate-200">
               html2pdf.js
             </strong>{' '}
-            (HTML → PDF A4) — tudo no seu navegador.
+            100% no navegador — revise o resultado; layouts complexos podem
+            divergir do Word desktop.
           </p>
         </header>
 
@@ -316,6 +316,14 @@ export default function WordParaPdfPage() {
             é uma conversão client-side via HTML.
           </p>
         </section>
+
+        <FileLimitsNotice
+          profile="docx"
+          title="Limites técnicos desta ferramenta"
+          compact
+          headingLevel="h2"
+          headingId="limites-word"
+        />
 
         <ToolSeoContent content={wordParaPdfSeoContent} />
 

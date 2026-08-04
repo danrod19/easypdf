@@ -121,9 +121,9 @@ export const seoByPath: Record<string, SeoMeta> = {
     path: '/comprimir-pdf',
   },
   '/pdf-sem-upload': {
-    title: 'PDF sem Upload | Ferramentas Locais no Navegador',
+    title: 'PDF sem Upload | Processamento Local no Navegador',
     description:
-      'Processe PDFs no navegador sem enviar arquivos para a nuvem. Privacidade, LGPD e ferramentas grátis sem cadastro — Easy PDF Local.',
+      'O que é PDF sem upload: ferramentas grátis no navegador, sem enviar o arquivo para processar. Privacidade, limites honestos e links para juntar, comprimir e converter.',
     path: '/pdf-sem-upload',
   },
   '/privacidade': {
@@ -139,15 +139,15 @@ export const seoByPath: Record<string, SeoMeta> = {
     path: '/termos',
   },
   '/sobre': {
-    title: 'Sobre o Easy PDF Local | Nossa Missão de Privacidade',
+    title: 'Sobre o Easy PDF Local | Privacidade e PDF no Navegador',
     description:
-      'Idealizado por profissional brasileiro de TI, redes e telecom. PDF 100% no navegador, sem upload — compromisso com privacidade pessoal e corporativa.',
+      'Conheça o Easy PDF Local: ferramentas de PDF grátis, sem cadastro e sem upload para processar. Projeto independente com foco em privacidade no navegador.',
     path: '/sobre',
   },
   '/contato': {
-    title: 'Contato | Easy PDF Local — Feedback e Suporte',
+    title: 'Contato | Easy PDF Local — Feedback e Privacidade',
     description:
-      'Envie feedback, reporte bugs ou fale sobre parcerias. A comunidade ajuda a melhorar o Easy PDF Local. Contato por e-mail, resposta humana.',
+      'Fale com o mantenedor do Easy PDF Local: bugs, sugestões ou dúvidas de privacidade. E-mail humano — as tools processam PDF no navegador, não por e-mail.',
     path: '/contato',
   },
   '/blog': {

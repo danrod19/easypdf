@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ShieldCheck, Lock, ServerOff, Eye } from 'lucide-react';
 import { Seo } from '../components/Seo';
 import { getSeoForPath } from '../data/seo';
+import { CONTACT_EMAIL, contactMailto } from '../data/siteContact';
 
 const LAST_UPDATED = '27 de julho de 2026';
 
@@ -396,10 +397,10 @@ export default function PrivacidadePage() {
               e-mails de contato) ou dúvidas sobre cookies, analytics e afiliados,
               escreva para{' '}
               <a
-                href="mailto:easypdf19@gmail.com"
+                href={contactMailto('Privacidade - Easy PDF Local')}
                 className="font-medium text-brand-600 underline-offset-2 hover:underline dark:text-brand-400"
               >
-                easypdf19@gmail.com
+                {CONTACT_EMAIL}
               </a>
               . Pedidos relacionados a dados tratados exclusivamente pelo Google
               ou por marketplaces devem ser, em muitos casos, exercidos também
@@ -458,10 +459,10 @@ export default function PrivacidadePage() {
               Dúvidas sobre privacidade, cookies, Google Analytics ou links de
               afiliados:{' '}
               <a
-                href="mailto:easypdf19@gmail.com?subject=Privacidade%20-%20Easy%20PDF"
+                href={contactMailto('Privacidade - Easy PDF Local')}
                 className="font-medium text-brand-600 underline-offset-2 hover:underline dark:text-brand-400"
               >
-                easypdf19@gmail.com
+                {CONTACT_EMAIL}
               </a>
               .
             </p>

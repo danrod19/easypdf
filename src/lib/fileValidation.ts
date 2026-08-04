@@ -369,7 +369,10 @@ export async function assertOcrPageLimit(
   }
 }
 
-/** Texto de dica para DropZone (limites em linguagem humana). */
+/**
+ * Texto de dica para DropZone.
+ * Números = FILE_LIMITS (mesma fonte que `fileLimitsCopy` / FileLimitsNotice).
+ */
 export function dropZoneLimitHint(profile: ValidationProfile): string {
   const mb = formatLimitMb(FILE_LIMITS.MAX_FILE_BYTES);
   switch (profile) {
@@ -383,6 +386,8 @@ export function dropZoneLimitHint(profile: ValidationProfile): string {
       return `PDF · máx. ${mb} MB · até ${FILE_LIMITS.MAX_COMPRESS_PAGES} páginas · 100% local`;
     case 'docx':
       return `DOCX · máx. ${mb} MB · processamento local`;
+    case 'image_single':
+      return `máx. ${mb} MB · processamento local`;
     default:
       return `máx. ${mb} MB por arquivo · processamento local`;
   }

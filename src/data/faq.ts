@@ -1,3 +1,5 @@
+import { getHomeLimitsFaqAnswer } from './fileLimitsCopy';
+
 export type FaqItem = {
   id: string;
   question: string;
@@ -7,6 +9,7 @@ export type FaqItem = {
 /**
  * Perguntas frequentes reutilizáveis — foco em privacidade offline e freemium.
  * Otimizadas para SEO e conversão comercial.
+ * Números de limites = FILE_LIMITS via fileLimitsCopy.
  */
 export const defaultFaqItems: FaqItem[] = [
   {
@@ -24,8 +27,7 @@ export const defaultFaqItems: FaqItem[] = [
   {
     id: 'limites-tecnicos',
     question: 'Existe limite de tamanho ou de páginas?',
-    answer:
-      'Sim — limites técnicos para proteger a memória do seu navegador, não cotas de “conta”. Em geral: até cerca de 50 MB por arquivo; no juntar PDF, até 20 arquivos e cerca de 80 MB no total; OCR até 30 páginas; compressão até 50 páginas. Arquivos dentro desses tetos costumam funcionar bem; acima disso o site avisa e bloqueia o processamento para evitar travamentos.',
+    answer: getHomeLimitsFaqAnswer(),
   },
   {
     id: 'sem-servidor',

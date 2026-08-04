@@ -25,7 +25,7 @@ const MIN_H: Record<NonNullable<AdBannerProps['placement']>, string> = {
 
 /**
  * Banner AdSense horizontal (topo / rodapé / inline).
- * Unidade real: display responsivo full-width.
+ * Slot placeholder → AdSenseUnit retorna null (sem bloco “Publicidade”).
  */
 export function AdBanner({
   placement = 'inline',

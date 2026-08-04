@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -97,8 +98,17 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    // Libs pesadas (tesseract / mammoth / html2pdf) entram só via import()
+    // dinâmico em extractText.ts e wordToPdf.ts — sem manualChunks forçado
+    // (com Rolldown, manualChunks misturava deps e puxava vendor na rota cedo).
   },
   worker: {
     format: 'es',
+  },
+  test: {
+    environment: 'node',
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    // GA / analytics não devem vazar em unit tests
+    clearMocks: true,
   },
 });

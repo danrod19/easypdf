@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useId, useState } from 'react';
 import { Seo } from '../components/Seo';
 import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
@@ -13,6 +13,7 @@ import { dividirPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { useFileIntake } from '../hooks/useFileIntake';
+import { useAbortablePdfJob } from '../hooks/useAbortablePdfJob';
 import { dropZoneLimitHint } from '../lib/fileValidation';
 import { getPdfPageCount, parsePageRange } from '../lib/splitPdf';
 import { extractPdfPagesPreferWorker } from '../lib/pdfOpsWorker';
@@ -36,8 +37,7 @@ export default function DividirPdfPage() {
   const rangeId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.DIVIDIR_PDF);
   const intake = useFileIntake(TOOL_NAMES.DIVIDIR_PDF, 'pdf_single');
-  /** Cancela o Web Worker de split ao sair da página */
-  const abortRef = useRef<AbortController | null>(null);
+  const job = useAbortablePdfJob();
 
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number | null>(null);
@@ -52,13 +52,6 @@ export default function DividirPdfPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
   const [previewFileName, setPreviewFileName] = useState('');
-
-  useEffect(() => {
-    return () => {
-      abortRef.current?.abort();
-      abortRef.current = null;
-    };
-  }, []);
 
   const resetPreview = useCallback(() => {
     setIsModalOpen(false);
@@ -124,9 +117,7 @@ export default function DividirPdfPage() {
       return;
     }
 
-    abortRef.current?.abort();
-    const ac = new AbortController();
-    abortRef.current = ac;
+    const signal = job.beginJob();
 
     setIsProcessing(true);
     setError(null);
@@ -147,10 +138,10 @@ export default function DividirPdfPage() {
           setProgress(percent);
           setProgressMsg(message);
         },
-        ac.signal
+        signal
       );
 
-      if (ac.signal.aborted) return;
+      if (signal.aborted) return;
 
       const stableBytes = new Uint8Array(bytes);
       const fileName = buildExtractedFileName(file.name);
@@ -163,8 +154,7 @@ export default function DividirPdfPage() {
       );
       ga.endProcess(true, startedAt);
     } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') return;
-      if (err instanceof Error && err.name === 'AbortError') return;
+      if (job.isAbortError(err)) return;
       const message =
         err instanceof Error
           ? err.message
@@ -174,9 +164,7 @@ export default function DividirPdfPage() {
       setProgressMsg('');
       ga.endProcess(false, startedAt);
     } finally {
-      if (abortRef.current === ac) {
-        abortRef.current = null;
-      }
+      job.endJob(signal);
       setIsProcessing(false);
     }
   };

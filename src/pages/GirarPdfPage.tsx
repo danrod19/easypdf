@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useId, useMemo, useState } from 'react';
 import {
   Loader2,
   RotateCcw,
@@ -20,6 +20,7 @@ import { girarPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { useFileIntake } from '../hooks/useFileIntake';
+import { useAbortablePdfJob } from '../hooks/useAbortablePdfJob';
 import { dropZoneLimitHint } from '../lib/fileValidation';
 import {
   applyRotationDelta,
@@ -81,8 +82,7 @@ export default function GirarPdfPage() {
   const panelSpecificId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.GIRAR_PDF);
   const intake = useFileIntake(TOOL_NAMES.GIRAR_PDF, 'pdf_single');
-  /** Cancela o Web Worker de rotação ao sair da página */
-  const abortRef = useRef<AbortController | null>(null);
+  const job = useAbortablePdfJob();
 
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number | null>(null);
@@ -102,13 +102,6 @@ export default function GirarPdfPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
   const [previewFileName, setPreviewFileName] = useState('');
-
-  useEffect(() => {
-    return () => {
-      abortRef.current?.abort();
-      abortRef.current = null;
-    };
-  }, []);
 
   const pendingCount = useMemo(
     () => countPendingRotations(rotations),
@@ -254,9 +247,7 @@ export default function GirarPdfPage() {
       return;
     }
 
-    abortRef.current?.abort();
-    const ac = new AbortController();
-    abortRef.current = ac;
+    const signal = job.beginJob();
 
     setIsProcessing(true);
     setError(null);
@@ -276,10 +267,10 @@ export default function GirarPdfPage() {
           setProgress(percent);
           setProgressMsg(message);
         },
-        ac.signal
+        signal
       );
 
-      if (ac.signal.aborted) return;
+      if (signal.aborted) return;
 
       const outName = rotatedFileName(file.name);
       const stableBytes = new Uint8Array(bytes);
@@ -306,8 +297,7 @@ export default function GirarPdfPage() {
       setDownloadSuccess(true);
       ga.endProcess(true, startedAt);
     } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') return;
-      if (err instanceof Error && err.name === 'AbortError') return;
+      if (job.isAbortError(err)) return;
       const message =
         err instanceof Error
           ? err.message
@@ -318,9 +308,7 @@ export default function GirarPdfPage() {
       setProgressMsg('');
       ga.endProcess(false, startedAt);
     } finally {
-      if (abortRef.current === ac) {
-        abortRef.current = null;
-      }
+      job.endJob(signal);
       setIsProcessing(false);
     }
   };

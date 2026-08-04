@@ -1,6 +1,13 @@
 import { loadPdfJs } from './pdfjsLoader';
 import { assertOcrPageLimit } from './fileValidation';
 import { TOOL_NAMES } from '../data/toolNames';
+import { isPdfFile } from './pdfFileTypes';
+
+export {
+  isPdfFile,
+  PDF_EXTRACT_ACCEPT,
+  OCR_IMAGE_ACCEPT,
+} from './pdfFileTypes';
 
 /** Assets self-hosted em public/tesseract/ (sem CDN) */
 export const TESSERACT_PATHS = {
@@ -31,23 +38,6 @@ function throwIfAborted(signal?: AbortSignal): void {
   if (signal?.aborted) {
     throw new AbortError();
   }
-}
-
-export const PDF_EXTRACT_ACCEPT = 'application/pdf,.pdf';
-
-/** @deprecated use PDF_EXTRACT_ACCEPT */
-export const OCR_IMAGE_ACCEPT = PDF_EXTRACT_ACCEPT;
-
-/**
- * Aceita apenas PDF (extração de texto / OCR de páginas).
- */
-export function isPdfFile(file: File): boolean {
-  const type = (file.type || '').toLowerCase();
-  if (type === 'application/pdf') return true;
-  if (!type || type === 'application/octet-stream') {
-    return file.name.toLowerCase().endsWith('.pdf');
-  }
-  return file.name.toLowerCase().endsWith('.pdf');
 }
 
 /** Alias legado */

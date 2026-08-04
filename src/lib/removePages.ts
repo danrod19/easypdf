@@ -4,6 +4,12 @@ import { getPdfPageCount } from './splitPdf';
 
 export { getPdfPageCount };
 
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw new DOMException('Processamento cancelado.', 'AbortError');
+  }
+}
+
 export interface RemovePagesProgress {
   /** 0–100 */
   percent: number;
@@ -37,11 +43,14 @@ export function removedPagesFileName(originalName: string): string {
 
 /**
  * Gera miniaturas de todas as páginas com pdfjs-dist (client-side).
+ * `signal` cancela entre páginas (ex.: unmount / troca de rota).
  */
 export async function generatePageThumbnails(
   file: File,
-  onProgress?: RemovePagesProgressCallback
+  onProgress?: RemovePagesProgressCallback,
+  signal?: AbortSignal
 ): Promise<PageThumbnail[]> {
+  throwIfAborted(signal);
   onProgress?.({ percent: 5, message: 'Carregando visualizador…' });
 
   let bytes: ArrayBuffer;
@@ -51,6 +60,7 @@ export async function generatePageThumbnails(
     throw new Error(`Não foi possível ler o arquivo "${file.name}".`);
   }
 
+  throwIfAborted(signal);
   const pdfjs = await loadPdfJs();
   onProgress?.({ percent: 15, message: 'Abrindo PDF…' });
 
@@ -72,6 +82,7 @@ export async function generatePageThumbnails(
   const maxWidth = 160;
 
   for (let pageNum = 1; pageNum <= pageCount; pageNum++) {
+    throwIfAborted(signal);
     const percent = 15 + Math.round((pageNum / pageCount) * 80);
     onProgress?.({
       percent,
@@ -127,8 +138,10 @@ export async function generatePageThumbnails(
 export async function removePagesFromPdf(
   file: File,
   indicesToRemove: number[],
-  onProgress?: RemovePagesProgressCallback
+  onProgress?: RemovePagesProgressCallback,
+  signal?: AbortSignal
 ): Promise<Uint8Array> {
+  throwIfAborted(signal);
   if (indicesToRemove.length === 0) {
     throw new Error(
       'Marque pelo menos uma página para remover (ícone de lixeira na miniatura).'
@@ -144,6 +157,7 @@ export async function removePagesFromPdf(
     throw new Error(`Não foi possível ler o arquivo "${file.name}".`);
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 30, message: 'Carregando documento…' });
 
   let pdfDoc: PDFDocument;
@@ -176,6 +190,7 @@ export async function removePagesFromPdf(
     );
   }
 
+  throwIfAborted(signal);
   onProgress?.({
     percent: 50,
     message: `Removendo ${unique.length} página${unique.length === 1 ? '' : 's'}…`,
@@ -183,9 +198,11 @@ export async function removePagesFromPdf(
 
   // De trás para frente: removePage não desloca índices menores
   for (const idx of unique) {
+    throwIfAborted(signal);
     pdfDoc.removePage(idx);
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 90, message: 'Gerando novo PDF…' });
 
   const out = await pdfDoc.save();

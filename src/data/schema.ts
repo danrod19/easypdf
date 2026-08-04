@@ -255,13 +255,14 @@ export function buildBlogPostingSchema(post: BlogPostMeta) {
 }
 
 /**
- * WebPage / CollectionPage para hubs (ex.: /pdf-sem-upload).
+ * WebPage / CollectionPage / AboutPage / ContactPage
+ * (hubs, institucionais — alinhado ao conteúdo visível).
  */
 export function buildWebPageSchema(input: {
   name: string;
   description: string;
   path: string;
-  type?: 'WebPage' | 'CollectionPage';
+  type?: 'WebPage' | 'CollectionPage' | 'AboutPage' | 'ContactPage';
 }) {
   const url = absoluteUrl(input.path);
   return {

@@ -42,7 +42,7 @@ const CONFIG: Record<
 
 /**
  * Slot AdSense contextual (below-cta / sidebars).
- * Below-CTA: prioridade mobile — logo abaixo do botão principal da ferramenta.
+ * Placeholder / slot inválido → null (sem UI vazia).
  */
 export function AdSlot({ placement, className = '' }: AdSlotProps) {
   const cfg = CONFIG[placement];

@@ -89,8 +89,9 @@ export default function HomePage() {
               </a>
               <Link
                 to="/pdf-sem-upload"
-                className="btn-secondary"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-2 border-emerald-600/80 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-500/60 dark:bg-emerald-950/50 dark:text-emerald-100 dark:hover:bg-emerald-950"
               >
+                <ShieldCheck className="h-4 w-4" aria-hidden />
                 PDF sem upload
               </Link>
             </div>
@@ -173,6 +174,43 @@ export default function HomePage() {
         {/* Como funciona */}
         <HowItWorks />
 
+        {/* Hub PDF sem upload — CTA visível (não só link no hero) */}
+        <section
+          className="rounded-2xl border-2 border-emerald-500/35 bg-gradient-to-br from-emerald-50 via-white to-brand-50/40 p-6 sm:p-8 dark:border-emerald-800/50 dark:from-emerald-950/40 dark:via-slate-900 dark:to-brand-950/20"
+          aria-labelledby="home-hub-pdf"
+        >
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 max-w-2xl space-y-2">
+              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-emerald-800 dark:text-emerald-200">
+                <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+                Privacidade no navegador
+              </p>
+              <h2
+                id="home-hub-pdf"
+                className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl dark:text-slate-50"
+              >
+                PDF sem upload: o arquivo não sobe para processar
+              </h2>
+              <p className="text-sm leading-relaxed text-slate-600 sm:text-base dark:text-slate-400">
+                Entenda como o processamento local funciona, o que muda em
+                relação a conversores com upload, limites honestos e as
+                ferramentas grátis — sem cadastro obrigatório.
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+              <Link to="/pdf-sem-upload" className="btn-primary w-full sm:w-auto">
+                Ler o guia PDF sem upload
+              </Link>
+              <Link
+                to="/pdf-sem-upload#ferramentas"
+                className="text-center text-sm font-medium text-brand-700 underline-offset-2 hover:underline dark:text-brand-300"
+              >
+                Ir às ferramentas da hub
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* Diferenciais comerciais */}
         <section
           className="grid gap-4 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 sm:grid-cols-3 sm:p-8 dark:border-slate-800 dark:from-slate-900 dark:to-slate-950"
@@ -181,18 +219,18 @@ export default function HomePage() {
           {[
             {
               icon: ShieldCheck,
-              t: 'Privacidade total',
-              d: 'Arquivos processados só no seu navegador. Nada sobe para a nuvem.',
+              t: 'Privacidade no processamento',
+              d: 'Arquivos processados no navegador — sem upload do documento para a nossa nuvem.',
             },
             {
               icon: Zap,
-              t: 'Resultado na hora',
-              d: 'Sem filas de servidor. A conversão roda no seu dispositivo.',
+              t: 'Resultado no dispositivo',
+              d: 'Sem fila de servidor de arquivo. A velocidade depende do seu hardware.',
             },
             {
               icon: Sparkles,
               t: 'Grátis e sem conta',
-              d: 'Use as 5 ferramentas principais sem cadastro e sem cartão.',
+              d: 'Tools principais sem cadastro. Há limites técnicos de tamanho e páginas.',
             },
           ].map((item) => (
             <div key={item.t} className="flex gap-3">

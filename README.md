@@ -42,7 +42,7 @@ npm run playwright:install
 npm run build
 ```
 
-`npm run build` = `tsc` + `vite build` + **prerender** (`scripts/prerender.mjs`).
+`npm run build` = `tsc` + **sitemap** (`scripts/generate-sitemap.mjs`) + `vite build` + **prerender** (`scripts/prerender.mjs`).
 
 A pasta `dist/` contém:
 - assets JS/CSS do Vite
@@ -111,8 +111,9 @@ Helpers: `src/lib/runPdfWorker.ts`, `src/lib/pdfOpsWorker.ts`, `src/lib/mergePdf
 
 - `index.html` tem canonical **self-referencing da home** (visível sem JS).
 - Rotas internas: `useSEO` / `<Seo path="…" />` atualizam `<link rel="canonical">` e `og:url` no cliente para a URL absoluta correta (`https://easypdflocal.com.br/…`).
-- Deploy estático (Cloudflare Pages / SWA): **sem HTML pré-renderizado por rota**; crawlers que não executam JS veem a canonical da home. Googlebot com JS vê a canonical por rota. `public/sitemap.xml` lista as URLs.
-- Prerender multi-page seria o upgrade se o GSC exigir HTML estático por path — fora do escopo atual.
+- Deploy estático (Cloudflare Pages / SWA): **sem HTML pré-renderizado por rota**; crawlers que não executam JS veem a canonical da home. Googlebot com JS vê a canonical por rota.
+- **Sitemap:** gerado no build a partir de `tools.ts` (ready) + `blogPosts.ts` + páginas institucionais — `npm run sitemap` ou via `npm run build`. Ver [`docs/SITEMAP.md`](docs/SITEMAP.md).
+- Prerender multi-page: HTML por rota quando Playwright está disponível (CI de produção).
 
 ## Monetização
 

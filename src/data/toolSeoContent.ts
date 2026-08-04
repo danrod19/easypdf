@@ -3,6 +3,19 @@
  * O Google precisa de texto legível — não só botões e UI.
  */
 
+import {
+  LIMIT_NUMBERS,
+  buildSeoLimitsBlock,
+} from './fileLimitsCopy';
+
+/** Limites reais do app — derivados de FILE_LIMITS via fileLimitsCopy. */
+const MAX_FILE_MB = LIMIT_NUMBERS.maxFileMb;
+const MAX_MERGE_TOTAL_MB = LIMIT_NUMBERS.maxMergeTotalMb;
+const MAX_MERGE_FILES = LIMIT_NUMBERS.maxMergeFiles;
+const MAX_COMPRESS_PAGES = LIMIT_NUMBERS.maxCompressPages;
+const MAX_OCR_PAGES = LIMIT_NUMBERS.maxOcrPages;
+const MAX_PDF_PAGES_GENERAL = LIMIT_NUMBERS.maxPdfPagesGeneral;
+
 export type SeoStep = {
   title: string;
   description: string;
@@ -55,6 +68,12 @@ export type ToolSeoBlock = {
   benefitsTitle: string;
   benefitsIntro?: string;
   benefits: SeoBenefit[];
+  /**
+   * Bloco curto e explícito de privacidade (sem upload / 100% local).
+   * Visível no HTML — reforço anti “thin content” e confiança.
+   */
+  privacyTitle?: string;
+  privacy?: string;
   /** Limites técnicos honestos */
   limitsTitle?: string;
   limitsIntro?: string;
@@ -156,12 +175,12 @@ export const juntarPdfSeoContent: ToolSeoBlock = {
   useCasesTitle: 'Casos de uso práticos',
   useCases: [
     {
-      title: 'Proposta + anexos técnicos',
+      title: 'Trabalho: proposta + anexos técnicos',
       description:
-        'Una a apresentação, o escopo e os apêndices em um único PDF na ordem certa antes de enviar ao cliente.',
+        'Una a apresentação, o escopo e os apêndices em um único PDF na ordem certa antes de enviar ao cliente — sem subir contratos a um site de merge.',
     },
     {
-      title: 'Material de estudo',
+      title: 'Estudo: material unificado',
       description:
         'Junte slides, resumos e exercícios em um arquivo para revisar offline no tablet ou no celular.',
     },
@@ -171,34 +190,42 @@ export const juntarPdfSeoContent: ToolSeoBlock = {
         'Reúna boletos, RG digitalizado e formulários preenchidos em um pacote único para protocolo.',
     },
     {
-      title: 'No celular, sem instalar app',
+      title: 'Celular e privacidade',
       description:
-        'Abra a página no navegador, selecione os PDFs da pasta Downloads e baixe o resultado — sem conta e sem app extra.',
+        'Abra a página no navegador do telefone, selecione os PDFs da pasta Downloads e baixe o resultado — sem conta, sem app extra e sem o arquivo sair do aparelho para processar.',
     },
   ],
   howToTitle: 'Como juntar PDFs no navegador (passo a passo)',
   howToIntro:
-    'O fluxo fica no topo da página. Em poucos passos você une os arquivos localmente, sem cadastro e sem upload para a nuvem da ferramenta.',
+    'A ferramenta fica no topo da página. Em poucos passos você une os arquivos localmente, sem cadastro e sem upload para a nuvem da ferramenta. A ordem da lista define a ordem das páginas no PDF final.',
   steps: [
     {
       title: 'Adicione 2 ou mais PDFs',
-      description:
-        'Arraste os arquivos ou clique para escolher no dispositivo. Só PDF; a validação de tipo e tamanho roda no navegador.',
+      description: `Arraste os arquivos ou clique para escolher no dispositivo. Só PDF. A validação de tipo e tamanho roda no navegador (até ${MAX_FILE_MB} MB por arquivo e ${MAX_MERGE_FILES} arquivos por operação).`,
     },
     {
-      title: 'Reordene a lista',
+      title: 'Confira a ordem da fila',
       description:
-        'Use subir/descer para definir a sequência das páginas no arquivo final. O primeiro da fila será o início do PDF unido.',
+        'O primeiro item da lista será o início do PDF unido; o último, o fim. Use subir/descer para ajustar a sequência antes de mesclar — isso evita o erro clássico de anexo na ordem errada.',
+    },
+    {
+      title: 'Respeite quantidade e tamanho total',
+      description: `Além do limite por arquivo, a fila inteira não pode passar de cerca de ${MAX_MERGE_TOTAL_MB} MB somados. Se a validação recusar, remova itens, junte em lotes ou comprima scans pesados antes.`,
     },
     {
       title: 'Clique em juntar',
       description:
-        'O merge roda no seu aparelho (Worker quando possível). Acompanhe o progresso na barra; em arquivos grandes pode demorar conforme a CPU e a RAM.',
+        'O merge roda no seu aparelho (Web Worker quando possível). Acompanhe o progresso na barra; em arquivos grandes pode demorar conforme a CPU e a RAM.',
     },
     {
-      title: 'Pré-visualize e baixe',
+      title: 'Pré-visualize o resultado',
       description:
-        'Confira o resultado no modal e salve o PDF no dispositivo. O original de cada arquivo permanece onde estava — você só cria uma cópia unificada.',
+        'Abra a pré-visualização e confira se a ordem das páginas ficou correta antes de salvar.',
+    },
+    {
+      title: 'Baixe a cópia unificada',
+      description:
+        'Salve o PDF no dispositivo. Os arquivos originais permanecem onde estavam — você só cria uma cópia unificada.',
     },
   ],
   benefitsTitle: 'Por que juntar PDF aqui (sem upload e sem cadastro)',
@@ -226,18 +253,12 @@ export const juntarPdfSeoContent: ToolSeoBlock = {
         'Ao copiar páginas com pdf-lib, o fluxo não rasteriza o documento só por unir — diferente da compressão por imagem desta suíte.',
     },
   ],
-  limitsTitle: 'Limites técnicos (para o navegador não travar)',
-  limitsIntro:
-    'Como tudo roda no seu aparelho, há tetos de segurança — não são “cota de plano pago”, e sim proteção de memória (sobretudo no celular).',
-  limits: [
-    { label: 'Por arquivo', text: 'Até cerca de 50 MB cada PDF.' },
-    { label: 'Quantidade', text: 'Até 20 arquivos por operação de merge.' },
-    { label: 'Total da fila', text: 'Até cerca de 80 MB somados.' },
-    {
-      label: 'Se passar do limite',
-      text: 'Junte em lotes menores ou comprima scans pesados antes. Em PCs fracos, prefira menos arquivos por vez.',
-    },
-  ],
+  privacyTitle: 'Privacidade: sem upload, 100% no seu navegador',
+  privacy:
+    'Nenhum PDF da sua lista é enviado a servidores da Easy PDF Local para unir. O merge roda no dispositivo (JavaScript/Web Worker). Usamos a rede só para carregar a página e as bibliotecas — não o conteúdo dos seus arquivos. Sem cadastro, sem conta e sem fila na nuvem.',
+  ...buildSeoLimitsBlock('merge_pdf', {
+    title: 'Limites técnicos (para o navegador não travar)',
+  }),
   faqTitle: 'Perguntas frequentes sobre juntar PDF',
   faqs: [
     {
@@ -251,24 +272,23 @@ export const juntarPdfSeoContent: ToolSeoBlock = {
         'Não. A ferramenta é grátis e sem cadastro. Pode haver anúncios no site para manter o serviço; o uso do merge em si não exige conta.',
     },
     {
-      question: 'Quantos PDFs posso unir de uma vez?',
-      answer:
-        'Até 20 arquivos, com cerca de 50 MB cada e 80 MB no total da fila. São limites técnicos do cliente, não de “plano”.',
+      question: 'Quantos PDFs posso unir de uma vez? Qual o limite de tamanho?',
+      answer: `Até ${MAX_MERGE_FILES} arquivos, com até ${MAX_FILE_MB} MB cada e ${MAX_MERGE_TOTAL_MB} MB no total da fila. São limites técnicos do cliente (memória do navegador), não de “plano”.`,
     },
     {
-      question: 'A qualidade cai ao juntar?',
+      question: 'A ordem dos arquivos importa?',
       answer:
-        'No merge com pdf-lib as páginas são copiadas; não há recompressão obrigatória só por unir. Texto e imagens embutidas tendem a se manter como no original.',
+        'Sim. A sequência da lista no topo da página é exatamente a ordem das páginas no PDF final. Use subir/descer antes de clicar em juntar.',
     },
     {
       question: 'Funciona no celular?',
       answer:
-        'Sim, no navegador do telefone. Em aparelhos com pouca RAM, use menos arquivos ou tamanhos menores por operação.',
+        'Sim, no navegador do telefone, sem instalar app. Em aparelhos com pouca RAM, use menos arquivos ou tamanhos menores por operação para evitar travamento.',
     },
     {
-      question: 'E se um PDF tiver senha?',
+      question: 'E se um PDF tiver senha ou a união falhar?',
       answer:
-        'Arquivos protegidos costumam precisar ser desbloqueados antes (com a senha correta) na ferramenta Desbloquear PDF; depois você junta as cópias liberadas.',
+        'Arquivos protegidos costumam precisar ser desbloqueados antes (com a senha correta) na ferramenta Desbloquear PDF; depois você junta as cópias liberadas. Se a fila estiver no limite de tamanho ou quantidade, a validação avisa antes de processar — divida em lotes ou comprima scans pesados.',
     },
   ],
   relatedTitle: 'Próximos passos e guias',
@@ -386,10 +406,10 @@ export const dividirPdfSeoContent: ToolSeoBlock = {
   limitsIntro:
     'Processamento local tem teto de memória. Os limites abaixo protegem o navegador (especialmente no celular).',
   limits: [
-    { label: 'Tamanho', text: 'Até cerca de 50 MB por PDF.' },
+    { label: 'Tamanho', text: `Até ${MAX_FILE_MB} MB por PDF.` },
     {
       label: 'Páginas (geral)',
-      text: 'Ordem de até cerca de 150 páginas em operações leves — em aparelhos fracos, prefira arquivos menores.',
+      text: `Ordem de até cerca de ${MAX_PDF_PAGES_GENERAL} páginas em operações leves — em aparelhos fracos, prefira arquivos menores.`,
     },
     {
       label: 'Saída',
@@ -548,10 +568,10 @@ export const girarPdfSeoContent: ToolSeoBlock = {
   limitsIntro:
     'Como nas outras tools, há tetos de arquivo e páginas para estabilidade no navegador.',
   limits: [
-    { label: 'Tamanho', text: 'Até cerca de 50 MB por PDF.' },
+    { label: 'Tamanho', text: `Até ${MAX_FILE_MB} MB por PDF.` },
     {
       label: 'Páginas',
-      text: 'Ordem de até cerca de 150 páginas em operações gerais — aparelhos fracos preferem menos.',
+      text: `Ordem de até cerca de ${MAX_PDF_PAGES_GENERAL} páginas em operações gerais — aparelhos fracos preferem menos.`,
     },
     {
       label: 'Ângulos',
@@ -708,7 +728,7 @@ export const marcaDaguaSeoContent: ToolSeoBlock = {
   limitsIntro:
     'Marca de texto embutida; não é DRM avançado nem certificado digital.',
   limits: [
-    { label: 'Tamanho', text: 'Até cerca de 50 MB por PDF.' },
+    { label: 'Tamanho', text: `Até ${MAX_FILE_MB} MB por PDF.` },
     {
       label: 'Tipo de marca',
       text: "Texto configurável — não é marca d'água de imagem complexa nesta ferramenta.",
@@ -865,7 +885,7 @@ export const desenharPdfSeoContent: ToolSeoBlock = {
       label: 'Página',
       text: 'Desenho na página 1 do PDF. Coloque a folha alvo na frente se precisar.',
     },
-    { label: 'Tamanho', text: 'Até cerca de 50 MB por arquivo.' },
+    { label: 'Tamanho', text: `Até ${MAX_FILE_MB} MB por arquivo.` },
     {
       label: 'Assinatura legal',
       text: 'Não emite certificado digital; validade jurídica depende do contexto e da lei.',
@@ -938,8 +958,8 @@ export const wordParaPdfSeoContent: ToolSeoBlock = {
     'Converta Word (DOCX) para PDF grátis no navegador, sem instalar programa e sem upload. Conversão local e sem cadastro.',
   overview: [
     'Converter Word para PDF é o caminho usual quando você precisa enviar um documento com layout mais estável: currículo, trabalho acadêmico, ofício, proposta ou relatório. O PDF reduz surpresas de fonte e formatação entre Windows, Mac e celular.',
-    'No Easy PDF Local a conversão de DOCX para PDF roda no navegador. O arquivo não é enviado a um servidor nosso de conversão: a leitura do DOCX e a geração do PDF acontecem no seu dispositivo. É grátis, sem cadastro e sem instalar Microsoft Word no computador atual.',
-    'O fluxo prático usa bibliotecas client-side (leitura do DOCX e montagem do PDF). Documentos de texto do dia a dia costumam sair bem. Layouts muito complexos, campos avançados ou diagramação editorial podem divergir do Word desktop — por isso a recomendação é sempre revisar o PDF antes de prazos críticos.',
+    'No Easy PDF Local a conversão de DOCX para PDF roda 100% no navegador. O arquivo não é enviado a um servidor nosso de conversão: a leitura do DOCX e a geração do PDF acontecem no seu dispositivo. É grátis, sem cadastro e sem instalar Microsoft Word no computador atual.',
+    'O fluxo prático usa bibliotecas client-side (mammoth para ler o DOCX e html2pdf.js para montar o PDF). Documentos de texto do dia a dia costumam sair bem. Layouts muito complexos, campos avançados ou diagramação editorial podem divergir do Word desktop — não prometemos layout idêntico em 100% dos casos. A recomendação é sempre revisar o PDF antes de prazos críticos.',
   ],
   audienceTitle: 'Para quem converter Word para PDF no navegador',
   audience:
@@ -947,19 +967,19 @@ export const wordParaPdfSeoContent: ToolSeoBlock = {
   useCasesTitle: 'Casos de uso práticos',
   useCases: [
     {
-      title: 'Currículo e carta de apresentação',
+      title: 'Trabalho: currículo e propostas',
       description:
-        'Gere PDF a partir do DOCX para portais de emprego e e-mail, sem instalar Word no PC emprestado.',
+        'Gere PDF a partir do DOCX para portais de emprego e e-mail, sem instalar Word no PC emprestado e sem enviar o texto a um conversor na nuvem.',
     },
     {
-      title: 'Trabalho da faculdade',
+      title: 'Estudo: trabalho da faculdade',
       description:
-        'Exporte o texto final em PDF para o prazo do professor, revisando quebras de página antes de enviar.',
+        'Exporte o texto final em PDF para o prazo do professor, revisando quebras de página e títulos antes de enviar.',
     },
     {
-      title: 'Documentos internos e checklists',
+      title: 'No celular, sem app de Office',
       description:
-        'Transforme procedimentos em PDF para distribuição somente leitura na equipe.',
+        'Abra o DOCX baixado do e-mail no navegador, converta e anexe o PDF — sem instalar suíte completa no telefone.',
     },
     {
       title: 'Privacidade de dados pessoais',
@@ -969,22 +989,36 @@ export const wordParaPdfSeoContent: ToolSeoBlock = {
   ],
   howToTitle: 'Como converter Word (DOCX) para PDF sem instalar',
   howToIntro:
-    'Ferramenta no topo da página: selecione o DOCX, converta no navegador e baixe o PDF. Sem conta e sem upload de processamento.',
+    'Ferramenta no topo da página: selecione o DOCX, converta no navegador e baixe o PDF. Sem conta e sem upload de processamento. Espere layout adequado para o dia a dia — não “pixel perfect” em qualquer arquivo.',
   steps: [
     {
-      title: 'Selecione o arquivo DOCX',
+      title: 'Prepare o arquivo em DOCX',
       description:
-        'Escolha o .docx no dispositivo. O foco é DOCX (Office Open XML); .doc legado pode precisar ser salvo como DOCX antes.',
+        'Use .docx (Office Open XML). Arquivos .doc legados precisam ser salvos como DOCX em outro editor antes. Remova macros ou proteção de edição se o navegador não conseguir ler o conteúdo.',
+    },
+    {
+      title: 'Selecione o DOCX no dispositivo',
+      description: `Arraste ou escolha o arquivo. A validação de tipo e tamanho roda no navegador (até ${MAX_FILE_MB} MB). O documento fica na memória local — não sobe para “converter na nuvem”.`,
     },
     {
       title: 'Inicie a conversão local',
       description:
-        'O conteúdo é interpretado no cliente e montado em PDF — sem fila em servidor de conversão e sem cadastro.',
+        'O conteúdo é interpretado no cliente (DOCX → HTML) e montado em PDF A4 — sem fila em servidor de conversão e sem cadastro.',
     },
     {
-      title: 'Revise e baixe',
+      title: 'Aguarde o processamento no aparelho',
       description:
-        'Abra o PDF no leitor do sistema, confira layout e imagens, e só então envie a terceiros. O DOCX original permanece no seu disco.',
+        'Documentos longos ou com muitas imagens usam mais CPU e RAM. Em celulares modestos a conversão pode demorar ou falhar por memória — nesse caso, tente no desktop.',
+    },
+    {
+      title: 'Revise o layout no PDF',
+      description:
+        'Abra a pré-visualização e confira títulos, listas, imagens e quebras de página. Layouts com caixas flutuantes, tabelas densas ou artes complexas podem divergir do Word desktop.',
+    },
+    {
+      title: 'Baixe o PDF',
+      description:
+        'Salve a cópia no dispositivo. O DOCX original permanece no seu disco. Se o portal limitar megabytes, use em seguida Comprimir PDF (ciente de que a compressão por imagem afeta a seleção de texto).',
     },
   ],
   benefitsTitle: 'Por que converter aqui (sem upload e sem programa)',
@@ -1012,58 +1046,42 @@ export const wordParaPdfSeoContent: ToolSeoBlock = {
         'Depois você pode comprimir, juntar anexos ou proteger o PDF — sempre no mesmo modelo sem upload de processamento.',
     },
   ],
-  limitsTitle: 'Limites e expectativas honestas',
-  limitsIntro:
-    'Conversão no navegador tem teto de memória e fidelidade de layout — melhor ser transparente do que prometer “pixel perfect” em qualquer DOCX.',
-  limits: [
-    {
-      label: 'Formato',
-      text: 'Foco em DOCX. Arquivos .doc antigos: salve como DOCX em outro editor antes.',
-    },
-    {
-      label: 'Tamanho',
-      text: 'Ordem de até cerca de 50 MB por arquivo (limite geral do site).',
-    },
-    {
-      label: 'Layout',
-      text: 'Textos, títulos e listas do dia a dia costumam ir bem; caixas flutuantes e artes complexas podem divergir.',
-    },
-    {
-      label: 'Celular',
-      text: 'DOCX muito pesados (muitas imagens) pedem mais RAM — em falha, tente no desktop.',
-    },
-  ],
+  privacyTitle: 'Privacidade: DOCX e PDF ficam no seu aparelho',
+  privacy:
+    'A conversão Word → PDF não envia o conteúdo do seu documento a servidores da Easy PDF Local. A leitura do DOCX e a montagem do PDF acontecem no navegador. Carregamos apenas a página e as bibliotecas pela rede — não o texto do seu arquivo. Grátis, sem cadastro e sem conta.',
+  ...buildSeoLimitsBlock('docx', {
+    title: 'Limites e expectativas honestas',
+  }),
   faqTitle: 'Perguntas frequentes sobre Word para PDF',
   faqs: [
     {
-      question: 'Posso converter sem instalar o Microsoft Word?',
+      question: 'Posso converter sem instalar o Microsoft Word e sem cadastro?',
       answer:
-        'Sim. A conversão roda no navegador. Você precisa do arquivo DOCX acessível no dispositivo, não da suíte instalada.',
+        'Sim. A conversão roda no navegador, grátis e sem conta. Você precisa do arquivo DOCX acessível no dispositivo, não da suíte instalada.',
     },
     {
-      question: 'O DOCX é enviado para a nuvem?',
+      question: 'O DOCX é enviado para a nuvem (upload)?',
       answer:
-        'No Easy PDF Local o processamento é client-side: não usamos o modelo “upload → servidor converte → download” para o seu documento.',
-    },
-    {
-      question: 'Precisa de cadastro?',
-      answer:
-        'Não. Grátis e sem conta para usar a ferramenta nesta página.',
+        'Não no modelo de processamento da Easy PDF Local. Não usamos “upload → servidor converte → download” para o seu documento: a conversão é client-side no navegador.',
     },
     {
       question: 'O PDF fica idêntico ao Word?',
       answer:
-        'Para o uso cotidiano, em geral fica adequado. Layouts avançados podem divergir — revise sempre antes de prazos importantes.',
+        'Não garantimos layout idêntico em 100% dos casos. Para o uso cotidiano (texto, títulos, listas), em geral fica adequado. Layouts avançados, tabelas densas e diagramação editorial podem divergir — revise sempre antes de prazos importantes.',
     },
     {
-      question: 'Aceita .doc antigo?',
-      answer:
-        'O fluxo é pensado para DOCX. Converta .doc para DOCX em outro programa se necessário.',
+      question: 'Aceita .doc antigo? Qual o limite de tamanho?',
+      answer: `O fluxo é pensado para DOCX (até ${MAX_FILE_MB} MB). Converta .doc para DOCX em outro programa se necessário.`,
     },
     {
-      question: 'E se o PDF ficar grande demais?',
+      question: 'Funciona no celular?',
       answer:
-        'Use em seguida a ferramenta Comprimir PDF, ciente de que a compressão por imagem afeta a seleção de texto no arquivo gerado.',
+        'Sim, no navegador do telefone. Documentos longos ou com muitas imagens usam mais memória; se travar, tente no computador ou reduza imagens no DOCX.',
+    },
+    {
+      question: 'E se o PDF ficar grande demais ou o layout falhar?',
+      answer:
+        'Para tamanho: use Comprimir PDF em seguida (páginas viram imagem — texto deixa de ser selecionável). Para layout: simplifique o DOCX (evite caixas flutuantes e campos complexos) e revise a pré-visualização antes de enviar.',
     },
   ],
   relatedTitle: 'Próximos passos e guias',
@@ -1175,7 +1193,7 @@ export const imagemParaPdfSeoContent: ToolSeoBlock = {
   limits: [
     {
       label: 'Por imagem',
-      text: 'Até cerca de 50 MB cada (mesmo teto geral de arquivo).',
+      text: `Até ${MAX_FILE_MB} MB cada (mesmo teto geral de arquivo).`,
     },
     {
       label: 'Quantidade',
@@ -1331,10 +1349,10 @@ export const extrairTextoSeoContent: ToolSeoBlock = {
   limitsIntro:
     'OCR é pesado. Por isso há tetos claros — não use “forçar OCR” em dezenas de páginas no celular de entrada sem expectativa de tempo.',
   limits: [
-    { label: 'Tamanho do PDF', text: 'Até cerca de 50 MB.' },
+    { label: 'Tamanho do PDF', text: `Até ${MAX_FILE_MB} MB.` },
     {
       label: 'OCR',
-      text: 'Até cerca de 30 páginas no fluxo de OCR (Tesseract + canvas).',
+      text: `Até ${MAX_OCR_PAGES} páginas no fluxo de OCR (Tesseract + canvas).`,
     },
     {
       label: 'Precisão do OCR',
@@ -1360,7 +1378,7 @@ export const extrairTextoSeoContent: ToolSeoBlock = {
     {
       question: 'Quantas páginas no OCR?',
       answer:
-        'Cerca de 30 páginas no limite do produto. Acima disso, divida o PDF ou use desktop com mais recursos.',
+        `Até ${MAX_OCR_PAGES} páginas no limite do produto. Acima disso, divida o PDF ou use desktop com mais recursos.`,
     },
     {
       question: 'O OCR erra?',
@@ -1486,7 +1504,7 @@ export const protegerPdfSeoContent: ToolSeoBlock = {
   limitsIntro:
     'Proteção útil no dia a dia — não é cofre militar nem recuperação de senha.',
   limits: [
-    { label: 'Tamanho', text: 'Até cerca de 50 MB por PDF.' },
+    { label: 'Tamanho', text: `Até ${MAX_FILE_MB} MB por PDF.` },
     {
       label: 'PDF já com senha',
       text: 'Desbloqueie/salve sem senha antes de aplicar uma nova proteção aqui.',
@@ -1637,10 +1655,10 @@ export const removerPaginasSeoContent: ToolSeoBlock = {
   limitsIntro:
     'Miniaturas consomem memória — PDFs enormes no celular podem demorar.',
   limits: [
-    { label: 'Tamanho', text: 'Até cerca de 50 MB por PDF.' },
+    { label: 'Tamanho', text: `Até ${MAX_FILE_MB} MB por PDF.` },
     {
       label: 'Páginas',
-      text: 'Ordem de até cerca de 150 páginas em operações gerais; UI com thumbs pode pesar em aparelhos fracos.',
+      text: `Ordem de até cerca de ${MAX_PDF_PAGES_GENERAL} páginas em operações gerais; UI com thumbs pode pesar em aparelhos fracos.`,
     },
     {
       label: 'Mínimo',
@@ -1792,7 +1810,7 @@ export const desbloquearPdfSeoContent: ToolSeoBlock = {
   limitsIntro:
     'Ferramenta de remoção com senha conhecida — não de cracking.',
   limits: [
-    { label: 'Tamanho', text: 'Até cerca de 50 MB por PDF.' },
+    { label: 'Tamanho', text: `Até ${MAX_FILE_MB} MB por PDF.` },
     {
       label: 'Senha esquecida',
       text: 'Não recuperamos nem quebramos senhas.',
@@ -1869,7 +1887,7 @@ export const comprimirPdfSeoContent: ToolSeoBlock = {
     'Comprima PDF grátis no navegador, sem upload e sem app. Reduza tamanho no celular ou PC — processamento local e sem cadastro.',
   overview: [
     'Comprimir PDF significa gerar uma cópia mais leve para caber em e-mail, WhatsApp, portal de RH ou formulário com limite de megabytes. No Easy PDF Local a compressão roda no navegador — inclusive no celular, sem instalar app e sem enviar o arquivo para um servidor de compressão nosso.',
-    'O método local é deliberado: cada página é renderizada (pdf.js), convertida em JPEG conforme o nível (baixa, média ou alta compressão) e remontada em um PDF novo (pdf-lib). Isso costuma reduzir muito scans e PDFs com fotos. Em troca, as páginas viram imagem: o texto em geral deixa de ser selecionável ou pesquisável no arquivo gerado.',
+    'O método local é deliberado: cada página é renderizada (pdf.js), convertida em JPEG conforme o nível (baixa, média ou alta compressão) e remontada em um PDF novo (pdf-lib). Isso costuma reduzir muito scans e PDFs com fotos. Em troca, níveis agressivos rasterizam as páginas: o texto em geral deixa de ser selecionável ou pesquisável no arquivo gerado.',
     'Não prometemos “mesma qualidade de gráfica com 90% menos tamanho” em todos os casos. PDFs já leves ou só de texto vetorial podem encolher pouco — a tela mostra tamanho original, final e porcentagem de redução com honestidade. O arquivo original no seu disco não é apagado automaticamente.',
   ],
   audienceTitle: 'Para quem comprimir PDF sem upload',
@@ -1878,39 +1896,38 @@ export const comprimirPdfSeoContent: ToolSeoBlock = {
   useCasesTitle: 'Casos de uso práticos',
   useCases: [
     {
-      title: 'E-mail e WhatsApp',
+      title: 'Trabalho: e-mail e portais de RH',
       description:
-        'Reduza scans e capturas para o anexo ser aceito ou enviar mais rápido no celular.',
+        'Muitos sistemas limitam megabytes no anexo. Comprima localmente e envie sem passar o arquivo por um compressor na nuvem.',
     },
     {
-      title: 'Portais e formulários',
+      title: 'Estudo: apostila e material escaneado',
       description:
-        'Muitos sistemas públicos e de RH limitam MB — a compressão local evita upload intermediário só para “passar no limite”.',
+        'Reduza PDFs pesados de aula para caber no e-mail da faculdade ou no armazenamento do celular.',
     },
     {
-      title: 'Antes de juntar vários PDFs',
+      title: 'Celular: WhatsApp e Downloads',
       description:
-        'Comprimir scans pesados antes do merge reduz o uso de memória ao unir arquivos.',
+        'Use o navegador no telefone, sem instalar app de PDF, para enxugar um scan grande da pasta Downloads.',
     },
     {
-      title: 'Documentos pessoais sensíveis',
+      title: 'Privacidade: exames e documentos pessoais',
       description:
         'Exames e identidade digitalizada não precisam atravessar a internet só para ficarem menores.',
     },
   ],
   howToTitle: 'Como comprimir PDF no navegador (passo a passo)',
   howToIntro:
-    'A ferramenta fica no topo. Escolha o nível, comprima localmente e compare os tamanhos antes de baixar — grátis e sem cadastro.',
+    'A ferramenta fica no topo. Escolha o nível, comprima localmente e compare os tamanhos antes de baixar — grátis e sem cadastro. Níveis mais agressivos geram arquivo menor, mas rasterizam as páginas.',
   steps: [
     {
       title: 'Selecione o PDF no dispositivo',
-      description:
-        'Arraste ou escolha o arquivo. Ele permanece na memória do navegador durante o processo.',
+      description: `Arraste ou escolha o arquivo (até ${MAX_FILE_MB} MB e cerca de ${MAX_COMPRESS_PAGES} páginas). Ele permanece na memória do navegador durante o processo — sem upload de processamento.`,
     },
     {
       title: 'Escolha o nível de compressão',
       description:
-        'Baixa (melhor nitidez), Média (equilíbrio recomendado) ou Alta (menor arquivo, mais perda visual).',
+        'Baixa (melhor nitidez), Média (equilíbrio recomendado) ou Alta (menor arquivo, mais perda visual). Em todos os níveis as páginas viram imagem JPEG no PDF de saída.',
     },
     {
       title: 'Comprima e acompanhe as páginas',
@@ -1918,9 +1935,19 @@ export const comprimirPdfSeoContent: ToolSeoBlock = {
         'Cada página é processada no aparelho. Em PDFs longos ou celulares modestos pode demorar — a CPU local faz o trabalho.',
     },
     {
-      title: 'Compare tamanhos e baixe a cópia',
+      title: 'Compare tamanhos com honestidade',
       description:
-        'Veja MB original vs. comprimido e a % de redução. Baixe só se estiver satisfeito; o original não é sobrescrito sozinho.',
+        'A interface mostra MB original, MB final e a % de redução. PDFs já leves podem encolher pouco; isso é esperado, não “erro escondido”.',
+    },
+    {
+      title: 'Revise se o visual ficou aceitável',
+      description:
+        'Abra a pré-visualização. No nível alto a perda de nitidez é maior — se precisar imprimir com detalhe, prefira Baixa ou Média.',
+    },
+    {
+      title: 'Baixe a cópia comprimida',
+      description:
+        'Salve o arquivo gerado. O original no disco não é sobrescrito automaticamente. Lembre: o texto em geral deixa de ser selecionável no resultado.',
     },
   ],
   benefitsTitle: 'Por que comprimir PDF localmente',
@@ -1935,7 +1962,7 @@ export const comprimirPdfSeoContent: ToolSeoBlock = {
     {
       title: 'Três níveis de qualidade',
       description:
-        'Você escolhe o trade-off entre nitidez e tamanho — útil para impressão vs. envio rápido.',
+        'Você escolhe o trade-off entre nitidez e tamanho — útil para impressão vs. envio rápido. Níveis agressivos priorizam tamanho e rasterizam o conteúdo.',
     },
     {
       title: 'Funciona no celular sem app',
@@ -1945,55 +1972,45 @@ export const comprimirPdfSeoContent: ToolSeoBlock = {
     {
       title: 'Grátis e sem cadastro',
       description:
-        'Sem conta para liberar download. Limites vêm da memória do aparelho e do número de páginas.',
+        'Sem conta para liberar download. Limites vêm da memória do aparelho e do número de páginas — não de “plano premium”.',
     },
   ],
-  limitsTitle: 'Limites técnicos e trade-offs',
-  limitsIntro:
-    'Rasterizar páginas é pesado. Por isso há tetos — e o texto vira imagem. Isso é o preço de comprimir 100% no cliente com privacidade.',
-  limits: [
-    { label: 'Tamanho do arquivo', text: 'Até cerca de 50 MB.' },
-    { label: 'Páginas', text: 'Até cerca de 50 páginas na compressão.' },
-    {
-      label: 'Texto selecionável',
-      text: 'Em geral não permanece: páginas viram JPEG no PDF de saída.',
-    },
-    {
-      label: 'PDFs já leves',
-      text: 'Podem encolher pouco ou, em casos raros, ficar parecidos/maiores — a UI mostra o resultado real.',
-    },
-  ],
+  privacyTitle: 'Privacidade: compressão sem enviar o PDF',
+  privacy:
+    'Seu PDF não sobe para um servidor da Easy PDF Local para ser otimizado. A rasterização (pdf.js + canvas) e a montagem do arquivo novo (pdf-lib) ocorrem no navegador. A rede só carrega a página e as bibliotecas. Sem cadastro e sem conta.',
+  ...buildSeoLimitsBlock('compress', {
+    title: 'Limites técnicos e trade-offs',
+  }),
   faqTitle: 'Perguntas frequentes sobre comprimir PDF',
   faqs: [
     {
       question: 'Comprimir PDF online aqui faz upload?',
       answer:
-        'Não para o processamento. A compressão ocorre no navegador; o arquivo não sobe para um servidor nosso de otimização.',
+        'Não para o processamento. A compressão ocorre no navegador; o arquivo não sobe para um servidor nosso de otimização. Só a página e as bibliotecas usam a rede.',
     },
     {
-      question: 'Preciso de aplicativo no celular?',
+      question: 'Preciso de cadastro ou aplicativo no celular?',
       answer:
-        'Não. Use o navegador nesta página — grátis e sem cadastro.',
+        'Não. Use o navegador nesta página — grátis e sem cadastro. Não é obrigatório instalar app de PDF no telefone.',
     },
     {
-      question: 'Vou perder qualidade?',
+      question: 'Vou perder qualidade? E o texto selecionável?',
       answer:
-        'Há perda controlada típica de JPEG, maior no nível alto. Comece em Média e só suba para Alta se ainda estiver acima do limite do destino.',
+        'Há perda controlada típica de JPEG, maior no nível alto. Além disso, as páginas viram imagem: o texto em geral deixa de ser selecionável ou pesquisável. Comece em Média e só suba para Alta se ainda estiver acima do limite do destino.',
     },
     {
-      question: 'Por que o texto não seleciona mais?',
-      answer:
-        'O método local transforma cada página em imagem para comprimir sem servidor. Se você precisa copiar texto depois, prefira extrair páginas ou não rasterizar.',
+      question: 'Qual o limite de páginas e de tamanho?',
+      answer: `Até ${MAX_COMPRESS_PAGES} páginas e ${MAX_FILE_MB} MB por arquivo. Acima disso, divida o PDF (Dividir PDF) ou use um PC com mais memória. Não há modo “ilimitado” no navegador.`,
     },
     {
-      question: 'Qual o limite de páginas?',
+      question: 'Funciona bem no celular?',
       answer:
-        'Cerca de 50 páginas e 50 MB por arquivo. Acima disso, divida o PDF ou use um PC com mais memória.',
+        'Sim para arquivos dentro do limite. Em aparelhos com pouca RAM, PDFs longos ou de alta resolução podem demorar ou falhar — nesse caso, tente no desktop ou divida o documento.',
     },
     {
-      question: 'O original é apagado?',
+      question: 'O original é apagado? E se o PDF já for leve?',
       answer:
-        'Não. Você baixa uma cópia comprimida; o arquivo original permanece no dispositivo salvo se você o substituir manualmente.',
+        'O original não é apagado automaticamente: você baixa uma cópia comprimida. PDFs já leves ou só de texto vetorial podem encolher pouco; a tela mostra a redução real antes de você decidir baixar.',
     },
   ],
   relatedTitle: 'Próximos passos e guias',

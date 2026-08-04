@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Seo } from '../components/Seo';
 import { getSeoForPath } from '../data/seo';
+import { CONTACT_EMAIL, contactMailto } from '../data/siteContact';
 
 const LAST_UPDATED = '22 de julho de 2026';
 
@@ -259,10 +260,10 @@ export default function TermosPage() {
             <p className="mt-2">
               Dúvidas sobre estes Termos:{' '}
               <a
-                href="mailto:easypdf19@gmail.com?subject=Termos%20de%20Uso%20-%20Easy%20PDF"
+                href={contactMailto('Termos de Uso - Easy PDF Local')}
                 className="font-medium text-brand-600 underline-offset-2 hover:underline dark:text-brand-400"
               >
-                easypdf19@gmail.com
+                {CONTACT_EMAIL}
               </a>
               .
             </p>

@@ -13,6 +13,7 @@ import { TrustBadges } from './TrustBadges';
 import { AffiliateBanner } from './AffiliateBanner';
 import { JsonLd } from './JsonLd';
 import { buildSoftwareApplicationSchema } from '../data/schema';
+import { ADSENSE_SLOTS, canMountAdSenseUnit } from '../data/adsense';
 
 /**
  * Layout global: sidebar fixa (desktop) + drawer off-canvas (mobile)
@@ -27,6 +28,12 @@ export function Layout() {
   // Sem afiliados em páginas legais (transparência / AdSense)
   const hideBannerRoutes = ['/privacidade', '/termos'];
   const showBanner = !hideBannerRoutes.includes(location.pathname);
+
+  // Só reserva layout de ad com slot real (não placeholder XXXXXXXXXX)
+  const showAdTop = canMountAdSenseUnit(ADSENSE_SLOTS.top);
+  const showAdBottom = canMountAdSenseUnit(ADSENSE_SLOTS.bottom);
+  const showAdSidebarLeft = canMountAdSenseUnit(ADSENSE_SLOTS.sidebarLeft);
+  const showAdSidebarRight = canMountAdSenseUnit(ADSENSE_SLOTS.sidebarRight);
 
   // Fecha o drawer ao mudar de rota
   useEffect(() => {
@@ -128,23 +135,25 @@ export function Layout() {
 
           {/* Conteúdo com scroll — data-scroll-root para StickyCta */}
           <div className="min-h-0 flex-1 overflow-y-auto" data-scroll-root>
-            {/* Banner AdSense topo — altura fixa (anti-CLS) */}
-            <div className="border-b border-slate-200/80 px-4 py-3 sm:px-6 lg:px-8 dark:border-slate-800/80">
-              <div className="mx-auto max-w-6xl">
-                <AdBanner placement="top" />
+            {showAdTop && (
+              <div className="border-b border-slate-200/80 px-4 py-3 sm:px-6 lg:px-8 dark:border-slate-800/80">
+                <div className="mx-auto max-w-6xl">
+                  <AdBanner placement="top" />
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="mx-auto flex w-full max-w-6xl gap-6 px-4 py-6 pb-24 sm:px-6 sm:py-8 sm:pb-28 lg:px-8">
-              {/* Ad lateral — telas grandes */}
-              <aside
-                className="hidden w-36 shrink-0 xl:block"
-                aria-label="Publicidade"
-              >
-                <div className="sticky top-6">
-                  <AdSlot placement="sidebar-left" />
-                </div>
-              </aside>
+              {showAdSidebarLeft && (
+                <aside
+                  className="hidden w-36 shrink-0 xl:block"
+                  aria-label="Publicidade"
+                >
+                  <div className="sticky top-6">
+                    <AdSlot placement="sidebar-left" />
+                  </div>
+                </aside>
+              )}
 
               <main className="min-w-0 flex-1">
                 {/* Trust badges globais (conversão / confiança, estilo PDF24) */}
@@ -178,22 +187,25 @@ export function Layout() {
                 {showBanner && <AffiliateBanner />}
               </main>
 
-              <aside
-                className="hidden w-36 shrink-0 2xl:block"
-                aria-label="Publicidade"
-              >
-                <div className="sticky top-6">
-                  <AdSlot placement="sidebar-right" />
-                </div>
-              </aside>
+              {showAdSidebarRight && (
+                <aside
+                  className="hidden w-36 shrink-0 2xl:block"
+                  aria-label="Publicidade"
+                >
+                  <div className="sticky top-6">
+                    <AdSlot placement="sidebar-right" />
+                  </div>
+                </aside>
+              )}
             </div>
 
-            {/* Banner AdSense rodapé — antes do Footer */}
-            <div className="border-t border-slate-200/80 px-4 py-3 sm:px-6 lg:px-8 dark:border-slate-800/80">
-              <div className="mx-auto max-w-6xl">
-                <AdBanner placement="bottom" />
+            {showAdBottom && (
+              <div className="border-t border-slate-200/80 px-4 py-3 sm:px-6 lg:px-8 dark:border-slate-800/80">
+                <div className="mx-auto max-w-6xl">
+                  <AdBanner placement="bottom" />
+                </div>
               </div>
-            </div>
+            )}
 
             <Footer />
           </div>

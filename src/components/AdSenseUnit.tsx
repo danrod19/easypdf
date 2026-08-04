@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   ADSENSE_CLIENT,
-  isAdSenseClientReady,
-  isPlaceholderSlot,
+  canMountAdSenseUnit,
+  isValidAdSenseSlot,
 } from '../data/adsense';
 import {
   COOKIE_CONSENT_EVENT,
@@ -29,19 +29,24 @@ export type AdSenseUnitProps = {
   /** data-full-width-responsive */
   fullWidthResponsive?: boolean;
   className?: string;
-  /** Altura mínima reservada (anti-CLS) */
+  /**
+   * Altura mínima reservada (anti-CLS) — só aplica com slot **real**
+   * e consentimento granted (unidade montada).
+   */
   minHeightClass?: string;
-  /** Rótulo acessível */
+  /** Rótulo acessível (aria-label) quando o ad está montado */
   label?: string;
   /** data-* de debug / layout */
   'data-placement'?: string;
 };
 
 /**
- * Unidade real do Google AdSense.
- * - <ins class="adsbygoogle" data-ad-client data-ad-slot …>
- * - (window.adsbygoogle = window.adsbygoogle || []).push({})
- * - Remonta o <ins> em cada rota SPA para permitir novo fill
+ * Unidade Google AdSense.
+ *
+ * Regras:
+ * - Slot placeholder/inválido → **null** (sem “Publicidade”, sem <ins>, sem push)
+ * - Slot real + consentimento denied/ausente → **null**
+ * - Slot real + cookie_consent=granted → <ins> + adsbygoogle.push
  */
 export function AdSenseUnit({
   slot,
@@ -53,7 +58,6 @@ export function AdSenseUnit({
   'data-placement': dataPlacement,
 }: AdSenseUnitProps) {
   const { pathname } = useLocation();
-  // Chave única por rota + slot → React recria o <ins> limpo
   const unitKey = `${pathname}::${slot}::${dataPlacement ?? format}`;
 
   const [adsAllowed, setAdsAllowed] = useState(() =>
@@ -70,55 +74,75 @@ export function AdSenseUnit({
     return () => window.removeEventListener(COOKIE_CONSENT_EVENT, onConsent);
   }, []);
 
-  const clientReady = isAdSenseClientReady();
-  const slotReady = !isPlaceholderSlot(slot);
-  // LGPD: só monta/push de anúncio com consentimento positivo
-  const canRenderAd = clientReady && slotReady && adsAllowed;
+  // Slot inválido/placeholder: não ocupa layout nem chama AdSense
+  if (!canMountAdSenseUnit(slot) || !isValidAdSenseSlot(slot)) {
+    return null;
+  }
 
+  // LGPD: só monta com consentimento positivo
+  if (!adsAllowed) {
+    return null;
+  }
+
+  return (
+    <AdSenseUnitMounted
+      unitKey={unitKey}
+      slot={slot}
+      format={format}
+      fullWidthResponsive={fullWidthResponsive}
+      className={className}
+      minHeightClass={minHeightClass}
+      label={label}
+      dataPlacement={dataPlacement}
+    />
+  );
+}
+
+/** Só montado com slot real + consent granted */
+function AdSenseUnitMounted({
+  unitKey,
+  slot,
+  format,
+  fullWidthResponsive,
+  className,
+  minHeightClass,
+  label,
+  dataPlacement,
+}: {
+  unitKey: string;
+  slot: string;
+  format: NonNullable<AdSenseUnitProps['format']>;
+  fullWidthResponsive: boolean;
+  className: string;
+  minHeightClass: string;
+  label: string;
+  dataPlacement?: string;
+}) {
   useEffect(() => {
-    if (!canRenderAd) return;
-
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch {
-      // Script ainda carregando ou site em "Preparando" — sem quebrar a UI
+      // Script ainda carregando ou site em "Preparando"
     }
-  }, [unitKey, canRenderAd]);
+  }, [unitKey]);
 
   return (
     <div
       className={`adsense-unit w-full overflow-hidden ${minHeightClass} ${className}`}
       data-adsense-placement={dataPlacement}
-      data-adsense-ready={canRenderAd ? 'true' : 'false'}
+      data-adsense-ready="true"
       role="complementary"
       aria-label={label}
     >
-      {canRenderAd ? (
-        <ins
-          key={unitKey}
-          className="adsbygoogle"
-          style={{ display: 'block', width: '100%' }}
-          data-ad-client={ADSENSE_CLIENT}
-          data-ad-slot={slot}
-          data-ad-format={format}
-          data-full-width-responsive={
-            fullWidthResponsive ? 'true' : 'false'
-          }
-        />
-      ) : (
-        /*
-          Reserva de espaço (anti-CLS) enquanto:
-          - slots ainda são XXXXXXXXXX, ou
-          - o site está em análise e ainda não há fill.
-          Troque os slot IDs em src/data/adsense.ts ou .env → redeploy.
-        */
-        <div
-          className="flex h-full min-h-[inherit] w-full items-center justify-center border border-dashed border-slate-200 bg-slate-50 text-[11px] text-slate-400 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-500"
-          aria-hidden
-        >
-          <span className="select-none tracking-wide">{label}</span>
-        </div>
-      )}
+      <ins
+        key={unitKey}
+        className="adsbygoogle"
+        style={{ display: 'block', width: '100%' }}
+        data-ad-client={ADSENSE_CLIENT}
+        data-ad-slot={slot}
+        data-ad-format={format}
+        data-full-width-responsive={fullWidthResponsive ? 'true' : 'false'}
+      />
     </div>
   );
 }

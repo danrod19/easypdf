@@ -14,6 +14,7 @@ import { removerPaginasSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { useFileIntake } from '../hooks/useFileIntake';
+import { useAbortablePdfJob } from '../hooks/useAbortablePdfJob';
 import { dropZoneLimitHint } from '../lib/fileValidation';
 import {
   generatePageThumbnails,
@@ -58,6 +59,7 @@ export default function RemoverPaginasPage() {
   const errorId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.REMOVER_PAGINAS);
   const intake = useFileIntake(TOOL_NAMES.REMOVER_PAGINAS, 'pdf_single');
+  const job = useAbortablePdfJob();
 
   const [file, setFile] = useState<File | null>(null);
   const [thumbs, setThumbs] = useState<PageThumbnail[]>([]);
@@ -114,6 +116,7 @@ export default function RemoverPaginasPage() {
       }
       const accepted = gate.files[0] ?? next;
 
+      const signal = job.beginJob();
       setIsLoadingThumbs(true);
       resetResult();
       setFile(accepted);
@@ -126,13 +129,16 @@ export default function RemoverPaginasPage() {
           ({ percent, message }) => {
             setProgress(percent);
             setProgressMsg(message);
-          }
+          },
+          signal
         );
+        if (signal.aborted) return;
         setThumbs(generated);
         setProgress(0);
         setProgressMsg('');
         ga.trackUpload(gate.files);
       } catch (err) {
+        if (job.isAbortError(err)) return;
         setFile(null);
         setThumbs([]);
         setError(
@@ -143,10 +149,11 @@ export default function RemoverPaginasPage() {
         setProgress(0);
         setProgressMsg('');
       } finally {
+        job.endJob(signal);
         setIsLoadingThumbs(false);
       }
     },
-    [ga, intake, resetResult]
+    [ga, intake, job, resetResult]
   );
 
   const toggleMark = useCallback((index: number) => {
@@ -182,6 +189,7 @@ export default function RemoverPaginasPage() {
       return;
     }
 
+    const signal = job.beginJob();
     setIsProcessing(true);
     setError(null);
     setSuccess(null);
@@ -198,8 +206,11 @@ export default function RemoverPaginasPage() {
         ({ percent, message }) => {
           setProgress(percent);
           setProgressMsg(message);
-        }
+        },
+        signal
       );
+
+      if (signal.aborted) return;
 
       const stableBytes = new Uint8Array(bytes);
       const fileName = removedPagesFileName(file.name);
@@ -212,6 +223,7 @@ export default function RemoverPaginasPage() {
       );
       ga.endProcess(true, startedAt);
     } catch (err) {
+      if (job.isAbortError(err)) return;
       setError(
         err instanceof Error
           ? err.message
@@ -221,6 +233,7 @@ export default function RemoverPaginasPage() {
       setProgressMsg('');
       ga.endProcess(false, startedAt);
     } finally {
+      job.endJob(signal);
       setIsProcessing(false);
     }
   };

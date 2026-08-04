@@ -158,6 +158,7 @@ SKIP_PRERENDER=1 npm run build
 1. Crie a rota em `src/App.tsx`.
 2. (Opcional) SEO em `src/data/seo.ts` / página com `<Seo />`.
 3. Adicione o path em `scripts/prerender-routes.mjs` (`PRERENDER_ROUTES`).
+4. Se for **tool ready** ou **post de blog**, o sitemap entra automaticamente no build (`npm run sitemap` / `docs/SITEMAP.md`) — não edite `public/sitemap.xml` à mão.
 4. Se for post de blog: `blogPosts.ts` + `src/data/posts/{slug}.md` + path `/blog/{slug}`.
 5. `npm run build` (local com Chromium) e confira `dist/.../index.html`.
 

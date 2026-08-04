@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useId, useState } from 'react';
 import { Seo } from '../components/Seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
@@ -8,12 +8,14 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { FileLimitsNotice } from '../components/FileLimitsNotice';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { getSeoForPath } from '../data/seo';
 import { juntarPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { useFileIntake } from '../hooks/useFileIntake';
+import { useAbortablePdfJob } from '../hooks/useAbortablePdfJob';
 import { dropZoneLimitHint } from '../lib/fileValidation';
 import { mergePdfFilesPreferWorker } from '../lib/mergePdfsWorker';
 import { downloadBlob } from '../lib/format';
@@ -39,21 +41,13 @@ export default function JuntarPdfPage() {
   const errorId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.JUNTAR_PDF);
   const intake = useFileIntake(TOOL_NAMES.JUNTAR_PDF, 'merge_pdf');
-  /** Cancela o Web Worker de merge ao sair da página */
-  const abortRef = useRef<AbortController | null>(null);
+  const job = useAbortablePdfJob();
   const [items, setItems] = useState<PdfItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressMsg, setProgressMsg] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  useEffect(() => {
-    return () => {
-      abortRef.current?.abort();
-      abortRef.current = null;
-    };
-  }, []);
 
   // Pré-visualização do PDF gerado (em vez de download automático)
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -142,9 +136,7 @@ export default function JuntarPdfPage() {
       return;
     }
 
-    abortRef.current?.abort();
-    const ac = new AbortController();
-    abortRef.current = ac;
+    const signal = job.beginJob();
 
     setIsProcessing(true);
     setError(null);
@@ -165,10 +157,10 @@ export default function JuntarPdfPage() {
           setProgress(percent);
           setProgressMsg(message);
         },
-        ac.signal
+        signal
       );
 
-      if (ac.signal.aborted) return;
+      if (signal.aborted) return;
 
       // Cópia estável para o estado (evita buffer detach do pdf.js / pdf-lib)
       const stableBytes = new Uint8Array(bytes);
@@ -182,12 +174,7 @@ export default function JuntarPdfPage() {
       );
       ga.endProcess(true, startedAt);
     } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') {
-        return;
-      }
-      if (err instanceof Error && err.name === 'AbortError') {
-        return;
-      }
+      if (job.isAbortError(err)) return;
       const message =
         err instanceof Error
           ? err.message
@@ -197,9 +184,7 @@ export default function JuntarPdfPage() {
       setProgressMsg('');
       ga.endProcess(false, startedAt);
     } finally {
-      if (abortRef.current === ac) {
-        abortRef.current = null;
-      }
+      job.endJob(signal);
       setIsProcessing(false);
     }
   };
@@ -237,9 +222,9 @@ export default function JuntarPdfPage() {
             Juntar PDF online e seguro
           </h1>
           <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Combine dois ou mais PDFs em um único arquivo, grátis e no
-            navegador. Reordene a lista antes de mesclar. Todo o processamento
-            usa{' '}
+            Combine dois ou mais PDFs em um único arquivo, grátis, sem cadastro
+            e no navegador. A ordem da lista define as páginas no PDF final —
+            reordene antes de mesclar. Todo o processamento usa{' '}
             <strong className="font-semibold text-slate-800 dark:text-slate-200">
               pdf-lib no seu dispositivo
             </strong>{' '}
@@ -326,6 +311,14 @@ export default function JuntarPdfPage() {
         <div className="lg:hidden">
           <AdSlot placement="below-cta" />
         </div>
+
+        <FileLimitsNotice
+          profile="merge_pdf"
+          title="Limites técnicos desta ferramenta"
+          compact
+          headingLevel="h2"
+          headingId="limites-juntar"
+        />
 
         {/* Conteúdo semântico SEO (H2/H3/P) — legível pelo Googlebot */}
         <ToolSeoContent content={juntarPdfSeoContent} />

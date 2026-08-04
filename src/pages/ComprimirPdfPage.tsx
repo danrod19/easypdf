@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useId, useState } from 'react';
 import { Download, FileDown, Loader2, Minimize2 } from 'lucide-react';
 import { Seo } from '../components/Seo';
 import { getSeoForPath } from '../data/seo';
@@ -9,11 +9,13 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { FileLimitsNotice } from '../components/FileLimitsNotice';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { comprimirPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { useFileIntake } from '../hooks/useFileIntake';
+import { useAbortablePdfJob } from '../hooks/useAbortablePdfJob';
 import { dropZoneLimitHint } from '../lib/fileValidation';
 import {
   COMPRESSION_PRESETS,
@@ -63,8 +65,7 @@ export default function ComprimirPdfPage() {
   const levelGroupId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.COMPRIMIR_PDF);
   const intake = useFileIntake(TOOL_NAMES.COMPRIMIR_PDF, 'compress');
-  /** Cancela compressão (entre páginas) ao sair da rota */
-  const abortRef = useRef<AbortController | null>(null);
+  const job = useAbortablePdfJob();
 
   const [file, setFile] = useState<File | null>(null);
   const [level, setLevel] = useState<CompressionLevel>(
@@ -80,13 +81,6 @@ export default function ComprimirPdfPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
   const [previewFileName, setPreviewFileName] = useState('');
-
-  useEffect(() => {
-    return () => {
-      abortRef.current?.abort();
-      abortRef.current = null;
-    };
-  }, []);
 
   const resetPreview = useCallback(() => {
     setIsModalOpen(false);
@@ -132,9 +126,7 @@ export default function ComprimirPdfPage() {
       return;
     }
 
-    abortRef.current?.abort();
-    const ac = new AbortController();
-    abortRef.current = ac;
+    const signal = job.beginJob();
 
     setIsProcessing(true);
     setError(null);
@@ -155,10 +147,10 @@ export default function ComprimirPdfPage() {
           setProgress(percent);
           setProgressMsg(message);
         },
-        ac.signal
+        signal
       );
 
-      if (ac.signal.aborted) return;
+      if (signal.aborted) return;
 
       setResult(out);
 
@@ -181,8 +173,7 @@ export default function ComprimirPdfPage() {
       );
       ga.endProcess(true, startedAt);
     } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') return;
-      if (err instanceof Error && err.name === 'AbortError') return;
+      if (job.isAbortError(err)) return;
       setError(
         err instanceof Error
           ? err.message
@@ -193,9 +184,7 @@ export default function ComprimirPdfPage() {
       setResult(null);
       ga.endProcess(false, startedAt);
     } finally {
-      if (abortRef.current === ac) {
-        abortRef.current = null;
-      }
+      job.endJob(signal);
       setIsProcessing(false);
     }
   };
@@ -233,11 +222,12 @@ export default function ComprimirPdfPage() {
           </h1>
           <p className="max-w-2xl text-slate-600 dark:text-slate-400">
             Reduza o tamanho de PDFs escaneados ou com imagens pesadas no
-            navegador. Cada página é re-renderizada em JPEG —{' '}
+            navegador, grátis e sem cadastro. Cada página é re-renderizada em
+            JPEG —{' '}
             <strong className="font-semibold text-slate-800 dark:text-slate-200">
               sem enviar o arquivo para a nuvem
             </strong>
-            .
+            . Níveis agressivos podem fazer o texto deixar de ser selecionável.
           </p>
         </header>
 
@@ -488,6 +478,14 @@ export default function ComprimirPdfPage() {
             </li>
           </ol>
         </section>
+
+        <FileLimitsNotice
+          profile="compress"
+          title="Limites técnicos desta ferramenta"
+          compact
+          headingLevel="h2"
+          headingId="limites-comprimir"
+        />
 
         <ToolSeoContent content={comprimirPdfSeoContent} />
 

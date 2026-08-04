@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 import { Seo } from '../components/Seo';
 import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
@@ -12,13 +12,11 @@ import { extrairTextoSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { useFileIntake } from '../hooks/useFileIntake';
+import { useAbortablePdfJob } from '../hooks/useAbortablePdfJob';
 import { dropZoneLimitHint } from '../lib/fileValidation';
-import {
-  AbortError,
-  extractTextFromPdf,
-  isPdfFile,
-  PDF_EXTRACT_ACCEPT,
-} from '../lib/extractText';
+import { LIMIT_NUMBERS } from '../data/fileLimitsCopy';
+import { FileLimitsNotice } from '../components/FileLimitsNotice';
+import { isPdfFile, PDF_EXTRACT_ACCEPT } from '../lib/pdfFileTypes';
 import { downloadBlob, formatBytes } from '../lib/format';
 
 /**
@@ -31,8 +29,7 @@ export default function ExtrairTextoPage() {
   const toggleId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.EXTRAIR_TEXTO);
   const intake = useFileIntake(TOOL_NAMES.EXTRAIR_TEXTO, 'pdf_single');
-  /** Cancela OCR/extração ao sair da página ou iniciar novo job */
-  const abortRef = useRef<AbortController | null>(null);
+  const job = useAbortablePdfJob();
 
   const [file, setFile] = useState<File | null>(null);
   const [forceOcr, setForceOcr] = useState(false);
@@ -49,14 +46,6 @@ export default function ExtrairTextoPage() {
     const t = window.setTimeout(() => setSuccess(null), 3500);
     return () => window.clearTimeout(t);
   }, [success]);
-
-  // Cleanup: encerra worker OCR se o usuário navegar para outra rota
-  useEffect(() => {
-    return () => {
-      abortRef.current?.abort();
-      abortRef.current = null;
-    };
-  }, []);
 
   const handleFiles = useCallback(
     async (files: File[]) => {
@@ -105,9 +94,7 @@ export default function ExtrairTextoPage() {
 
     // Limite OCR + assets locais + abort: extractTextFromPdf / extractOcrTextFromPdf
 
-    abortRef.current?.abort();
-    const ac = new AbortController();
-    abortRef.current = ac;
+    const signal = job.beginJob();
 
     setIsProcessing(true);
     setError(null);
@@ -124,14 +111,16 @@ export default function ExtrairTextoPage() {
     const startedAt = ga.startProcess(1);
 
     try {
+      // pdf.js + tesseract só neste fluxo (tesseract via import() em extractText)
+      const { extractTextFromPdf } = await import('../lib/extractText');
       const result = await extractTextFromPdf(
         file,
         {
           forceOcr,
-          // autoOcr: se nativo ≈ vazio, tenta OCR (também com limite de 30 páginas)
+          // autoOcr: se nativo ≈ vazio, tenta OCR (limite FILE_LIMITS.MAX_OCR_PAGES)
           autoOcr: true,
           toolName: TOOL_NAMES.EXTRAIR_TEXTO,
-          signal: ac.signal,
+          signal,
         },
         ({ percent, message }) => {
           setProgress(percent);
@@ -139,7 +128,7 @@ export default function ExtrairTextoPage() {
         }
       );
 
-      if (ac.signal.aborted) return;
+      if (signal.aborted) return;
 
       setText(result);
       setHasResult(true);
@@ -148,7 +137,7 @@ export default function ExtrairTextoPage() {
         setSuccess(
           forceOcr
             ? 'OCR concluído, mas nenhum texto foi detectado. Tente maior nitidez no scan ou outra página.'
-            : 'Nenhum texto encontrado (nativo nem OCR). Se o PDF for um scan de muitas páginas, o limite é 30 páginas no OCR.'
+            : `Nenhum texto encontrado (nativo nem OCR). Se o PDF for um scan de muitas páginas, o limite é ${LIMIT_NUMBERS.maxOcrPages} páginas no OCR.`
         );
       } else {
         setSuccess(
@@ -159,13 +148,7 @@ export default function ExtrairTextoPage() {
       }
       ga.endProcess(true, startedAt);
     } catch (err) {
-      if (
-        err instanceof AbortError ||
-        (err instanceof Error && err.name === 'AbortError')
-      ) {
-        // Saída da página ou cancelamento — sem erro ruidoso
-        return;
-      }
+      if (job.isAbortError(err)) return;
       const message =
         err instanceof Error
           ? err.message
@@ -176,9 +159,7 @@ export default function ExtrairTextoPage() {
       setHasResult(false);
       ga.endProcess(false, startedAt);
     } finally {
-      if (abortRef.current === ac) {
-        abortRef.current = null;
-      }
+      job.endJob(signal);
       setIsProcessing(false);
     }
   };
@@ -497,6 +478,14 @@ export default function ExtrairTextoPage() {
             Ao sair da página, o processamento é cancelado.
           </p>
         </section>
+
+        <FileLimitsNotice
+          profile="ocr"
+          title="Limites técnicos desta ferramenta"
+          compact
+          headingLevel="h2"
+          headingId="limites-extrair"
+        />
 
         <ToolSeoContent content={extrairTextoSeoContent} />
 

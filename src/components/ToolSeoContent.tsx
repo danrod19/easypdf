@@ -47,6 +47,8 @@ export function ToolSeoContent({
     benefitsTitle,
     benefitsIntro,
     benefits,
+    privacyTitle,
+    privacy,
     limitsTitle,
     limitsIntro,
     limits,
@@ -225,6 +227,24 @@ export function ToolSeoContent({
           ))}
         </ul>
       </section>
+
+      {/* Privacidade — bloco curto e explícito */}
+      {privacy && (
+        <section
+          className="rounded-xl border border-emerald-200/90 bg-emerald-50/60 px-5 py-4 dark:border-emerald-900/50 dark:bg-emerald-950/25"
+          aria-labelledby="seo-privacy-heading"
+        >
+          <h2
+            id="seo-privacy-heading"
+            className="text-lg font-bold tracking-tight text-emerald-900 sm:text-xl dark:text-emerald-100"
+          >
+            {privacyTitle ?? 'Privacidade: sem upload, 100% no navegador'}
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-emerald-950/80 sm:text-base dark:text-emerald-100/85">
+            {privacy}
+          </p>
+        </section>
+      )}
 
       {/* Limites honestos */}
       {(limitsIntro || (limits && limits.length > 0)) && (
