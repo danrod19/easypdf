@@ -8,7 +8,7 @@
  * com Playwright (Chromium), espera title + canonical + H1, e grava o HTML
  * em `dist{path}/index.html` (ou sobrescreve `dist/index.html` na home).
  *
- * Cloudflare Pages / Azure SWA: arquivos reais têm prioridade sobre fallback SPA.
+ * Worker Assets (e hosts estáticos): arquivos reais têm prioridade sobre fallback SPA.
  * O client-side React continua com createRoot (substitui #root ao hidratar).
  *
  * Fail-soft (browser / deps de sistema):

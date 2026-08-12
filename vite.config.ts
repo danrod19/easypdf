@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath, URL } from 'node:url';
 
-// Static export puro — compatível com Azure Static Web Apps
+// Static export (`dist/`) — produção: Cloudflare Worker Assets (wrangler.toml)
 export default defineConfig({
   plugins: [
     react(),

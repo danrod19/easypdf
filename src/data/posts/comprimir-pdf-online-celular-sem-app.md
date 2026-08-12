@@ -82,10 +82,10 @@ Depois de comprimir, você pode [juntar PDFs](/juntar-pdf) ou [girar páginas](/
 
 ## Limitações técnicas (sem susto, com clareza)
 
-Para o navegador — sobretudo mobile — não estourar memória, o Easy PDF Local aplica limites práticos:
+Para o navegador — sobretudo mobile — não estourar memória, o Easy PDF Local aplica limites práticos. **Valores atuais = `FILE_LIMITS` do app** (bloco “Limites técnicos” em [Comprimir PDF](/comprimir-pdf)); se divergirem, confie na ferramenta.
 
-| Limite | Valor típico |
-|--------|----------------|
+| Limite | Valor atual (app) |
+|--------|-------------------|
 | Tamanho do arquivo | até **50 MB** |
 | Páginas na compressão | até **50 páginas** |
 
@@ -131,7 +131,7 @@ Depende do nível (baixa / média / alta) e do original. Há **perda controlada*
 Em geral **não**. O método local transforma páginas em imagens. Se você precisa copiar texto depois, prefira outra estratégia (enviar só páginas necessárias, ou não rasterizar).
 
 ### Qual o limite de páginas e de tamanho?
-Cerca de **50 MB** por arquivo e até **50 páginas** na compressão. Acima disso, o navegador (especialmente mobile) pode falhar — divida o PDF ou use um PC com mais memória.
+**50 MB** por arquivo e até **50 páginas** na compressão (iguais a `FILE_LIMITS` / UI da ferramenta). Acima disso, o navegador (especialmente mobile) pode falhar — divida o PDF ou use um PC com mais memória.
 
 ### O arquivo original é apagado?
 Não. Você baixa uma **cópia** comprimida. O original permanece onde estava no seu dispositivo, salvo se você mesmo o substituir.

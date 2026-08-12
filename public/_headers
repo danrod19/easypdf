@@ -1,11 +1,17 @@
 # =============================================================================
-# Cloudflare Pages — Security headers (Easy PDF Local)
-# Formato: https://developers.cloudflare.com/pages/configuration/headers/
+# Security headers — Easy PDF Local
 #
-# Contexto:
+# Deploy ativo: Cloudflare Worker `easypdf` (wrangler deploy), NÃO Pages.
+# `_headers` é o formato histórico de Cloudflare Pages; no Worker, headers de
+# produção (CSP, HSTS, X-Frame-Options, …) devem ser confirmados com:
+#   curl -sI https://easypdflocal.com.br/
+# Se o Worker/Assets não aplicar este arquivo, configure headers no dashboard
+# do Worker/zone ou em wrangler — não assumir que `_headers` é a fonte única.
+#
+# Contexto da app:
 #   - SPA 100% client-side (Vite + React + PWA)
 #   - GA4 (gtag) + Google AdSense + Funding Choices (CMP)
-#   - Web Workers locais (pdfWorker) + Tesseract.js OCR (jsDelivr)
+#   - Web Workers locais (pdfWorker) + Tesseract self-host
 #   - pdf.js / pdf-lib (blob: / data:)
 #   - Imagens de afiliados (Amazon, Mercado Livre, CDNs HTTPS)
 #   - Fontes: Inter self-host em /fonts/inter (sem Google Fonts)

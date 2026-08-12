@@ -83,9 +83,17 @@ export function canvasThicknessToPdf(
   return Math.max(0.5, canvasThickness * scale);
 }
 
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw new DOMException('Processamento cancelado.', 'AbortError');
+  }
+}
+
 /**
  * Aplica traços da página 1 (índice 0) no PDF original e devolve bytes.
  * Coordenadas dos strokes estão no espaço do canvas de visualização.
+ *
+ * `signal` cancela entre etapas / a cada N traços (unmount / novo job).
  */
 export async function applyDrawingsToPdf(
   file: File,
@@ -94,7 +102,8 @@ export async function applyDrawingsToPdf(
   canvasHeight: number,
   /** Página 1-based onde o usuário desenhou (default: 1) */
   pageNumber = 1,
-  onProgress?: DrawProgressCallback
+  onProgress?: DrawProgressCallback,
+  signal?: AbortSignal
 ): Promise<Uint8Array> {
   if (canvasWidth <= 0 || canvasHeight <= 0) {
     throw new Error('Dimensões do canvas inválidas para exportação.');
@@ -103,25 +112,31 @@ export async function applyDrawingsToPdf(
     throw new Error('Desenhe ao menos um traço antes de salvar.');
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 10, message: `Lendo ${file.name}…` });
 
   let bytes: ArrayBuffer;
   try {
     bytes = await file.arrayBuffer();
   } catch {
+    throwIfAborted(signal);
     throw new Error(`Não foi possível ler o arquivo "${file.name}".`);
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 30, message: 'Carregando documento…' });
 
   let pdfDoc: PDFDocument;
   try {
     pdfDoc = await PDFDocument.load(bytes, { ignoreEncryption: false });
   } catch {
+    throwIfAborted(signal);
     throw new Error(
       `O arquivo "${file.name}" não é um PDF válido ou está protegido por senha.`
     );
   }
+
+  throwIfAborted(signal);
 
   const pages = pdfDoc.getPages();
   const pageIndex = pageNumber - 1;
@@ -139,6 +154,8 @@ export async function applyDrawingsToPdf(
 
   const total = strokes.length;
   for (let s = 0; s < total; s++) {
+    if (s % 5 === 0) throwIfAborted(signal);
+
     const stroke = strokes[s];
     if (!stroke.points || stroke.points.length === 0) continue;
 
@@ -209,8 +226,10 @@ export async function applyDrawingsToPdf(
     }
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 95, message: 'Gerando arquivo final…' });
   const pdfBytes = await pdfDoc.save();
+  throwIfAborted(signal);
   onProgress?.({ percent: 100, message: 'Concluído!' });
 
   return pdfBytes;

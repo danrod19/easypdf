@@ -99,14 +99,16 @@ Depois do PDF, você pode [comprimir](/comprimir-pdf) se o portal tiver limite d
 
 ## Limitações técnicas honestas
 
-| Aspecto | Realidade no Easy PDF Local |
-|---------|-----------------------------|
-| Tamanho do arquivo | ordem de até **50 MB** por arquivo (limite geral do site) |
+**Fonte de verdade:** `FILE_LIMITS` / bloco “Limites técnicos” em [Word para PDF](/word-para-pdf). Valores abaixo iguais ao app.
+
+| Aspecto | Valor atual (app) |
+|---------|-------------------|
+| Tamanho do arquivo | até **50 MB** por arquivo (teto geral) |
 | Formato preferencial | **DOCX** |
 | Fidelidade visual | boa no uso cotidiano; complexidades avançadas podem divergir |
 | Memória no celular | DOCX muito pesados (muitas imagens em alta resolução) podem falhar em aparelhos fracos |
 
-Se a conversão falhar por memória, tente no desktop, reduza imagens no Word original ou divida o conteúdo em documentos menores.
+Se a conversão falhar por memória, tente no desktop, reduza imagens no Word original ou divida o conteúdo em documentos menores. Não há conversão “ilimitada” no cliente.
 
 Também: o PDF gerado é uma **cópia**. O DOCX original permanece no seu disco; nada é “apagado na nuvem” porque não houve upload de processamento.
 

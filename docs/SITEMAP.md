@@ -61,3 +61,13 @@ findstr /i "easypdflocal.com.br/blog/" public\sitemap.xml
 ```
 
 Origem fixa: `https://easypdflocal.com.br` (igual a `SITE_ORIGIN` em `src/data/seo.ts`).
+
+## Trailing slash
+
+Todas as `<loc>` (exceto a home `…/`) são **sem barra final**, alinhadas a:
+
+- `normalizeSeoPath` / `buildCanonicalUrl` em `src/data/seo.ts`
+- `scripts/prerender-routes.mjs`
+- `html_handling = "drop-trailing-slash"` em `wrangler.toml` (URL final 200 sem `/`)
+
+Detalhes e checklist de produção: [`docs/PRERENDER.md`](./PRERENDER.md) § Trailing slash.

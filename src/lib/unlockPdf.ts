@@ -58,24 +58,34 @@ export async function isPdfEncrypted(file: File): Promise<boolean> {
  *
  * Erro de senha incorreta é detectado via PasswordException do pdf.js.
  */
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw new DOMException('Processamento cancelado.', 'AbortError');
+  }
+}
+
 export async function unlockPdfWithPassword(
   file: File,
   password: string,
-  onProgress?: UnlockProgressCallback
+  onProgress?: UnlockProgressCallback,
+  signal?: AbortSignal
 ): Promise<Uint8Array> {
   if (!password.trim()) {
     throw new Error('Digite a senha atual do PDF para remover a proteção.');
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 5, message: `Lendo ${file.name}…` });
 
   let bytes: ArrayBuffer;
   try {
     bytes = await file.arrayBuffer();
   } catch {
+    throwIfAborted(signal);
     throw new Error(`Não foi possível ler o arquivo "${file.name}".`);
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 15, message: 'Verificando proteção…' });
 
   // Caminho A: PDF sem senha de usuário — pdf-lib carrega e regrava limpo
@@ -84,14 +94,22 @@ export async function unlockPdfWithPassword(
     if (plain.getPageCount() < 1) {
       throw new Error('O PDF não possui páginas.');
     }
+    throwIfAborted(signal);
     onProgress?.({
       percent: 70,
       message: 'PDF já está sem senha de abertura. Gerando cópia limpa…',
     });
     const out = await plain.save();
+    throwIfAborted(signal);
     onProgress?.({ percent: 100, message: 'Concluído!' });
     return out;
   } catch (err) {
+    if (
+      (err instanceof DOMException && err.name === 'AbortError') ||
+      (err instanceof Error && err.name === 'AbortError')
+    ) {
+      throw err;
+    }
     const msg = err instanceof Error ? err.message : String(err);
     if (!/encrypt/i.test(msg)) {
       // Não é erro de criptografia — propaga (PDF inválido etc.)
@@ -103,9 +121,10 @@ export async function unlockPdfWithPassword(
     // Criptografado → caminho B
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 25, message: 'Validando senha…' });
 
-  return unlockEncryptedViaPdfJs(bytes, password, onProgress);
+  return unlockEncryptedViaPdfJs(bytes, password, onProgress, signal);
 }
 
 /**
@@ -114,8 +133,10 @@ export async function unlockPdfWithPassword(
 async function unlockEncryptedViaPdfJs(
   bytes: ArrayBuffer,
   password: string,
-  onProgress?: UnlockProgressCallback
+  onProgress?: UnlockProgressCallback,
+  signal?: AbortSignal
 ): Promise<Uint8Array> {
+  throwIfAborted(signal);
   const pdfjs = await loadPdfJs();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -127,6 +148,7 @@ async function unlockEncryptedViaPdfJs(
     });
     pdf = await loadingTask.promise;
   } catch (err) {
+    throwIfAborted(signal);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const anyErr = err as any;
     const name = anyErr?.name || '';
@@ -150,6 +172,7 @@ async function unlockEncryptedViaPdfJs(
     );
   }
 
+  throwIfAborted(signal);
   const pageCount: number = pdf.numPages;
   if (pageCount < 1) {
     throw new Error('O PDF não possui páginas.');
@@ -164,6 +187,7 @@ async function unlockEncryptedViaPdfJs(
   const RENDER_SCALE = 2; // ~144 DPI — equilíbrio qualidade/tamanho
 
   for (let pageNum = 1; pageNum <= pageCount; pageNum++) {
+    throwIfAborted(signal);
     const percent = 35 + Math.round((pageNum / pageCount) * 55);
     onProgress?.({
       percent,
@@ -189,6 +213,7 @@ async function unlockEncryptedViaPdfJs(
       canvas,
     }).promise;
 
+    throwIfAborted(signal);
     const jpegBytes = await canvasToJpegBytes(canvas, 0.92);
     const image = await outDoc.embedJpg(jpegBytes);
 
@@ -204,9 +229,11 @@ async function unlockEncryptedViaPdfJs(
     });
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 95, message: 'Gerando PDF sem senha…' });
 
   const out = await outDoc.save();
+  throwIfAborted(signal);
   onProgress?.({ percent: 100, message: 'Concluído!' });
   return out;
 }

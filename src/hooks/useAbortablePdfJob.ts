@@ -9,14 +9,18 @@ import { isAbort } from '../lib/runPdfWorker';
  * - No `unmount` da rota, o controller atual é abortado (worker terminate / loops cooperativos).
  * - No `finally` do job, chame `endJob(signal)` para limpar o ref sem abortar um job mais novo.
  * - `isAbortError(err)` → cancelamento; **não** mostre como erro vermelho de negócio.
+ * - `isMounted()` → false após unmount; use antes de setState no sucesso/erro/finally.
  *
  * Não altera a lógica de PDF — só padroniza lifecycle do AbortController.
  */
 export function useAbortablePdfJob() {
   const controllerRef = useRef<AbortController | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       controllerRef.current?.abort();
       controllerRef.current = null;
     };
@@ -56,11 +60,30 @@ export function useAbortablePdfJob() {
     []
   );
 
+  /** `true` enquanto a página do hook está montada. */
+  const isMounted = useCallback((): boolean => mountedRef.current, []);
+
+  /**
+   * true se o job deve parar sem setState de negócio:
+   * abort (unmount / job novo) ou componente já desmontado.
+   */
+  const shouldSkipUiUpdate = useCallback(
+    (errOrSignal?: unknown): boolean => {
+      if (!mountedRef.current) return true;
+      if (errOrSignal instanceof AbortSignal) return errOrSignal.aborted;
+      if (errOrSignal !== undefined && isAbort(errOrSignal)) return true;
+      return false;
+    },
+    []
+  );
+
   return {
     beginJob,
     endJob,
     abort,
     getSignal,
+    isMounted,
+    shouldSkipUiUpdate,
     /** Alias estável de `isAbort` (DOMException | Error name AbortError). */
     isAbortError: isAbort,
   } as const;

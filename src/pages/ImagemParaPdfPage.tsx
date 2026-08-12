@@ -8,10 +8,12 @@ import { DropZone } from '../components/merge/DropZone';
 import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { FileLimitsNotice } from '../components/FileLimitsNotice';
 import { imagemParaPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { useFileIntake } from '../hooks/useFileIntake';
+import { useAbortablePdfJob } from '../hooks/useAbortablePdfJob';
 import { dropZoneLimitHint } from '../lib/fileValidation';
 import { SuccessAction } from '../components/SuccessAction';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
@@ -73,6 +75,7 @@ export default function ImagemParaPdfPage() {
   const errorId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.IMAGEM_PARA_PDF);
   const intake = useFileIntake(TOOL_NAMES.IMAGEM_PARA_PDF, 'merge_images');
+  const job = useAbortablePdfJob();
   const [items, setItems] = useState<ImageItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -166,6 +169,8 @@ export default function ImagemParaPdfPage() {
       return;
     }
 
+    const signal = job.beginJob();
+
     setIsProcessing(true);
     setError(null);
     setSuccess(null);
@@ -178,10 +183,16 @@ export default function ImagemParaPdfPage() {
     try {
       // Ordem da lista = ordem das páginas
       const files = items.map((i) => i.file);
-      const bytes = await convertImagesToPdf(files, ({ percent, message }) => {
-        setProgress(percent);
-        setProgressMsg(message);
-      });
+      const bytes = await convertImagesToPdf(
+        files,
+        ({ percent, message }) => {
+          setProgress(percent);
+          setProgressMsg(message);
+        },
+        signal
+      );
+
+      if (signal.aborted || !job.isMounted()) return;
 
       const stableBytes = new Uint8Array(bytes);
       const fileName = imagesToPdfFileName();
@@ -194,6 +205,7 @@ export default function ImagemParaPdfPage() {
       );
       ga.endProcess(true, startedAt);
     } catch (err) {
+      if (job.isAbortError(err) || !job.isMounted()) return;
       const message =
         err instanceof Error
           ? err.message
@@ -203,7 +215,8 @@ export default function ImagemParaPdfPage() {
       setProgressMsg('');
       ga.endProcess(false, startedAt);
     } finally {
-      setIsProcessing(false);
+      job.endJob(signal);
+      if (job.isMounted()) setIsProcessing(false);
     }
   };
 
@@ -382,6 +395,14 @@ export default function ImagemParaPdfPage() {
             </li>
           </ol>
         </section>
+
+        <FileLimitsNotice
+          profile="merge_images"
+          title="Limites técnicos desta ferramenta"
+          compact
+          headingLevel="h2"
+          headingId="limites-imagem"
+        />
 
         <ToolSeoContent content={imagemParaPdfSeoContent} />
 

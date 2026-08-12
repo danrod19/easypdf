@@ -150,7 +150,7 @@ export default function ComprimirPdfPage() {
         signal
       );
 
-      if (signal.aborted) return;
+      if (signal.aborted || !job.isMounted()) return;
 
       setResult(out);
 
@@ -173,7 +173,7 @@ export default function ComprimirPdfPage() {
       );
       ga.endProcess(true, startedAt);
     } catch (err) {
-      if (job.isAbortError(err)) return;
+      if (job.isAbortError(err) || !job.isMounted()) return;
       setError(
         err instanceof Error
           ? err.message
@@ -185,7 +185,7 @@ export default function ComprimirPdfPage() {
       ga.endProcess(false, startedAt);
     } finally {
       job.endJob(signal);
-      setIsProcessing(false);
+      if (job.isMounted()) setIsProcessing(false);
     }
   };
 

@@ -7,6 +7,19 @@
 #
 # HTML por rota (dist/juntar-pdf/index.html) é servido como asset estático.
 # Rotas sem arquivo caem no index.html (SPA fallback).
+#
+# --- Trailing slash / SEO (decisão canônica SEM barra) ---
+# Default do platform: html_handling = "auto-trailing-slash"
+#   /juntar-pdf  → 307 Location: /juntar-pdf/
+#   /juntar-pdf/ → 200 (folder/index.html)
+# Isso conflita com canonical/sitemap/og:url do app (sem barra final).
+#
+# Com drop-trailing-slash:
+#   /juntar-pdf  → 200  dist/juntar-pdf/index.html
+#   /juntar-pdf/ → 307  Location: /juntar-pdf
+# (Assets usa 307, não 301/308 — limitação da plataforma.)
+# Alinhado a normalizeSeoPath / buildCanonicalUrl / sitemap / prerender-routes.
+# Docs: docs/PRERENDER.md § Trailing slash
 
 name = "easypdf"
 compatibility_date = "2024-11-12"
@@ -14,5 +27,7 @@ workers_dev = true
 
 [assets]
 directory = "./dist"
+# Canonical URL = SEM barra final (exceto "/"). Ver comentário acima.
+html_handling = "drop-trailing-slash"
 # Fallback para deep-links sem HTML pré-renderizado (fail-soft SPA)
 not_found_handling = "single-page-application"

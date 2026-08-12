@@ -57,33 +57,45 @@ export function protectedFileName(originalName: string): string {
  * Equivalente conceitual ao pedido `save({ userPassword, ownerPassword })`.
  * Lazy-load: não entope o bundle das outras rotas.
  */
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw new DOMException('Processamento cancelado.', 'AbortError');
+  }
+}
+
 export async function protectPdfWithPassword(
   file: File,
   password: string,
   confirmPassword: string,
-  onProgress?: ProtectProgressCallback
+  onProgress?: ProtectProgressCallback,
+  signal?: AbortSignal
 ): Promise<Uint8Array> {
   validatePasswords(password, confirmPassword);
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 5, message: 'Carregando criptografia…' });
 
   const { PDFDocument } = await import('pdf-lib-plus-encrypt');
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 12, message: `Lendo ${file.name}…` });
 
   let bytes: ArrayBuffer;
   try {
     bytes = await file.arrayBuffer();
   } catch {
+    throwIfAborted(signal);
     throw new Error(`Não foi possível ler o arquivo "${file.name}".`);
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 30, message: 'Carregando documento…' });
 
   let pdfDoc: Awaited<ReturnType<typeof PDFDocument.load>>;
   try {
     pdfDoc = await PDFDocument.load(bytes, { ignoreEncryption: false });
   } catch (err) {
+    throwIfAborted(signal);
     const msg = err instanceof Error ? err.message : '';
     if (/encrypt/i.test(msg)) {
       throw new Error(
@@ -99,6 +111,7 @@ export async function protectPdfWithPassword(
     throw new Error('O PDF não possui páginas.');
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 55, message: 'Aplicando criptografia…' });
 
   try {
@@ -116,21 +129,35 @@ export async function protectPdfWithPassword(
         documentAssembly: false,
       },
     });
-  } catch {
+  } catch (err) {
+    if (
+      (err instanceof DOMException && err.name === 'AbortError') ||
+      (err instanceof Error && err.name === 'AbortError')
+    ) {
+      throw err;
+    }
     throw new Error(
       'Não foi possível criptografar o PDF. Tente outra senha ou um arquivo menor.'
     );
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 85, message: 'Gerando PDF protegido…' });
 
   let out: Uint8Array;
   try {
     out = await pdfDoc.save();
-  } catch {
+  } catch (err) {
+    if (
+      (err instanceof DOMException && err.name === 'AbortError') ||
+      (err instanceof Error && err.name === 'AbortError')
+    ) {
+      throw err;
+    }
     throw new Error('Falha ao salvar o PDF criptografado.');
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 100, message: 'Concluído!' });
   return out;
 }

@@ -160,7 +160,7 @@ export default function JuntarPdfPage() {
         signal
       );
 
-      if (signal.aborted) return;
+      if (signal.aborted || !job.isMounted()) return;
 
       // Cópia estável para o estado (evita buffer detach do pdf.js / pdf-lib)
       const stableBytes = new Uint8Array(bytes);
@@ -174,7 +174,7 @@ export default function JuntarPdfPage() {
       );
       ga.endProcess(true, startedAt);
     } catch (err) {
-      if (job.isAbortError(err)) return;
+      if (job.isAbortError(err) || !job.isMounted()) return;
       const message =
         err instanceof Error
           ? err.message
@@ -185,7 +185,7 @@ export default function JuntarPdfPage() {
       ga.endProcess(false, startedAt);
     } finally {
       job.endJob(signal);
-      setIsProcessing(false);
+      if (job.isMounted()) setIsProcessing(false);
     }
   };
 

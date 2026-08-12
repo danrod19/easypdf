@@ -9,11 +9,13 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { FileLimitsNotice } from '../components/FileLimitsNotice';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { marcaDaguaSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { useFileIntake } from '../hooks/useFileIntake';
+import { useAbortablePdfJob } from '../hooks/useAbortablePdfJob';
 import { dropZoneLimitHint } from '../lib/fileValidation';
 import {
   applyWatermarkToPdf,
@@ -93,6 +95,7 @@ export default function MarcaDaguaPage() {
   const fontSizeId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.MARCA_DAGUA);
   const intake = useFileIntake(TOOL_NAMES.MARCA_DAGUA, 'pdf_single');
+  const job = useAbortablePdfJob();
 
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number | null>(null);
@@ -178,6 +181,8 @@ export default function MarcaDaguaPage() {
       return;
     }
 
+    const signal = job.beginJob();
+
     setIsProcessing(true);
     setError(null);
     setSuccess(null);
@@ -194,8 +199,11 @@ export default function MarcaDaguaPage() {
         ({ percent, message }) => {
           setProgress(percent);
           setProgressMsg(message);
-        }
+        },
+        signal
       );
+
+      if (signal.aborted || !job.isMounted()) return;
 
       const outName = watermarkedFileName(file.name);
       const stableBytes = new Uint8Array(bytes);
@@ -211,6 +219,7 @@ export default function MarcaDaguaPage() {
       );
       ga.endProcess(true, startedAt);
     } catch (err) {
+      if (job.isAbortError(err) || !job.isMounted()) return;
       const message =
         err instanceof Error
           ? err.message
@@ -220,7 +229,8 @@ export default function MarcaDaguaPage() {
       setProgressMsg('');
       ga.endProcess(false, startedAt);
     } finally {
-      setIsProcessing(false);
+      job.endJob(signal);
+      if (job.isMounted()) setIsProcessing(false);
     }
   };
 
@@ -622,6 +632,14 @@ export default function MarcaDaguaPage() {
             </li>
           </ol>
         </section>
+
+        <FileLimitsNotice
+          profile="pdf_single"
+          title="Limites técnicos desta ferramenta"
+          compact
+          headingLevel="h2"
+          headingId="limites-marca-dagua"
+        />
 
         <ToolSeoContent content={marcaDaguaSeoContent} />
 

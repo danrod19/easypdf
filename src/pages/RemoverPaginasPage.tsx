@@ -9,6 +9,7 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { FileLimitsNotice } from '../components/FileLimitsNotice';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { removerPaginasSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
@@ -132,13 +133,13 @@ export default function RemoverPaginasPage() {
           },
           signal
         );
-        if (signal.aborted) return;
+        if (signal.aborted || !job.isMounted()) return;
         setThumbs(generated);
         setProgress(0);
         setProgressMsg('');
         ga.trackUpload(gate.files);
       } catch (err) {
-        if (job.isAbortError(err)) return;
+        if (job.isAbortError(err) || !job.isMounted()) return;
         setFile(null);
         setThumbs([]);
         setError(
@@ -150,7 +151,7 @@ export default function RemoverPaginasPage() {
         setProgressMsg('');
       } finally {
         job.endJob(signal);
-        setIsLoadingThumbs(false);
+        if (job.isMounted()) setIsLoadingThumbs(false);
       }
     },
     [ga, intake, job, resetResult]
@@ -210,7 +211,7 @@ export default function RemoverPaginasPage() {
         signal
       );
 
-      if (signal.aborted) return;
+      if (signal.aborted || !job.isMounted()) return;
 
       const stableBytes = new Uint8Array(bytes);
       const fileName = removedPagesFileName(file.name);
@@ -223,7 +224,7 @@ export default function RemoverPaginasPage() {
       );
       ga.endProcess(true, startedAt);
     } catch (err) {
-      if (job.isAbortError(err)) return;
+      if (job.isAbortError(err) || !job.isMounted()) return;
       setError(
         err instanceof Error
           ? err.message
@@ -234,7 +235,7 @@ export default function RemoverPaginasPage() {
       ga.endProcess(false, startedAt);
     } finally {
       job.endJob(signal);
-      setIsProcessing(false);
+      if (job.isMounted()) setIsProcessing(false);
     }
   };
 
@@ -540,6 +541,14 @@ export default function RemoverPaginasPage() {
             </li>
           </ol>
         </section>
+
+        <FileLimitsNotice
+          profile="pdf_single"
+          title="Limites técnicos desta ferramenta"
+          compact
+          headingLevel="h2"
+          headingId="limites-remover"
+        />
 
         <ToolSeoContent content={removerPaginasSeoContent} />
 

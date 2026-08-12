@@ -51,6 +51,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Vitest (FILE_LIMITS / parsePageRange / …) — só Node; falha barata antes do Chromium
+      - name: Unit tests
+        run: npm test
+
       - name: Ensure Playwright Chromium
         run: npx playwright install chromium
 

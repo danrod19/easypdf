@@ -118,16 +118,26 @@ export function wrapMammothHtmlForPdf(mammothHtml: string): string {
   ].join('');
 }
 
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw new DOMException('Processamento cancelado.', 'AbortError');
+  }
+}
+
 /**
  * Converte um .docx em PDF no navegador:
  * DOCX → (mammoth) HTML string → (html2pdf.js.from string) PDF blob.
  *
  * Arquitetura em memória: não usa elementos React escondidos nem captura
  * de div com left: -10000px (causava PDF em branco no html2canvas).
+ *
+ * `signal` cancela entre etapas (unmount / novo job). html2pdf não expõe
+ * abort nativo — a checagem é cooperativa.
  */
 export async function convertDocxToPdf(
   file: File,
-  onProgress?: WordToPdfProgressCallback
+  onProgress?: WordToPdfProgressCallback,
+  signal?: AbortSignal
 ): Promise<Uint8Array> {
   if (!isDocxFile(file)) {
     throw new Error(
@@ -135,6 +145,7 @@ export async function convertDocxToPdf(
     );
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 5, message: 'Carregando conversor…' });
 
   // Lazy-load: não entope o bundle das outras rotas
@@ -143,26 +154,37 @@ export async function convertDocxToPdf(
     import('html2pdf.js'),
   ]);
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 12, message: 'Lendo documento…' });
 
   let arrayBuffer: ArrayBuffer;
   try {
     arrayBuffer = await file.arrayBuffer();
   } catch {
+    throwIfAborted(signal);
     throw new Error(`Não foi possível ler o arquivo "${file.name}".`);
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 28, message: 'Convertendo DOCX para HTML…' });
 
   let mammothHtml: string;
   try {
     const result = await mammoth.convertToHtml({ arrayBuffer });
     mammothHtml = result.value?.trim() ?? '';
-  } catch {
+  } catch (err) {
+    if (
+      (err instanceof DOMException && err.name === 'AbortError') ||
+      (err instanceof Error && err.name === 'AbortError')
+    ) {
+      throw err;
+    }
     throw new Error(
       `Não foi possível interpretar "${file.name}". Confirme que é um .docx válido.`
     );
   }
+
+  throwIfAborted(signal);
 
   if (!mammothHtml) {
     throw new Error(
@@ -175,6 +197,7 @@ export async function convertDocxToPdf(
   // String HTML com cores fixas — passada direto ao html2pdf (sem DOM do React)
   const htmlForPdf = wrapMammothHtmlForPdf(mammothHtml);
 
+  throwIfAborted(signal);
   onProgress?.({
     percent: 60,
     message: 'Gerando PDF…',
@@ -210,6 +233,7 @@ export async function convertDocxToPdf(
       .from(htmlForPdf);
 
     const output = (await worker.outputPdf('blob')) as Blob;
+    throwIfAborted(signal);
     if (!(output instanceof Blob) || output.size === 0) {
       throw new Error('Falha ao gerar o PDF a partir do documento.');
     }
@@ -217,11 +241,18 @@ export async function convertDocxToPdf(
     onProgress?.({ percent: 95, message: 'Finalizando arquivo…' });
 
     const buffer = await output.arrayBuffer();
+    throwIfAborted(signal);
     const bytes = new Uint8Array(buffer);
 
     onProgress?.({ percent: 100, message: 'Concluído!' });
     return bytes;
   } catch (err) {
+    if (
+      (err instanceof DOMException && err.name === 'AbortError') ||
+      (err instanceof Error && err.name === 'AbortError')
+    ) {
+      throw err;
+    }
     if (err instanceof Error && err.message) {
       if (
         err.message.startsWith('Envie') ||

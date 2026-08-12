@@ -210,13 +210,21 @@ function drawFooter(
   });
 }
 
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw new DOMException('Processamento cancelado.', 'AbortError');
+  }
+}
+
 /**
  * Aplica marca d'água textual em todas as páginas e devolve os bytes do PDF.
+ * `signal` cancela entre páginas (unmount / novo job).
  */
 export async function applyWatermarkToPdf(
   file: File,
   options: WatermarkOptions,
-  onProgress?: WatermarkProgressCallback
+  onProgress?: WatermarkProgressCallback,
+  signal?: AbortSignal
 ): Promise<Uint8Array> {
   const validationError = validateWatermarkOptions(options);
   if (validationError) {
@@ -230,26 +238,31 @@ export async function applyWatermarkToPdf(
     );
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 10, message: `Lendo ${file.name}…` });
 
   let bytes: ArrayBuffer;
   try {
     bytes = await file.arrayBuffer();
   } catch {
+    throwIfAborted(signal);
     throw new Error(`Não foi possível ler o arquivo "${file.name}".`);
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 30, message: 'Carregando documento…' });
 
   let pdfDoc: PDFDocument;
   try {
     pdfDoc = await PDFDocument.load(bytes, { ignoreEncryption: false });
   } catch {
+    throwIfAborted(signal);
     throw new Error(
       `O arquivo "${file.name}" não é um PDF válido ou está protegido por senha.`
     );
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 45, message: 'Embutindo fonte Helvetica Bold…' });
 
   const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
@@ -272,6 +285,7 @@ export async function applyWatermarkToPdf(
   });
 
   for (let i = 0; i < total; i++) {
+    throwIfAborted(signal);
     const page = pages[i];
     try {
       if (options.position === 'footer') {
@@ -280,6 +294,12 @@ export async function applyWatermarkToPdf(
         drawDiagonal(page, text, font, fontSize, color, opacity);
       }
     } catch (err) {
+      if (
+        (err instanceof DOMException && err.name === 'AbortError') ||
+        (err instanceof Error && err.name === 'AbortError')
+      ) {
+        throw err;
+      }
       const msg =
         err instanceof Error ? err.message : 'erro desconhecido ao desenhar texto';
       throw new Error(
@@ -294,8 +314,10 @@ export async function applyWatermarkToPdf(
     });
   }
 
+  throwIfAborted(signal);
   onProgress?.({ percent: 95, message: 'Gerando arquivo final…' });
   const pdfBytes = await pdfDoc.save();
+  throwIfAborted(signal);
   onProgress?.({ percent: 100, message: 'Concluído!' });
 
   return pdfBytes;

@@ -4,7 +4,7 @@ Aplicação web utilitária de processamento de PDFs **100% no cliente**. Nenhum
 
 ## Stack
 
-- **React 18 + Vite** — build estático puro (Azure Static Web Apps)
+- **React 18 + Vite** — build estático (`dist/`) publicado como **Cloudflare Worker + Assets**
 - **Tailwind CSS** — UI moderna, responsiva, Dark/Light mode
 - **pdf-lib** — merge, split, rotação e metadados
 - **mammoth.js** — DOCX → HTML (Word para PDF)
@@ -34,12 +34,16 @@ npm install
 npm run dev
 ```
 
-## Build estático (Cloudflare Pages / Azure SWA)
+## Build e deploy (fonte de verdade)
+
+**Deploy canônico:** push em `main` → GitHub Actions (`.github/workflows/deploy.yml`) → `npm test` → `npm run build` (prerender) → `validate:prerender` → **`wrangler deploy`** do Worker **`easypdf`** (`wrangler.toml`, `[assets] directory = "./dist"`). Não use `wrangler pages deploy` nem Azure SWA como caminho de produção.
 
 ```bash
 # Local (prerender completo): instalar Chromium uma vez
 npm run playwright:install
 npm run build
+# Deploy (requer CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID):
+npx wrangler deploy
 ```
 
 `npm run build` = `tsc` + **sitemap** (`scripts/generate-sitemap.mjs`) + `vite build` + **prerender** (`scripts/prerender.mjs`).
@@ -48,18 +52,14 @@ A pasta `dist/` contém:
 - assets JS/CSS do Vite
 - **HTML pré-renderizado por rota** (quando o Playwright sobe) — ex.: `dist/juntar-pdf/index.html`
 
-### Deploy em produção (HTML por rota de verdade)
-
-**Este site roda como Cloudflare Worker + static assets** (`wrangler.toml`, Worker **`easypdf`**), **não** como projeto Cloudflare Pages.
-
 | Item | Detalhe |
 |------|---------|
 | Workflow | [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) |
 | Trigger | push em `main` + `workflow_dispatch` |
-| Deploy | `wrangler deploy` (Worker) — **não** `wrangler pages deploy` |
+| Deploy | `wrangler deploy` → Worker **`easypdf`** + static assets |
 | Secrets | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (+ opcional `CLOUDFLARE_WORKER_NAME=easypdf`) |
-| Validação | `npm run validate:prerender` |
-| Docs | [`docs/PRERENDER.md`](docs/PRERENDER.md) · [`wrangler.toml`](wrangler.toml) |
+| CI | `npm test` **antes** do build; depois `validate:prerender` (7 rotas — ver `docs/PRERENDER.md`) |
+| Config | [`wrangler.toml`](wrangler.toml) · [`docs/PRERENDER.md`](docs/PRERENDER.md) |
 
 **Fail-soft:** build sem Chromium (ex.: ambiente pobre) avisa e não quebra o exit code — **não** use isso como deploy de produção SEO. O Action usa `PRERENDER_STRICT=1`.
 
@@ -73,15 +73,15 @@ Pular prerender de propósito: `npm run build:skip-prerender` ou `SKIP_PRERENDER
 | Lista de rotas | `scripts/prerender-routes.mjs` |
 | Nova rota | 1) `App.tsx` 2) `PRERENDER_ROUTES` 3) build com Playwright |
 | Validar | `dist/juntar-pdf/index.html` → `easypdf-prerender`, title, canonical, H1 |
-| Produção | GitHub Action (não o build command do painel CF) |
+| Produção | GitHub Action + `wrangler deploy` (Worker) |
 | SPA client | Inalterada (`createRoot`) |
 
-### Azure Static Web Apps
+### Artefatos legados (não são o deploy ativo)
 
-- **App location**: `/` (raiz do repo ou `pdf-local`)
-- **Output location**: `dist`
-- **API location**: (vazio — sem backend)
-- `public/staticwebapp.config.json` — fallback SPA só quando o arquivo da rota **não** existe (prerender tem prioridade)
+| Arquivo | Status |
+|---------|--------|
+| `public/staticwebapp.config.json` | **LEGADO Azure SWA** — copiado para `dist/`, ignorado pelo Worker |
+| `public/_headers` | Formato original Pages; **no Worker, CSP/HSTS vêm da config de produção** (validar com `curl -sI` no domínio) |
 
 ## Privacidade
 
@@ -109,9 +109,10 @@ Helpers: `src/lib/runPdfWorker.ts`, `src/lib/pdfOpsWorker.ts`, `src/lib/mergePdf
 
 ## SEO / Canonical (SPA)
 
+- **Formato canônico: SEM barra final** (exceto home `/`). Ex.: `https://easypdflocal.com.br/juntar-pdf`.
 - `index.html` tem canonical **self-referencing da home** (visível sem JS).
-- Rotas internas: `useSEO` / `<Seo path="…" />` atualizam `<link rel="canonical">` e `og:url` no cliente para a URL absoluta correta (`https://easypdflocal.com.br/…`).
-- Deploy estático (Cloudflare Pages / SWA): **sem HTML pré-renderizado por rota**; crawlers que não executam JS veem a canonical da home. Googlebot com JS vê a canonical por rota.
+- Rotas internas: `useSEO` / `<Seo path="…" />` atualizam `<link rel="canonical">` e `og:url` no cliente; o prerender grava o mesmo no HTML estático.
+- **Worker Assets:** `html_handling = "drop-trailing-slash"` em `wrangler.toml` — `/rota` = 200 com HTML prerender; `/rota/` redireciona para `/rota`. Ver [`docs/PRERENDER.md`](docs/PRERENDER.md) § Trailing slash.
 - **Sitemap:** gerado no build a partir de `tools.ts` (ready) + `blogPosts.ts` + páginas institucionais — `npm run sitemap` ou via `npm run build`. Ver [`docs/SITEMAP.md`](docs/SITEMAP.md).
 - Prerender multi-page: HTML por rota quando Playwright está disponível (CI de produção).
 

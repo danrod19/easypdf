@@ -9,11 +9,13 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { FileLimitsNotice } from '../components/FileLimitsNotice';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { desbloquearPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { useFileIntake } from '../hooks/useFileIntake';
+import { useAbortablePdfJob } from '../hooks/useAbortablePdfJob';
 import { dropZoneLimitHint } from '../lib/fileValidation';
 import {
   unlockPdfWithPassword,
@@ -57,6 +59,7 @@ export default function DesbloquearPdfPage() {
   const passwordId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.DESBLOQUEAR_PDF);
   const intake = useFileIntake(TOOL_NAMES.DESBLOQUEAR_PDF, 'pdf_single');
+  const job = useAbortablePdfJob();
 
   const [file, setFile] = useState<File | null>(null);
   const [password, setPassword] = useState('');
@@ -121,6 +124,8 @@ export default function DesbloquearPdfPage() {
       return;
     }
 
+    const signal = job.beginJob();
+
     setIsProcessing(true);
     setError(null);
     setSuccess(null);
@@ -137,8 +142,11 @@ export default function DesbloquearPdfPage() {
         ({ percent, message }) => {
           setProgress(percent);
           setProgressMsg(message);
-        }
+        },
+        signal
       );
+
+      if (signal.aborted || !job.isMounted()) return;
 
       const stableBytes = new Uint8Array(bytes);
       const fileName = unlockedFileName(file.name);
@@ -153,6 +161,7 @@ export default function DesbloquearPdfPage() {
       setPassword('');
       ga.endProcess(true, startedAt);
     } catch (err) {
+      if (job.isAbortError(err) || !job.isMounted()) return;
       setError(
         err instanceof Error
           ? err.message
@@ -162,7 +171,8 @@ export default function DesbloquearPdfPage() {
       setProgressMsg('');
       ga.endProcess(false, startedAt);
     } finally {
-      setIsProcessing(false);
+      job.endJob(signal);
+      if (job.isMounted()) setIsProcessing(false);
     }
   };
 
@@ -378,6 +388,14 @@ export default function DesbloquearPdfPage() {
             </li>
           </ol>
         </section>
+
+        <FileLimitsNotice
+          profile="pdf_single"
+          title="Limites técnicos desta ferramenta"
+          compact
+          headingLevel="h2"
+          headingId="limites-desbloquear"
+        />
 
         <ToolSeoContent content={desbloquearPdfSeoContent} />
 

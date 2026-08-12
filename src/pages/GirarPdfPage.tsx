@@ -15,6 +15,7 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { FileLimitsNotice } from '../components/FileLimitsNotice';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { girarPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
@@ -270,7 +271,7 @@ export default function GirarPdfPage() {
         signal
       );
 
-      if (signal.aborted) return;
+      if (signal.aborted || !job.isMounted()) return;
 
       const outName = rotatedFileName(file.name);
       const stableBytes = new Uint8Array(bytes);
@@ -297,7 +298,7 @@ export default function GirarPdfPage() {
       setDownloadSuccess(true);
       ga.endProcess(true, startedAt);
     } catch (err) {
-      if (job.isAbortError(err)) return;
+      if (job.isAbortError(err) || !job.isMounted()) return;
       const message =
         err instanceof Error
           ? err.message
@@ -309,7 +310,7 @@ export default function GirarPdfPage() {
       ga.endProcess(false, startedAt);
     } finally {
       job.endJob(signal);
-      setIsProcessing(false);
+      if (job.isMounted()) setIsProcessing(false);
     }
   };
 
@@ -689,6 +690,14 @@ export default function GirarPdfPage() {
             </li>
           </ol>
         </section>
+
+        <FileLimitsNotice
+          profile="pdf_single"
+          title="Limites técnicos desta ferramenta"
+          compact
+          headingLevel="h2"
+          headingId="limites-girar"
+        />
 
         <ToolSeoContent content={girarPdfSeoContent} />
 

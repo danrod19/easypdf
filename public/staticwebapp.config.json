@@ -1,4 +1,5 @@
 {
+  "_comment": "LEGADO Azure Static Web Apps — NÃO é o deploy de produção. Produção = Cloudflare Worker easypdf via wrangler deploy (GitHub Actions). Este JSON é copiado para dist/ pelo Vite mas o Worker Assets o ignora. Manter só por histórico / se alguém reutilizar o dist em SWA.",
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": ["/assets/*", "/*.{css,js,ico,svg,png,jpg,jpeg,webp,woff,woff2}"]

@@ -14,6 +14,7 @@ import { wordParaPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { useFileIntake } from '../hooks/useFileIntake';
+import { useAbortablePdfJob } from '../hooks/useAbortablePdfJob';
 import { dropZoneLimitHint } from '../lib/fileValidation';
 import { DOCX_MIME, isDocxFile } from '../lib/docxFile';
 import { downloadBlob, formatBytes } from '../lib/format';
@@ -34,6 +35,7 @@ export default function WordParaPdfPage() {
   const errorId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.WORD_PARA_PDF);
   const intake = useFileIntake(TOOL_NAMES.WORD_PARA_PDF, 'docx');
+  const job = useAbortablePdfJob();
 
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -96,6 +98,8 @@ export default function WordParaPdfPage() {
       return;
     }
 
+    const signal = job.beginJob();
+
     setIsProcessing(true);
     setError(null);
     setSuccess(null);
@@ -108,10 +112,16 @@ export default function WordParaPdfPage() {
     try {
       // mammoth + html2pdf só neste fluxo (import dinâmico em wordToPdf)
       const { convertDocxToPdf } = await import('../lib/wordToPdf');
-      const bytes = await convertDocxToPdf(file, ({ percent, message }) => {
-        setProgress(percent);
-        setProgressMsg(message);
-      });
+      const bytes = await convertDocxToPdf(
+        file,
+        ({ percent, message }) => {
+          setProgress(percent);
+          setProgressMsg(message);
+        },
+        signal
+      );
+
+      if (signal.aborted || !job.isMounted()) return;
 
       const stableBytes = new Uint8Array(bytes);
       const fileName = buildConvertedFileName(file.name);
@@ -124,6 +134,7 @@ export default function WordParaPdfPage() {
       );
       ga.endProcess(true, startedAt);
     } catch (err) {
+      if (job.isAbortError(err) || !job.isMounted()) return;
       const message =
         err instanceof Error
           ? err.message
@@ -133,7 +144,8 @@ export default function WordParaPdfPage() {
       setProgressMsg('');
       ga.endProcess(false, startedAt);
     } finally {
-      setIsProcessing(false);
+      job.endJob(signal);
+      if (job.isMounted()) setIsProcessing(false);
     }
   };
 

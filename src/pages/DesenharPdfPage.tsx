@@ -16,11 +16,13 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { FileLimitsNotice } from '../components/FileLimitsNotice';
 import { PdfPreviewModal } from '../components/PdfPreviewModal';
 import { desenharPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { useFileIntake } from '../hooks/useFileIntake';
+import { useAbortablePdfJob } from '../hooks/useAbortablePdfJob';
 import { dropZoneLimitHint } from '../lib/fileValidation';
 import { loadPdfJs } from '../lib/pdfjsLoader';
 import {
@@ -83,6 +85,7 @@ export default function DesenharPdfPage() {
   const errorId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.DESENHAR_PDF);
   const intake = useFileIntake(TOOL_NAMES.DESENHAR_PDF, 'pdf_single');
+  const job = useAbortablePdfJob();
   const containerRef = useRef<HTMLDivElement>(null);
   const bgCanvasRef = useRef<HTMLCanvasElement>(null);
   const drawCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -502,6 +505,8 @@ export default function DesenharPdfPage() {
     drawingRef.current = false;
     currentStrokeRef.current = null;
 
+    const signal = job.beginJob();
+
     setIsProcessing(true);
     setError(null);
     setSuccess(null);
@@ -521,8 +526,11 @@ export default function DesenharPdfPage() {
         ({ percent, message }) => {
           setProgress(percent);
           setProgressMsg(message);
-        }
+        },
+        signal
       );
+
+      if (signal.aborted || !job.isMounted()) return;
 
       const outName = drawnFileName(file.name);
       const stableBytes = new Uint8Array(bytes);
@@ -536,6 +544,7 @@ export default function DesenharPdfPage() {
       );
       ga.endProcess(true, startedAt);
     } catch (err) {
+      if (job.isAbortError(err) || !job.isMounted()) return;
       setError(
         err instanceof Error
           ? err.message
@@ -545,7 +554,8 @@ export default function DesenharPdfPage() {
       setProgressMsg('');
       ga.endProcess(false, startedAt);
     } finally {
-      setIsProcessing(false);
+      job.endJob(signal);
+      if (job.isMounted()) setIsProcessing(false);
     }
   };
 
@@ -861,6 +871,14 @@ export default function DesenharPdfPage() {
             </li>
           </ol>
         </section>
+
+        <FileLimitsNotice
+          profile="pdf_single"
+          title="Limites técnicos desta ferramenta"
+          compact
+          headingLevel="h2"
+          headingId="limites-desenhar"
+        />
 
         <ToolSeoContent content={desenharPdfSeoContent} />
 

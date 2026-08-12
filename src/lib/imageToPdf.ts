@@ -123,9 +123,16 @@ export function imagesToPdfFileName(): string {
  * 3. addPage([width, height])
  * 4. drawImage na página
  */
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw new DOMException('Processamento cancelado.', 'AbortError');
+  }
+}
+
 export async function convertImagesToPdf(
   files: File[],
-  onProgress?: ImageToPdfProgressCallback
+  onProgress?: ImageToPdfProgressCallback,
+  signal?: AbortSignal
 ): Promise<Uint8Array> {
   if (files.length === 0) {
     throw new Error('Adicione pelo menos 1 imagem para converter.');
@@ -139,6 +146,7 @@ export async function convertImagesToPdf(
     }
   }
 
+  throwIfAborted(signal);
   const total = files.length;
   onProgress?.({
     percent: 5,
@@ -152,6 +160,7 @@ export async function convertImagesToPdf(
 
   // 2) Itera na ordem definida pelo usuário
   for (let i = 0; i < total; i++) {
+    throwIfAborted(signal);
     const file = files[i];
     const n = i + 1;
 
@@ -166,6 +175,7 @@ export async function convertImagesToPdf(
     try {
       bytes = await file.arrayBuffer();
     } catch {
+      throwIfAborted(signal);
       throw new Error(`Não foi possível ler o arquivo "${file.name}".`);
     }
 
@@ -178,11 +188,18 @@ export async function convertImagesToPdf(
         embedded = await pdfDoc.embedPng(bytes);
       } else if (isWebpFile(file)) {
         const pngBytes = await convertToPngBytes(file);
+        throwIfAborted(signal);
         embedded = await pdfDoc.embedPng(pngBytes);
       } else {
         throw new Error(`Formato não suportado: "${file.name}".`);
       }
     } catch (err) {
+      if (
+        (err instanceof DOMException && err.name === 'AbortError') ||
+        (err instanceof Error && err.name === 'AbortError')
+      ) {
+        throw err;
+      }
       if (err instanceof Error && err.message.includes('não suportado')) {
         throw err;
       }
@@ -206,6 +223,7 @@ export async function convertImagesToPdf(
     });
   }
 
+  throwIfAborted(signal);
   onProgress?.({
     percent: 95,
     message: 'Gerando arquivo final…',
@@ -215,6 +233,7 @@ export async function convertImagesToPdf(
 
   // 5) Serializa PDF
   const pdfBytes = await pdfDoc.save();
+  throwIfAborted(signal);
 
   onProgress?.({
     percent: 100,
@@ -231,9 +250,11 @@ export async function convertImagesToPdf(
  */
 export async function convertAndDownloadImagesToPdf(
   files: File[],
-  onProgress?: ImageToPdfProgressCallback
+  onProgress?: ImageToPdfProgressCallback,
+  signal?: AbortSignal
 ): Promise<void> {
-  const bytes = await convertImagesToPdf(files, onProgress);
+  const bytes = await convertImagesToPdf(files, onProgress, signal);
+  throwIfAborted(signal);
   const blob = new Blob([new Uint8Array(bytes)], {
     type: 'application/pdf',
   });

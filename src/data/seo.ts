@@ -21,6 +21,10 @@ export const SITE_NAME = 'Easy PDF Local';
  * - sem query/hash (pathname puro)
  * - sem barra final (exceto home "/")
  * - sempre começa com /
+ *
+ * Regra de site (alinhada a sitemap, prerender-routes e wrangler
+ * `html_handling = "drop-trailing-slash"`): URL canônica SEM trailing slash.
+ * Docs: docs/PRERENDER.md § Trailing slash
  */
 export function normalizeSeoPath(pathname: string): string {
   let p = (pathname || '/').trim();

@@ -128,7 +128,7 @@ export default function ExtrairTextoPage() {
         }
       );
 
-      if (signal.aborted) return;
+      if (signal.aborted || !job.isMounted()) return;
 
       setText(result);
       setHasResult(true);
@@ -148,7 +148,7 @@ export default function ExtrairTextoPage() {
       }
       ga.endProcess(true, startedAt);
     } catch (err) {
-      if (job.isAbortError(err)) return;
+      if (job.isAbortError(err) || !job.isMounted()) return;
       const message =
         err instanceof Error
           ? err.message
@@ -160,7 +160,7 @@ export default function ExtrairTextoPage() {
       ga.endProcess(false, startedAt);
     } finally {
       job.endJob(signal);
-      setIsProcessing(false);
+      if (job.isMounted()) setIsProcessing(false);
     }
   };
 

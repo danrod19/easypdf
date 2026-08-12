@@ -9,10 +9,12 @@ import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
+import { FileLimitsNotice } from '../components/FileLimitsNotice';
 import { protegerPdfSeoContent } from '../data/toolSeoContent';
 import { TOOL_NAMES } from '../data/toolNames';
 import { useToolAnalytics } from '../hooks/useToolAnalytics';
 import { useFileIntake } from '../hooks/useFileIntake';
+import { useAbortablePdfJob } from '../hooks/useAbortablePdfJob';
 import { dropZoneLimitHint } from '../lib/fileValidation';
 import {
   protectPdfWithPassword,
@@ -59,6 +61,7 @@ export default function ProtegerPdfPage() {
   const confirmId = useId();
   const ga = useToolAnalytics(TOOL_NAMES.PROTEGER_PDF);
   const intake = useFileIntake(TOOL_NAMES.PROTEGER_PDF, 'pdf_single');
+  const job = useAbortablePdfJob();
 
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState<number | null>(null);
@@ -140,6 +143,8 @@ export default function ProtegerPdfPage() {
       return;
     }
 
+    const signal = job.beginJob();
+
     setIsProcessing(true);
     setError(null);
     setSuccess(null);
@@ -156,8 +161,11 @@ export default function ProtegerPdfPage() {
         ({ percent, message }) => {
           setProgress(percent);
           setProgressMsg(message);
-        }
+        },
+        signal
       );
+
+      if (signal.aborted || !job.isMounted()) return;
 
       const outName = protectedFileName(file.name);
       const blob = new Blob([new Uint8Array(bytes)], {
@@ -174,6 +182,7 @@ export default function ProtegerPdfPage() {
       setPassword('');
       setConfirmPassword('');
     } catch (err) {
+      if (job.isAbortError(err) || !job.isMounted()) return;
       setError(
         err instanceof Error
           ? err.message
@@ -183,7 +192,8 @@ export default function ProtegerPdfPage() {
       setProgressMsg('');
       ga.endProcess(false, startedAt);
     } finally {
-      setIsProcessing(false);
+      job.endJob(signal);
+      if (job.isMounted()) setIsProcessing(false);
     }
   };
 
@@ -409,6 +419,14 @@ export default function ProtegerPdfPage() {
             </li>
           </ol>
         </section>
+
+        <FileLimitsNotice
+          profile="pdf_single"
+          title="Limites técnicos desta ferramenta"
+          compact
+          headingLevel="h2"
+          headingId="limites-proteger"
+        />
 
         <ToolSeoContent content={protegerPdfSeoContent} />
 

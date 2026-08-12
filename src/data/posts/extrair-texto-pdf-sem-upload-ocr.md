@@ -41,7 +41,7 @@ Ferramenta: **[Extrair Texto](/extrair-texto)**
 - Renderiza páginas em canvas.
 - Roda Tesseract.js com suporte a **português**.
 - Mais lento; depende da CPU e da qualidade do scan.
-- **Limite de páginas** no OCR (cerca de **30** páginas) — proteção de memória e tempo.
+- **Limite de páginas** no OCR (**30** páginas, `FILE_LIMITS.MAX_OCR_PAGES`) — proteção de memória e tempo.
 
 ### Depois da extração
 - Você pode editar o texto na tela.
@@ -100,10 +100,12 @@ Se o PDF for longo, [divida](/dividir-pdf) e rode OCR só no trecho necessário.
 
 ## Limites técnicos honestos
 
-| Limite | Valor típico |
-|--------|----------------|
-| Tamanho do PDF | até cerca de **50 MB** |
-| Páginas no OCR | até cerca de **30** páginas |
+**Fonte de verdade:** `FILE_LIMITS` / bloco “Limites técnicos” em [Extrair texto](/extrair-texto). Números abaixo alinhados ao app; se divergirem, confie na ferramenta.
+
+| Limite | Valor atual (app) |
+|--------|-------------------|
+| Tamanho do PDF | até **50 MB** |
+| Páginas no OCR | até **30** páginas |
 | Precisão do OCR | **não é 100%** — revise sempre |
 | Performance | OCR depende da CPU; celular fraco demora mais |
 | Primeira carga OCR | pode baixar **asset de idioma** público (não o seu PDF) |
@@ -138,7 +140,7 @@ Quando o PDF for scan/foto e o modo nativo retornar vazio ou quase nada. OCR é 
 Não. É útil e melhora com scans bons, mas erros acontecem. Revise sempre trechos críticos.
 
 ### Qual o limite de páginas no OCR?
-Cerca de **30 páginas** no fluxo atual, além do teto de tamanho (~50 MB). Divida o PDF se precisar de mais.
+**30 páginas** no fluxo OCR atual, além do teto de **50 MB** por arquivo (mesmos valores da UI / `FILE_LIMITS`). Divida o PDF se precisar de mais.
 
 ### Preciso de cadastro?
 Não. A ferramenta é grátis e sem conta no uso típico.

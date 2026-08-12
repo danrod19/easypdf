@@ -77,14 +77,9 @@ function upsertRobots(content: string | null): void {
  * - **Home estática:** `index.html` já inclui
  *   `<link rel="canonical" href="https://easypdflocal.com.br/" />`
  *   legível sem JS (primeiro hit HTML).
- * - **Demais rotas:** em SPA pura (Vite → Cloudflare Pages / SWA),
- *   o HTML servido é o mesmo shell; a canonical por rota é atualizada
- *   aqui via DOM após o React hidratar. Crawlers que executam JS
- *   (Googlebot moderno) veem a URL correta; bots só-HTML veem a home.
- * - **Não viável de forma simples no deploy estático:** gerar um
- *   `index.html` distinto por rota (SSR/prerender multi-page) sem
- *   complicar o pipeline Cloudflare Pages. `sitemap.xml` + canonical
- *   runtime cobrem o caso prático.
+ * - **Demais rotas:** com prerender (build + Playwright), o HTML por rota
+ *   já traz canonical; o hook atualiza no cliente após montar.
+ * - Deploy: Cloudflare Worker `easypdf` + assets (não Pages/SWA).
  * - Sempre absolute HTTPS, sem query/hash (`buildCanonicalUrl`).
  */
 export function useSEO({

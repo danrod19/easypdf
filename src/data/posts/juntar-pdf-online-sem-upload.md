@@ -80,14 +80,16 @@ A ferramenta é gratuita no site. Não inventamos “milhões de usuários” ne
 
 ## Limitações honestas (para o navegador não travar)
 
-Processar PDF **no cliente** usa a memória e a CPU do *seu* aparelho. Por isso existem limites técnicos — não para “forçar plano pago”, mas para evitar falha (especialmente em celulares):
+Processar PDF **no cliente** usa a memória e a CPU do *seu* aparelho. Por isso existem limites técnicos — não para “forçar plano pago”, mas para evitar falha (especialmente em celulares).
 
-| Limite | Valor aproximado (Easy PDF Local) |
-|--------|-----------------------------------|
+**Fonte de verdade:** os números abaixo espelham `FILE_LIMITS` / `LIMIT_NUMBERS` do app (o mesmo bloco “Limites técnicos” na ferramenta [Juntar PDF](/juntar-pdf)). Se a UI e o artigo divergirem no futuro, **confie na ferramenta**.
+
+| Limite | Valor atual (app) |
+|--------|-------------------|
 | Tamanho por arquivo | até **50 MB** |
 | Arquivos por vez (merge) | até **20** PDFs |
 | Tamanho total da fila | até **80 MB** combinados |
-| Páginas (proteção geral) | ordem de **centenas** de páginas no total do fluxo; arquivos extremos podem falhar em aparelhos fracos |
+| Páginas (ops gerais / proteção) | ordem de até cerca de **150** páginas |
 
 Se o conjunto for maior, divida o trabalho: junte em lotes menores e depois una os resultados, ou use um desktop com mais memória. Também é comum [comprimir PDF](/comprimir-pdf) *antes* se os arquivos forem scans pesados.
 
@@ -119,7 +121,7 @@ Sim. No Easy PDF Local o merge roda no navegador (client-side). Os PDFs ficam na
 Não. Não pedimos e-mail, conta nem cartão para usar a ferramenta [Juntar PDF](/juntar-pdf).
 
 ### Quantos arquivos posso unir de uma vez?
-Até **20 PDFs** por operação, com cerca de **50 MB por arquivo** e até **80 MB no total** da fila. Esses limites protegem a memória do navegador (sobretudo no celular).
+Até **20 PDFs** por operação, com **50 MB por arquivo** e até **80 MB no total** da fila (mesmos tetos da UI / `FILE_LIMITS`). Esses limites protegem a memória do navegador (sobretudo no celular).
 
 ### Funciona no celular?
 Sim, no navegador do telefone. Em aparelhos com pouca RAM, prefira menos arquivos ou tamanhos menores por vez.
