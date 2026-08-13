@@ -118,10 +118,10 @@ Helpers: `src/lib/runPdfWorker.ts`, `src/lib/pdfOpsWorker.ts`, `src/lib/mergePdf
 
 ## Monetização
 
-Placeholders com classe `adsense-slot` e `data-adsense-placement`:
-
-- laterais (desktop): `sidebar-left`, `sidebar-right`
-- abaixo do CTA (mobile): `below-cta`
+- **ads.txt:** `public/ads.txt` → copiado para `dist/ads.txt` no `vite build` (também em `includeAssets` da PWA). Linha: `google.com, pub-1776280342582118, DIRECT, f08c47fec0942fa0`.
+- **AdSense:** slots placeholder (`XXXXXXXXXX`) **não** renderizam UI “Publicidade” (`canMountAdSenseUnit`).
+- **Afiliados:** banner após o conteúdo da tool (oculto em `/privacidade`, `/termos`, `/sobre`, `/contato`).
+- Placements (quando slot real + consent granted): topo/rodapé (`AdBanner`), laterais e below-cta (`AdSlot`).
 
 ## Licença
 

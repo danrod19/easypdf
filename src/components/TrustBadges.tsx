@@ -8,19 +8,21 @@ type TrustBadgesProps = {
 
 const badges = [
   {
-    label: 'Privacidade Absoluta',
-    description: 'Seus arquivos nunca saem da sua máquina',
+    label: 'Processamento local',
+    description:
+      'Seus PDFs são processados no navegador — sem upload do arquivo para a nossa nuvem',
     Icon: ShieldCheck,
   },
   {
-    label: 'Processamento Local',
-    description: 'Tudo roda no seu próprio navegador. Sem nuvem, sem lentidão',
+    label: 'No seu dispositivo',
+    description:
+      'Merge, compressão e conversões rodam no seu hardware; a velocidade depende do aparelho',
     Icon: Cpu,
   },
   {
     label: 'Grátis e sem cadastro',
     description:
-      'Sem conta e sem cota diária de uso — com limites técnicos do navegador para estabilidade',
+      'Tools principais sem conta — com limites técnicos de tamanho/páginas para o navegador não travar',
     Icon: Gift,
   },
 ] as const;

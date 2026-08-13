@@ -97,8 +97,9 @@ export function AffiliateBanner() {
 
       <div className="mt-4 text-center">
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Faça suas compras no mercado livre a partir dos nossos links e ajude
-          na manutenção do site.{' '}
+          Links de afiliados (patrocinados): se você comprar pelo parceiro,
+          podemos receber comissão — sem custo extra para você. Ajuda a manter o
+          site grátis.{' '}
           <a
             href="https://meli.la/1GK6w1X"
             target="_blank"
@@ -113,7 +114,7 @@ export function AffiliateBanner() {
             }
             className="font-bold text-red-600 hover:underline dark:text-red-400"
           >
-            Acessar Lista ML
+            Lista de ofertas (Mercado Livre)
           </a>
         </p>
       </div>

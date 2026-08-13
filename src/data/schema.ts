@@ -91,10 +91,10 @@ export function buildSoftwareApplicationSchema() {
       url: SITE_ORIGIN,
     },
     featureList: [
-      'Processamento 100% client-side',
-      'Sem upload de arquivos',
-      'Grátis, sem cadastro e sem cota diária de uso',
-      'Privacidade total no dispositivo',
+      'Processamento 100% client-side no navegador',
+      'Sem upload do PDF para processar em servidor nosso',
+      'Grátis e sem cadastro nas tools principais',
+      'Limites técnicos honestos de tamanho e páginas',
     ],
     browserRequirements:
       'Requires JavaScript. Works offline after first load (PWA).',

@@ -124,9 +124,9 @@ export const homeSeoContent: ToolSeoBlock = {
         'Usamos bibliotecas no navegador (pdf-lib, jsPDF, Tesseract.js e outras). O merge, a divisão, a rotação e as conversões acontecem no seu aparelho, não em um data center.',
     },
     {
-      title: 'Sem upload = sem risco de vazamento no servidor',
+      title: 'Sem upload do arquivo para processar',
       description:
-        'Se o arquivo não sobe para a nuvem, não há cópia nossa para vazar, indexar ou reter. Ideal para contratos, exames, documentos pessoais e material de trabalho.',
+        'Como o PDF não sobe para um pipeline nosso de conversão, não criamos cópia do documento no servidor. Ideal para contratos, exames e material de trabalho — com limites técnicos do navegador.',
     },
     {
       title: 'Grátis, sem conta e sem instalação',
@@ -144,17 +144,17 @@ export const homeSeoContent: ToolSeoBlock = {
     {
       question: 'Meus arquivos são enviados para a internet?',
       answer:
-        'Não. Os documentos selecionados permanecem no seu navegador. Apenas a página (HTML/JS) e, em alguns casos, assets públicos (como modelos de OCR na primeira carga) usam a rede — nunca o conteúdo do seu PDF ou imagem.',
+        'Não. Os documentos que você seleciona permanecem no navegador para processar. A rede é usada para carregar a página, scripts e, no OCR, o modelo de idioma self-host do próprio site — nunca o conteúdo do seu PDF ou imagem para um servidor de conversão nosso.',
     },
     {
       question: 'Posso usar offline?',
       answer:
-        'Depois que a página e as bibliotecas forem carregadas, o processamento em si não depende de enviar seus arquivos. Para a primeira visita (e OCR na primeira vez), é preciso internet para baixar o site e o modelo de idioma. Em seguida, a manipulação dos arquivos é local.',
+        'Depois que a página e as bibliotecas forem carregadas, o processamento não envia seus arquivos. Na primeira visita (e na primeira vez do OCR) é preciso internet para baixar o site e o modelo de idioma em /tesseract/. Depois, a manipulação dos arquivos é local.',
     },
     {
       question: 'É realmente grátis?',
       answer:
-        'Sim. As ferramentas principais são gratuitas e sem cadastro. Anúncios podem ajudar a manter o serviço no ar sem cobrar do usuário final.',
+        'Sim. As ferramentas principais são gratuitas e sem cadastro. Há limites técnicos de tamanho e páginas (navegador/memória), não cota de “plano”. Anúncios e afiliados podem ajudar a manter o serviço no ar.',
     },
   ],
 };

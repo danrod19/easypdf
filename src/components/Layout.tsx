@@ -25,8 +25,13 @@ export function Layout() {
   const sidebarId = useId();
   const softwareAppSchema = buildSoftwareApplicationSchema();
 
-  // Sem afiliados em páginas legais (transparência / AdSense)
-  const hideBannerRoutes = ['/privacidade', '/termos'];
+  // Sem afiliados em páginas legais/institucionais (transparência / AdSense)
+  const hideBannerRoutes = [
+    '/privacidade',
+    '/termos',
+    '/sobre',
+    '/contato',
+  ];
   const showBanner = !hideBannerRoutes.includes(location.pathname);
 
   // Só reserva layout de ad com slot real (não placeholder XXXXXXXXXX)

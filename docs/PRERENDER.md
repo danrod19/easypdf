@@ -293,7 +293,7 @@ npx serve dist
 ## Limitações
 
 - Fora do Action oficial, o fail-soft pode deixar o `dist` **sem** HTML por rota (SEO menos ideal; o site SPA ainda funciona).
-- HTML capturado inclui UI atual (banner de privacidade, placeholders de ad, cookie se visível).
+- HTML capturado inclui UI atual (banner de privacidade, cookie se visível). Unidades AdSense só montam com slot real + consentimento — sem bloco “Publicidade” vazio.
 - Conteúdo que só existe após upload/processamento do usuário **não** é pré-renderizado.
 - Não é hidratação SSR: pode haver um breve re-paint quando o JS monta.
 - Service Worker da PWA é bloqueado **durante** o capture; em produção o SW precacheia os HTML gerados (quando existirem).
