@@ -346,18 +346,19 @@ export default function GirarPdfPage() {
             Ferramenta gratuita · Sem upload
           </p>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Girar PDF
+            Girar PDF online
           </h1>
           <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Rotacione todas as páginas ou apenas um intervalo (ex.:{' '}
+            Vire páginas de lado ou de cabeça para baixo: 90° à esquerda ou à
+            direita, em todas as páginas ou só um intervalo (ex.:{' '}
             <code className="rounded bg-slate-100 px-1.5 py-0.5 text-sm dark:bg-slate-800">
               1, 3-5
             </code>
-            ). Ajuste quantas vezes quiser e baixe com{' '}
+            ). Salve a cópia no navegador —{' '}
             <strong className="font-semibold text-slate-800 dark:text-slate-200">
-              pdf-lib no seu navegador
+              sem upload
             </strong>{' '}
-            — nada sobe para a nuvem.
+            e sem cadastro.
           </p>
         </header>
 

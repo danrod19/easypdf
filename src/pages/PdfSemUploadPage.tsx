@@ -180,6 +180,9 @@ export default function PdfSemUploadPage() {
               <Zap className="h-4 w-4" aria-hidden />
               Começar: Juntar PDF
             </Link>
+            <Link to="/girar-pdf" className="btn-secondary">
+              Girar PDF
+            </Link>
             <Link to="/comprimir-pdf" className="btn-secondary">
               Comprimir PDF
             </Link>
@@ -412,6 +415,9 @@ export default function PdfSemUploadPage() {
             <Link to="/juntar-pdf" className="btn-primary">
               Juntar PDF
             </Link>
+            <Link to="/girar-pdf" className="btn-secondary">
+              Girar PDF (virar página)
+            </Link>
             <Link to="/comprimir-pdf" className="btn-secondary">
               Comprimir PDF
             </Link>
@@ -474,15 +480,15 @@ export default function PdfSemUploadPage() {
             </li>
             <li>
               <Link
-                to="/blog/infraestrutura-nuvem-vs-local"
+                to="/blog/girar-pdf-online-sem-upload"
                 className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-4 transition hover:border-brand-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-700"
               >
                 <span className="inline-flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-100">
                   <BookOpen className="h-3.5 w-3.5" aria-hidden />
-                  Nuvem vs. processamento local
+                  Guia: girar PDF / cabeça para baixo
                 </span>
                 <span className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                  Por que o modelo client-side importa
+                  Como virar páginas no navegador, sem upload
                 </span>
               </Link>
             </li>

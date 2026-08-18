@@ -1,6 +1,6 @@
-# Girar PDF online sem upload: corrigir páginas no navegador
+# Como girar um PDF online sem upload (e virar página de cabeça para baixo)
 
-Você digitalizou um documento no celular e as páginas saíram **de lado** ou **de cabeça para baixo**. Precisa **girar PDF online** — e a maioria dos sites pede *upload* do arquivo. Em troca da conveniência, o PDF (muitas vezes um exame, um contrato ou um comprovante) sobe para um servidor que você não controla.
+Você digitalizou um documento no celular e as páginas saíram **de lado** ou **de cabeça para baixo**. Precisa **girar PDF** ou **virar PDF online** — e a maioria dos sites pede *upload* do arquivo. Em troca da conveniência, o PDF (muitas vezes um exame, um contrato ou um comprovante) sobe para um servidor que você não controla.
 
 No **Easy PDF Local**, rotacionar páginas acontece **no navegador**. O arquivo **não sai do seu dispositivo** para ser processado na nuvem da ferramenta: você gira 90° à esquerda ou à direita, em todas as páginas ou só em um intervalo, e baixa a cópia corrigida. **Sem cadastro**, grátis no uso típico, com limites técnicos honestos.
 
@@ -102,9 +102,9 @@ Aparelhos com pouca RAM preferem arquivos menores. Não afirmamos “ilimitado�
 
 ## Conclusão
 
-**Girar PDF online** não precisa significar enviar o documento a um servidor desconhecido. Com o Easy PDF Local você **rotaciona páginas no navegador**, **sem cadastro** e **sem upload de processamento**, com o princípio claro: o arquivo permanece no seu dispositivo até o download da cópia corrigida.
+**Como girar um PDF** (ou **virar página de cabeça para baixo**) não precisa significar upload. No Easy PDF Local a rotação é **no navegador**, **sem cadastro** e **sem enviar o arquivo para processar** — você salva a cópia no dispositivo.
 
-**[→ Girar PDF — easypdflocal.com.br/girar-pdf](/girar-pdf)**
+**[→ Abrir a ferramenta Girar PDF (90°, sem upload)](/girar-pdf)**
 
 Próximos passos comuns: [Remover páginas](/remover-paginas) em branco ou [Juntar PDF](/juntar-pdf). Conceito da suíte: [PDF sem upload](/pdf-sem-upload).
 

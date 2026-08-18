@@ -136,7 +136,7 @@ export const tools: ToolMeta[] = [
     title: 'Girar PDF',
     shortTitle: 'Girar',
     description:
-      'Rotacione páginas 90° à esquerda ou à direita — todas ou só um intervalo.',
+      'Vire páginas de lado ou de cabeça para baixo — 90° no navegador, sem upload.',
     icon: 'rotate',
     status: 'ready',
     accent: 'orange',

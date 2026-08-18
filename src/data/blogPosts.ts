@@ -79,12 +79,12 @@ export const blogPosts: BlogPostMeta[] = [
     id: 'girar-pdf-online-sem-upload',
     slug: 'girar-pdf-online-sem-upload',
     title:
-      'Girar PDF online sem upload: corrigir páginas no navegador',
+      'Como girar um PDF online sem upload (e virar página de cabeça para baixo)',
     excerpt:
-      'Rotacione páginas de PDF 90° no navegador, sem upload e sem cadastro. Corrija PDF de cabeça para baixo com privacidade local.',
-    seoTitle: 'Girar PDF online sem upload | Easy PDF Local',
+      'Aprenda a girar PDF ou virar páginas de lado/cabeça para baixo no navegador — 90°, sem upload e sem cadastro.',
+    seoTitle: 'Como girar um PDF online sem upload | Virar página',
     seoDescription:
-      'Gire PDF no navegador sem upload e sem cadastro. 90° esquerda/direita, todas as páginas ou intervalo — limites honestos.',
+      'Como girar um PDF ou virar página de cabeça para baixo no navegador. 90° sem upload — abra a ferramenta Girar PDF.',
     date: '2026-07-31',
     readTime: '8 min',
     tags: ['Girar PDF', 'Privacidade', 'Sem upload'],

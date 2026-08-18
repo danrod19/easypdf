@@ -65,9 +65,9 @@ export const seoByPath: Record<string, SeoMeta> = {
     path: '/dividir-pdf',
   },
   '/girar-pdf': {
-    title: 'Girar PDF Online Grátis | Sem Upload no Navegador',
+    title: 'Girar PDF Online Grátis | Virar Página Sem Upload',
     description:
-      'Gire páginas de PDF grátis no navegador, sem upload e sem cadastro. 90° esquerda/direita, todas ou por intervalo.',
+      'Como girar um PDF ou virar página de cabeça para baixo no navegador. 90° esquerda/direita, grátis, sem upload e sem cadastro.',
     path: '/girar-pdf',
   },
   '/marca-dagua': {

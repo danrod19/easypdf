@@ -299,6 +299,11 @@ export const juntarPdfSeoContent: ToolSeoBlock = {
       description: 'Reduzir tamanho após unir scans pesados',
     },
     {
+      path: '/girar-pdf',
+      label: 'Girar PDF',
+      description: 'Virar páginas de lado ou de cabeça para baixo',
+    },
+    {
       path: '/dividir-pdf',
       label: 'Dividir PDF',
       description: 'Extrair só as páginas que importam',
@@ -461,6 +466,11 @@ export const dividirPdfSeoContent: ToolSeoBlock = {
       description: 'Unir trechos ou arquivos de novo',
     },
     {
+      path: '/girar-pdf',
+      label: 'Girar PDF',
+      description: 'Corrigir páginas de lado ou de cabeça para baixo',
+    },
+    {
       path: '/remover-paginas',
       label: 'Remover páginas',
       description: 'Excluir com miniaturas visuais',
@@ -478,95 +488,95 @@ export const dividirPdfSeoContent: ToolSeoBlock = {
   ],
 };
 
-/** /girar-pdf — conteúdo SEO expandido */
+/** /girar-pdf — conteúdo SEO expandido (queries: girar/virar PDF, cabeça para baixo) */
 export const girarPdfSeoContent: ToolSeoBlock = {
   toolName: 'Girar PDF',
   schemaDescription:
-    'Gire páginas de PDF grátis no navegador, sem upload e sem cadastro. 90° esquerda/direita, todas ou por intervalo.',
+    'Como girar um PDF ou virar página de cabeça para baixo no navegador. 90° esquerda/direita, grátis, sem upload e sem cadastro.',
   overview: [
-    'Girar PDF corrige páginas deitadas ou de cabeça para baixo — comum em scans de celular e digitalizações. No Easy PDF Local você gira 90° à esquerda ou à direita, em todas as páginas ou só em um intervalo, e salva uma cópia — sem upload para a nuvem da ferramenta.',
-    'A rotação no PDF é, em geral, metadado de orientação: o conteúdo não precisa ser reimpresso como imagem. Texto e vetores tendem a manter a qualidade. O fluxo é grátis, sem cadastro e 100% no navegador.',
-    'Você pode combinar várias rotações (estado local) e só então clicar em salvar para aplicar com pdf-lib e baixar o arquivo.',
+    'Precisa girar PDF ou virar uma página de cabeça para baixo depois de um scan no celular? No Easy PDF Local você corrige a orientação no navegador: 90° à esquerda ou à direita, em todas as páginas ou só em um intervalo — sem upload do arquivo para processar e sem cadastro.',
+    '“Virar PDF” e “girar PDF online” costumam apontar para sites que pedem upload. Aqui o fluxo é local: o PDF fica no dispositivo, você ajusta a rotação e salva uma cópia. Em geral a orientação é metadado de página — não é o mesmo que capturar tela, girar JPEG e montar de novo.',
+    'Combine quantos giros de 90° precisar (estado local) e só então clique em Salvar: o pdf-lib aplica os ângulos no cliente e você baixa o resultado.',
   ],
   audienceTitle: 'Para quem serve',
   audience:
-    'Quem digitaliza documentos no celular; escritórios que recebem PDFs tortos; estudantes com apostilas escaneadas; qualquer pessoa que precise corrigir orientação sem instalar Adobe ou app pago.',
+    'Quem digitaliza no celular e recebe PDF de lado ou de cabeça para baixo; escritórios com comprovantes tortos; estudantes com apostilas escaneadas; quem quer saber como girar um PDF sem instalar Adobe nem enviar o arquivo à nuvem.',
   useCasesTitle: 'Casos de uso práticos',
   useCases: [
     {
+      title: 'PDF de cabeça para baixo',
+      description:
+        'Gire 180° (dois cliques de 90°) em todas as páginas ou só nas invertidas e salve a cópia legível.',
+    },
+    {
       title: 'Scan de celular de lado',
       description:
-        'Gire todas as páginas 90° e baixe o PDF legível na vertical.',
+        'Vire o documento 90° para a vertical — comum após fotografar ou digitalizar no telefone.',
     },
     {
       title: 'Só uma página errada',
       description:
-        'Use o intervalo (ex.: 3 ou 2-4) para girar apenas o que está invertido.',
+        'Use o intervalo (ex.: 3 ou 2-4) para girar apenas o que está invertido no meio do arquivo.',
     },
     {
       title: 'Antes de juntar ou enviar',
       description:
-        'Padronize a orientação e depois una arquivos ou anexe no e-mail.',
-    },
-    {
-      title: 'Documentos sensíveis',
-      description:
-        'Exames e contratos corrigidos localmente, sem upload a um site de terceiros.',
+        'Padronize a orientação e depois una PDFs ou anexe no e-mail — tudo no mesmo modelo local.',
     },
   ],
-  howToTitle: 'Como girar PDF no navegador (passo a passo)',
+  howToTitle: 'Como girar um PDF no navegador (passo a passo)',
   howToIntro:
-    'A UI fica no topo: carregue o PDF, escolha o modo (todas ou intervalo), gire e salve localmente.',
+    'Fluxo curto: abra o PDF no dispositivo, escolha todas as páginas ou um intervalo, gire 90° e salve a cópia — sem upload para processar.',
   steps: [
     {
       title: 'Abra o PDF no dispositivo',
       description:
-        'Selecione o arquivo. A contagem de páginas e o estado de rotação ficam na sessão do navegador.',
+        'Selecione o arquivo no seletor ou arraste e solte. Contagem de páginas e rotações ficam na sessão do navegador — nada sobe para processar.',
     },
     {
       title: 'Escolha todas as páginas ou um intervalo',
       description:
-        'Gire o documento inteiro ou informe páginas (ex.: 1, 3-5). Use esquerda ou direita em passos de 90°.',
+        'Para virar o PDF inteiro, use “todas”. Para corrigir só folhas invertidas, informe o intervalo (ex.: 1, 3-5).',
     },
     {
-      title: 'Ajuste quantas vezes precisar',
+      title: 'Gire 90° à esquerda ou à direita',
       description:
-        'As rotações ficam pendentes até você salvar — combine giros antes de gerar o arquivo.',
+        'Cada clique soma 90°. PDF de cabeça para baixo costuma precisar de dois cliques (180°). Ajuste quantas vezes quiser antes de salvar.',
     },
     {
-      title: 'Salve e baixe',
+      title: 'Salve e baixe a cópia',
       description:
-        'pdf-lib aplica os ângulos no cliente. Confira a pré-visualização e baixe a cópia rotacionada.',
+        'Clique em Salvar: o pdf-lib aplica os ângulos no cliente. Confira a pré-visualização e baixe o PDF rotacionado no dispositivo.',
     },
   ],
   benefitsTitle: 'Por que girar PDF sem upload',
   benefitsIntro:
-    'Corrigir orientação não deveria exigir enviar o documento a um servidor. Aqui o processamento é local e transparente.',
+    'Corrigir orientação (virar página, cabeça para baixo, scan de celular) não precisa enviar o documento a um servidor. O processamento é local e transparente.',
   benefits: [
     {
-      title: 'Sem perda típica de “reexportar imagem”',
+      title: 'Sem reexportar como imagem',
       description:
-        'Rotação de página no PDF preserva conteúdo embutido na maioria dos casos — não é o mesmo que capturar tela e girar JPEG.',
+        'Rotação de página no PDF preserva texto e vetores na maioria dos casos — diferente de capturar tela e girar JPEG.',
     },
     {
       title: 'Privacidade no dispositivo',
       description:
-        'Arquivo e ângulos ficam no navegador até o download da cópia.',
+        'Arquivo e ângulos ficam no navegador até o download da cópia. Sem cadastro.',
     },
     {
-      title: 'Grátis e sem cadastro',
+      title: 'Grátis e sem instalar app',
       description:
-        'Sem conta e sem instalar leitor desktop só para um ajuste pontual.',
+        'Funciona no PC e no celular pelo navegador — útil logo após o scan, sem leitor desktop só para um ajuste.',
     },
     {
       title: 'Controle por página',
       description:
-        'Intervalos permitem corrigir só o que está errado em relatórios longos.',
+        'Intervalos permitem girar só o que está errado em relatórios longos.',
     },
   ],
   limitsTitle: 'Limites técnicos honestos',
   limitsIntro:
-    'Como nas outras tools, há tetos de arquivo e páginas para estabilidade no navegador.',
+    'Há tetos de arquivo e páginas para o navegador não travar — não é “ilimitado” e não é cota de plano pago.',
   limits: [
     { label: 'Tamanho', text: `Até ${MAX_FILE_MB} MB por PDF.` },
     {
@@ -575,43 +585,53 @@ export const girarPdfSeoContent: ToolSeoBlock = {
     },
     {
       label: 'Ângulos',
-      text: 'Passos de 90° (esquerda/direita), não rotação livre em graus arbitrários na UI.',
+      text: 'Passos de 90° (esquerda/direita) na UI — não há rotação livre em graus arbitrários.',
     },
     {
       label: 'Senha',
-      text: 'PDFs protegidos devem ser desbloqueados antes, se necessário.',
+      text: 'PDFs protegidos: desbloqueie antes (com a senha correta), se necessário.',
     },
   ],
-  faqTitle: 'Perguntas frequentes sobre girar PDF',
+  faqTitle: 'Perguntas frequentes sobre girar e virar PDF',
   faqs: [
     {
-      question: 'Girar PDF online aqui envia o arquivo?',
+      question: 'Como girar um PDF online sem enviar o arquivo?',
       answer:
-        'Não para processar. A rotação roda no navegador; o download parte do seu dispositivo.',
+        'Abra a ferramenta Girar PDF, selecione o arquivo no dispositivo, gire 90° (todas as páginas ou intervalo) e clique em Salvar. A rotação roda no navegador; o download parte do seu aparelho.',
     },
     {
-      question: 'A qualidade cai?',
+      question: 'Como virar um PDF de cabeça para baixo?',
+      answer:
+        'Use dois giros de 90° (180°) em todas as páginas ou só nas invertidas, depois Salvar. Em geral isso corrige o PDF de cabeça para baixo sem reexportar como imagem.',
+    },
+    {
+      question: 'Girar PDF aqui faz upload?',
+      answer:
+        'Não para processar. O arquivo fica no navegador; não usamos um servidor nosso de rotação.',
+    },
+    {
+      question: 'A qualidade cai ao girar?',
       answer:
         'Em condições normais, não: orientação de página não equivale a recompactar tudo como imagem.',
     },
     {
       question: 'Consigo girar só uma página?',
       answer:
-        'Sim. Use o modo de páginas específicas com o número ou intervalo desejado.',
+        'Sim. Use o modo de páginas específicas com o número ou intervalo (ex.: 3 ou 2-4).',
     },
     {
-      question: 'Preciso de cadastro?',
-      answer: 'Não. Grátis e sem conta.',
-    },
-    {
-      question: 'Funciona no celular?',
+      question: 'Funciona no celular após o scan?',
       answer:
-        'Sim. Toque e botões de 90° funcionam no navegador mobile.',
+        'Sim, no navegador do telefone. Em PDFs muito grandes, um desktop com mais memória pode ser mais confortável.',
     },
     {
       question: 'Por que preciso clicar em Salvar?',
       answer:
         'Os botões de girar ajustam o estado local; “Salvar” aplica tudo de uma vez e gera o PDF para download.',
+    },
+    {
+      question: 'Preciso de cadastro?',
+      answer: 'Não. Grátis e sem conta no uso típico.',
     },
   ],
   relatedTitle: 'Ferramentas e guias relacionados',
@@ -633,8 +653,8 @@ export const girarPdfSeoContent: ToolSeoBlock = {
     },
     {
       path: '/blog/girar-pdf-online-sem-upload',
-      label: 'Guia: girar PDF sem upload',
-      description: 'Artigo completo no blog',
+      label: 'Guia: como girar PDF sem upload',
+      description: 'Artigo com scan, cabeça para baixo e 90°',
     },
     {
       path: '/pdf-sem-upload',
@@ -1707,6 +1727,11 @@ export const removerPaginasSeoContent: ToolSeoBlock = {
       path: '/dividir-pdf',
       label: 'Dividir PDF',
       description: 'Extrair por intervalo numérico',
+    },
+    {
+      path: '/girar-pdf',
+      label: 'Girar PDF',
+      description: 'Virar páginas tortas antes de limpar o arquivo',
     },
     {
       path: '/blog/remover-paginas-pdf-sem-upload',
