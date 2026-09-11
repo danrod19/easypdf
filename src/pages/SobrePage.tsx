@@ -42,7 +42,7 @@ const mainTools = [
 
 /**
  * /sobre — página institucional (E-E-A-T / confiança).
- * Sem equipe fictícia, CNPJ inventado, prêmios ou números de usuários.
+ * Identidade: só o nome publicado (Daniel Rodrigues). Sem CNPJ, equipe, sede, foto.
  */
 export default function SobrePage() {
   const seo = getSeoForPath('/sobre');
@@ -211,21 +211,14 @@ export default function SobrePage() {
             >
               Quem mantém o projeto
             </h2>
-            <p className="mt-2">
-              O Easy PDF Local é um{' '}
-              <strong>projeto mantido de forma independente</strong>, idealizado
-              e cuidado por um profissional brasileiro com experiência em
-              suporte técnico, redes e sistemas de telecomunicações. Não há
-              “equipe de dezenas de pessoas”, sede fictícia ou CNPJ inventado
-              nesta página — o que importa é a responsabilidade pelo produto e
-              a clareza sobre como ele funciona.
+            <p className="mt-2 font-semibold text-slate-900 dark:text-white">
+              Daniel Rodrigues
             </p>
             <p className="mt-2">
-              No dia a dia de TI, o risco de vazar um PDF sensível em um
-              conversor de terceiros é concreto. Essa experiência molda o
-              produto: menos dependência de nuvem para processar arquivo, mais
-              transparência e zero conta obrigatória para as ferramentas
-              principais. Dúvidas ou feedback: página de{' '}
+              Projeto mantido de forma independente por Daniel Rodrigues.
+            </p>
+            <p className="mt-2">
+              Dúvidas ou feedback:{' '}
               <Link
                 to="/contato"
                 className="font-medium text-brand-600 underline-offset-2 hover:underline dark:text-brand-400"

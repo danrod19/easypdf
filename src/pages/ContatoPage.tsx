@@ -66,11 +66,20 @@ export default function ContatoPage() {
             >
               Como falar com o mantenedor
             </h2>
+            <p className="mt-2 font-semibold text-slate-900 dark:text-white">
+              Daniel Rodrigues
+            </p>
             <p className="mt-2">
-              O canal principal é o e-mail abaixo. Não há chat 24h nem fila de
-              atendimento empresarial: o projeto é mantido de forma
-              independente. Respondemos quando for possível, com clareza — sem
-              spam e sem newsletter forçada.
+              Projeto mantido de forma independente por Daniel Rodrigues. O
+              canal é o e-mail{' '}
+              <a
+                href={MAILTO}
+                className="font-medium text-brand-600 underline-offset-2 hover:underline dark:text-brand-400"
+              >
+                {CONTACT_EMAIL}
+              </a>
+              . Sem chat 24h nem fila empresarial — resposta quando for
+              possível, sem spam e sem newsletter forçada.
             </p>
           </section>
 
