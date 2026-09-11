@@ -10,16 +10,9 @@ import { AdBanner } from './AdBanner';
 import { Sidebar } from './Sidebar';
 import { ErrorBoundary } from './ErrorBoundary';
 import { TrustBadges } from './TrustBadges';
-import { AffiliateBanner } from './AffiliateBanner';
 import { JsonLd } from './JsonLd';
 import { buildSoftwareApplicationSchema } from '../data/schema';
 import { ADSENSE_SLOTS, canMountAdSenseUnit } from '../data/adsense';
-import { tools } from '../data/tools';
-
-/** Só tools ready — 404, hub, blog e institucionais ficam de fora. */
-const AFFILIATE_BANNER_PATHS = new Set(
-  tools.filter((t) => t.status === 'ready').map((t) => t.path)
-);
 
 /**
  * Layout global: sidebar fixa (desktop) + drawer off-canvas (mobile)
@@ -30,9 +23,6 @@ export function Layout() {
   const location = useLocation();
   const sidebarId = useId();
   const softwareAppSchema = buildSoftwareApplicationSchema();
-
-  // AffiliateBanner só em rotas de tool (abaixo do Outlet / SEO).
-  const showBanner = shouldShowAffiliateBanner(location.pathname);
 
   // Só reserva layout de ad com slot real (não placeholder XXXXXXXXXX)
   const showAdTop = canMountAdSenseUnit(ADSENSE_SLOTS.top);
@@ -187,9 +177,6 @@ export function Layout() {
                     <Outlet />
                   </Suspense>
                 </ErrorBoundary>
-
-                {/* Afiliados: whitelist de tools, abaixo do SEO — nunca no hero */}
-                {showBanner && <AffiliateBanner />}
               </main>
 
               {showAdSidebarRight && (
@@ -220,18 +207,6 @@ export function Layout() {
       <CookieBanner />
     </div>
   );
-}
-
-/**
- * AffiliateBanner só se o pathname for uma tool ready.
- * /pdf-sem-upload, 404, home, legal, /blog* → false.
- */
-function shouldShowAffiliateBanner(pathname: string): boolean {
-  const p =
-    pathname.length > 1 && pathname.endsWith('/')
-      ? pathname.slice(0, -1)
-      : pathname;
-  return AFFILIATE_BANNER_PATHS.has(p);
 }
 
 function HamburgerIcon({ className }: { className?: string }) {
