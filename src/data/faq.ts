@@ -47,4 +47,10 @@ export const defaultFaqItems: FaqItem[] = [
     answer:
       "Dependendo da ferramenta: PDF para juntar, dividir, girar, marca d'água, desenhar e extrair texto; DOCX para Word → PDF; JPEG, PNG e WebP para Imagem → PDF. Tudo com validação no navegador antes do processamento.",
   },
+  {
+    id: 'cookies',
+    question: 'O site usa cookies? Eles leem o conteúdo do meu PDF?',
+    answer:
+      'Cookies e scripts de medição/publicidade (quando ativos e com o consentimento exigido) tratam de navegação e anúncios — não leem o PDF, DOCX ou imagem que você processa na ferramenta. Preferências ficam no rodapé. Detalhes na Política de Privacidade.',
+  },
 ];

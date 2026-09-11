@@ -5,8 +5,8 @@ import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
-import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
+import { ToolPageIntro } from '../components/ToolPageIntro';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { FileLimitsNotice } from '../components/FileLimitsNotice';
 import { imagemParaPdfSeoContent } from '../data/toolSeoContent';
@@ -28,44 +28,10 @@ import {
   isSupportedImageFile,
 } from '../lib/imageToPdf';
 import { downloadBlob } from '../lib/format';
-import type { FaqItem } from '../data/faq';
 
 function createId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
-
-const imagePdfFaqItems: FaqItem[] = [
-  {
-    id: 'juntar-varias',
-    question: 'Como juntar várias imagens em um único PDF?',
-    answer:
-      'Envie múltiplos arquivos JPG ou PNG de uma vez no DropZone (ou adicione em etapas). As miniaturas aparecem em grade — use Subir/Descer para reordenar e defina a sequência das páginas. Clique em “Gerar PDF”: cada imagem vira uma página no mesmo arquivo, com pdf-lib no seu navegador.',
-  },
-  {
-    id: 'qualidade',
-    question: 'Meus JPGs perdem qualidade?',
-    answer:
-      'Não. JPEG e PNG são embutidos nativamente no PDF (embedJpg / embedPng), sem recompactação destrutiva. A página usa as dimensões exatas da imagem original — não redimensionamos para A4. Assim a nitidez e a compressão do arquivo de origem são preservadas.',
-  },
-  {
-    id: 'tamanho-pagina',
-    question: 'A página do PDF fica no tamanho A4?',
-    answer:
-      'Não. Adotamos a abordagem “página = tamanho da imagem”: cada página tem width e height iguais aos pixels da imagem embutida. Isso evita bordas brancas e distorção. Visualizadores de PDF escalam a visualização; a impressão em A4 pode exigir “ajustar à página” no diálogo de impressão.',
-  },
-  {
-    id: 'seguro',
-    question: 'É seguro converter imagens em PDF aqui?',
-    answer:
-      'Sim. Todo o processamento roda 100% offline no navegador. Suas imagens nunca são enviadas a servidores — ficam só na memória do dispositivo até o download de imagens-convertidas.pdf.',
-  },
-  {
-    id: 'formatos',
-    question: 'Quais formatos de imagem são aceitos?',
-    answer:
-      'Principalmente JPEG (.jpg/.jpeg) e PNG (.png). Arquivos WebP podem ser aceitos e convertidos internamente para PNG antes do embed. Outros formatos (GIF, BMP, HEIC) não são suportados nesta ferramenta.',
-  },
-];
 
 /**
  * Página /imagem-para-pdf — 1..N imagens → um PDF (pdf-lib).
@@ -244,25 +210,7 @@ export default function ImagemParaPdfPage() {
       <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
-        <header className="space-y-2">
-          <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-            Ferramenta gratuita · Sem upload
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Imagem para PDF
-          </h1>
-          <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Converta uma imagem ou{' '}
-            <strong className="font-semibold text-slate-800 dark:text-slate-200">
-              junte várias JPG/PNG
-            </strong>{' '}
-            em um único PDF. Cada arquivo vira uma página no{' '}
-            <strong className="font-semibold text-slate-800 dark:text-slate-200">
-              tamanho original da imagem
-            </strong>{' '}
-            — processamento com pdf-lib no navegador, sem upload.
-          </p>
-        </header>
+        <ToolPageIntro path="/imagem-para-pdf" />
 
         <DropZone
           onFiles={addFiles}
@@ -406,11 +354,7 @@ export default function ImagemParaPdfPage() {
 
         <ToolSeoContent content={imagemParaPdfSeoContent} />
 
-        <FaqAccordion
-          items={imagePdfFaqItems}
-          title="Perguntas frequentes sobre Imagem para PDF"
-          subtitle="Juntar várias imagens, qualidade JPG, tamanho de página e privacidade."
-        />
+
       </div>
 
       <StickyCta />

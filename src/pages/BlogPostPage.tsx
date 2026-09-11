@@ -92,6 +92,8 @@ export default function BlogPostPage() {
         title={meta.seoTitle ?? `${meta.title} | Blog ${SITE_NAME}`}
         description={meta.seoDescription ?? meta.excerpt}
         path={`/blog/${meta.slug}`}
+        ogType="article"
+        noIndex={meta.noIndex === true}
       />
       <JsonLd id={`article-${meta.slug}`} data={articleSchema} />
       <JsonLd id={`breadcrumb-blog-${meta.slug}`} data={breadcrumbSchema} />

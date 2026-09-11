@@ -4,8 +4,8 @@ import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
-import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
+import { ToolPageIntro } from '../components/ToolPageIntro';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { extrairTextoSeoContent } from '../data/toolSeoContent';
@@ -204,26 +204,7 @@ export default function ExtrairTextoPage() {
       <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
-        <header className="space-y-2">
-          <p className="text-sm font-medium text-brand-600 dark:text-brand-400">
-            Ferramenta gratuita · Sem upload
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Extrair texto de PDF
-          </h1>
-          <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Copie o texto de PDFs digitais com{' '}
-            <strong className="font-semibold text-slate-800 dark:text-slate-200">
-              pdf.js
-            </strong>{' '}
-            ou use OCR com{' '}
-            <strong className="font-semibold text-slate-800 dark:text-slate-200">
-              Tesseract.js
-            </strong>{' '}
-            (português) em PDFs escaneados. Tudo roda no seu navegador — zero
-            envio para a nuvem.
-          </p>
-        </header>
+        <ToolPageIntro path="/extrair-texto" />
 
         <DropZone
           onFiles={handleFiles}
@@ -488,11 +469,6 @@ export default function ExtrairTextoPage() {
         />
 
         <ToolSeoContent content={extrairTextoSeoContent} />
-
-        <FaqAccordion
-          title="Perguntas frequentes sobre Extrair Texto"
-          subtitle="Texto nativo, OCR de scans, privacidade e uso offline."
-        />
       </div>
 
       <StickyCta />

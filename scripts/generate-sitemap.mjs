@@ -71,15 +71,20 @@ function parseReadyToolPaths(source) {
  */
 function parseBlogPosts(source) {
   const posts = [];
-  // Blocos entre objetos do array (heurística: slug + date no mesmo objeto)
+  // Cada objeto do array: slug + corpo até o próximo item (ou fim do array)
   const objectRe =
-    /\{\s*id:\s*'[^']+',\s*slug:\s*'([^']+)'[\s\S]*?date:\s*'(\d{4}-\d{2}-\d{2})'(?:[\s\S]*?dateModified:\s*'(\d{4}-\d{2}-\d{2})')?/g;
+    /\{\s*id:\s*'[^']+',\s*slug:\s*'([^']+)'([\s\S]*?)(?=\n  \{|\n\];)/g;
   let m;
   while ((m = objectRe.exec(source)) !== null) {
     const slug = m[1];
-    const date = m[2];
-    const dateModified = m[3] || null;
+    const body = m[2];
     if (!slug || slug.includes('/') || slug.includes('?')) continue;
+    // Guias clone-de-tool: noindex — fora do sitemap
+    if (/\bnoIndex:\s*true\b/.test(body)) continue;
+    const dateM = body.match(/date:\s*'(\d{4}-\d{2}-\d{2})'/);
+    const modM = body.match(/dateModified:\s*'(\d{4}-\d{2}-\d{2})'/);
+    const date = dateM ? dateM[1] : null;
+    const dateModified = modM ? modM[1] : null;
     posts.push({
       slug,
       lastmod: dateModified || date || null,
@@ -184,13 +189,17 @@ function main() {
     });
   }
 
-  // 3) Posts do blog (ordenados por slug)
+  // 3) Posts indexáveis (ordenados por slug). Clones noindex não entram.
+  const PILLAR_SLUGS = new Set([
+    'infraestrutura-nuvem-vs-local',
+    'pdf-no-navegador-privacidade-lgpd',
+  ]);
   for (const post of posts) {
     entries.push({
       loc: absoluteLoc(`/blog/${post.slug}`),
       lastmod: post.lastmod,
       changefreq: 'monthly',
-      priority: '0.65',
+      priority: PILLAR_SLUGS.has(post.slug) ? '0.75' : '0.65',
     });
   }
 

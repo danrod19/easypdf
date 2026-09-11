@@ -30,6 +30,11 @@ export type BlogPostMeta = {
   readTime: string;
   /** Tags opcionais para UI */
   tags?: string[];
+  /**
+   * Guias curtos que espelham tools: não indexar (AdSense / thin content).
+   * Fora do sitemap; listagem principal do /blog ignora estes.
+   */
+  noIndex?: boolean;
 };
 
 export const blogPosts: BlogPostMeta[] = [
@@ -46,6 +51,7 @@ export const blogPosts: BlogPostMeta[] = [
     date: '2026-08-01',
     readTime: '8 min',
     tags: ["Marca d'água", 'Privacidade', 'Sem upload'],
+    noIndex: true,
   },
   {
     id: 'desenhar-pdf-online-sem-upload',
@@ -60,6 +66,7 @@ export const blogPosts: BlogPostMeta[] = [
     date: '2026-08-01',
     readTime: '8 min',
     tags: ['Desenhar PDF', 'Assinatura', 'Sem upload'],
+    noIndex: true,
   },
   {
     id: 'imagem-para-pdf-sem-upload',
@@ -74,6 +81,7 @@ export const blogPosts: BlogPostMeta[] = [
     date: '2026-08-01',
     readTime: '8 min',
     tags: ['Imagem para PDF', 'JPG', 'Sem upload'],
+    noIndex: true,
   },
   {
     id: 'girar-pdf-online-sem-upload',
@@ -88,6 +96,7 @@ export const blogPosts: BlogPostMeta[] = [
     date: '2026-07-31',
     readTime: '8 min',
     tags: ['Girar PDF', 'Privacidade', 'Sem upload'],
+    noIndex: true,
   },
   {
     id: 'remover-paginas-pdf-sem-upload',
@@ -102,6 +111,7 @@ export const blogPosts: BlogPostMeta[] = [
     date: '2026-07-31',
     readTime: '8 min',
     tags: ['Remover Páginas', 'Privacidade', 'Sem upload'],
+    noIndex: true,
   },
   {
     id: 'desbloquear-pdf-senha-conhecida-sem-upload',
@@ -116,6 +126,7 @@ export const blogPosts: BlogPostMeta[] = [
     date: '2026-07-31',
     readTime: '8 min',
     tags: ['Desbloquear PDF', 'Senha', 'Privacidade'],
+    noIndex: true,
   },
   {
     id: 'dividir-pdf-online-sem-upload',
@@ -130,6 +141,7 @@ export const blogPosts: BlogPostMeta[] = [
     date: '2026-07-30',
     readTime: '8 min',
     tags: ['Dividir PDF', 'Privacidade', 'Sem upload'],
+    noIndex: true,
   },
   {
     id: 'extrair-texto-pdf-sem-upload-ocr',
@@ -144,6 +156,7 @@ export const blogPosts: BlogPostMeta[] = [
     date: '2026-07-30',
     readTime: '9 min',
     tags: ['Extrair Texto', 'OCR', 'Sem upload'],
+    noIndex: true,
   },
   {
     id: 'proteger-pdf-senha-sem-upload',
@@ -158,6 +171,7 @@ export const blogPosts: BlogPostMeta[] = [
     date: '2026-07-30',
     readTime: '8 min',
     tags: ['Proteger PDF', 'Senha', 'Privacidade'],
+    noIndex: true,
   },
   {
     id: 'juntar-pdf-online-sem-upload',
@@ -172,6 +186,7 @@ export const blogPosts: BlogPostMeta[] = [
     date: '2026-07-29',
     readTime: '8 min',
     tags: ['Juntar PDF', 'Privacidade', 'Sem upload'],
+    noIndex: true,
   },
   {
     id: 'comprimir-pdf-online-celular-sem-app',
@@ -186,6 +201,7 @@ export const blogPosts: BlogPostMeta[] = [
     date: '2026-07-29',
     readTime: '8 min',
     tags: ['Comprimir PDF', 'Celular', 'Sem upload'],
+    noIndex: true,
   },
   {
     id: 'word-para-pdf-online-sem-instalar',
@@ -200,17 +216,36 @@ export const blogPosts: BlogPostMeta[] = [
     date: '2026-07-29',
     readTime: '8 min',
     tags: ['Word para PDF', 'DOCX', 'Sem instalação'],
+    noIndex: true,
   },
   {
     id: 'infraestrutura-nuvem-vs-local',
     slug: 'infraestrutura-nuvem-vs-local',
     title:
-      'Nuvem vs. processamento local: por que PDFs sensíveis não deveriam sair da sua máquina',
+      'Nuvem vs. processamento local: o que muda quando o PDF não sobe',
     excerpt:
-      'Comparativo entre conversores online que pedem upload e ferramentas 100% no navegador. Segurança, LGPD e o risco real de vazar contratos na nuvem.',
+      'Comparativo honesto: conversores com upload versus PDF no navegador. Limites reais (50 MB, RAM, OCR) e o que a LGPD não é.',
+    seoTitle: 'Nuvem vs. PDF local no navegador | Easy PDF Local',
+    seoDescription:
+      'Upload vs. processamento no navegador: o que muda para PDFs sensíveis, limites reais de 50 MB/RAM/OCR e o que a LGPD não resolve sozinha.',
     date: '2026-07-27',
-    readTime: '7 min',
+    dateModified: '2026-09-10',
+    readTime: '8 min',
     tags: ['Privacidade', 'PDF', 'Client-side'],
+  },
+  {
+    id: 'pdf-no-navegador-privacidade-lgpd',
+    slug: 'pdf-no-navegador-privacidade-lgpd',
+    title:
+      'PDF no navegador: privacidade, documentos e LGPD',
+    excerpt:
+      'Documentos no navegador vs. upload: trabalho, arquivos pessoais e LGPD sem terrorismo jurídico — e quando o local falha (50 MB, RAM, OCR).',
+    seoTitle: 'PDF no navegador: privacidade e LGPD | Easy PDF Local',
+    seoDescription:
+      'Quando processar PDF no navegador em vez de upload: trabalho, documentos pessoais, LGPD sem pânico e os limites reais (50 MB, RAM, OCR).',
+    date: '2026-09-10',
+    readTime: '9 min',
+    tags: ['Privacidade', 'LGPD', 'PDF local'],
   },
 ];
 
@@ -219,6 +254,20 @@ export function getBlogPostsSorted(): BlogPostMeta[] {
   return [...blogPosts].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
+}
+
+export function isBlogPostIndexable(post: BlogPostMeta): boolean {
+  return post.noIndex !== true;
+}
+
+/** Listagem principal do /blog — só peças originais (não espelho de tool). */
+export function getFeaturedBlogPosts(): BlogPostMeta[] {
+  return getBlogPostsSorted().filter(isBlogPostIndexable);
+}
+
+/** Guias curtos que repetem a tool — noindex, seção secundária. */
+export function getToolGuideBlogPosts(): BlogPostMeta[] {
+  return getBlogPostsSorted().filter((p) => p.noIndex === true);
 }
 
 export function getBlogPostBySlug(slug: string): BlogPostMeta | undefined {

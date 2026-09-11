@@ -5,8 +5,8 @@ import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
-import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
+import { ToolPageIntro } from '../components/ToolPageIntro';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { FileLimitsNotice } from '../components/FileLimitsNotice';
@@ -28,40 +28,6 @@ import {
   type WatermarkPosition,
 } from '../lib/watermarkPdf';
 import { downloadBlob, formatBytes } from '../lib/format';
-import type { FaqItem } from '../data/faq';
-
-const watermarkFaqItems: FaqItem[] = [
-  {
-    id: 'todas-paginas',
-    question: "A marca d'água é adicionada em todas as páginas?",
-    answer:
-      "Sim. Ao clicar em Aplicar Marca d'água, o texto é desenhado em cada página do PDF (centro diagonal a 45° ou rodapé, conforme a opção escolhida). O processamento usa pdf-lib no seu navegador — nada é enviado a servidores.",
-  },
-  {
-    id: 'remover',
-    question: "Posso remover a marca d'água depois?",
-    answer:
-      "A marca d'água é texto embutido no PDF (não um carimbo de imagem separado fácil de apagar). Para um documento limpo, mantenha o original e use a cópia marcada apenas quando precisar compartilhar. Não há upload nem armazenamento nosso do arquivo.",
-  },
-  {
-    id: 'qualidade',
-    question: "A marca d'água reduz a qualidade do PDF?",
-    answer:
-      'Não. Apenas um texto vetorial (Helvetica Bold) é sobreposto com a opacidade escolhida. Imagens e conteúdo original permanecem intactos — não há recompactação destrutiva.',
-  },
-  {
-    id: 'seguro',
-    question: "É seguro adicionar marca d'água aqui?",
-    answer:
-      'Sim. Todo o fluxo roda 100% offline no navegador. O PDF fica só na memória do dispositivo até o download de nome-marcado.pdf. Sem conta e sem envio para a nuvem.',
-  },
-  {
-    id: 'caracteres',
-    question: 'Quais caracteres posso usar no texto?',
-    answer:
-      'Letras, números e pontuação comum funcionam bem. Acentos são normalizados para a fonte padrão Helvetica (WinAnsi). Emojis e símbolos raros podem ser removidos automaticamente na sanitização.',
-  },
-];
 
 const COLOR_OPTIONS: {
   id: WatermarkColorName;
@@ -267,22 +233,7 @@ export default function MarcaDaguaPage() {
       <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
-        <header className="space-y-2">
-          <p className="text-sm font-medium text-cyan-600 dark:text-cyan-400">
-            Ferramenta gratuita · Sem upload
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Marca d&apos;água PDF
-          </h1>
-          <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Sobreponha um texto (ex.: CONFIDENCIAL) em todas as páginas, com
-            opacidade, cor e estilo. Processamento com{' '}
-            <strong className="font-semibold text-slate-800 dark:text-slate-200">
-              pdf-lib no seu navegador
-            </strong>{' '}
-            — zero upload.
-          </p>
-        </header>
+        <ToolPageIntro path="/marca-dagua" />
 
         {!file ? (
           <DropZone
@@ -643,11 +594,7 @@ export default function MarcaDaguaPage() {
 
         <ToolSeoContent content={marcaDaguaSeoContent} />
 
-        <FaqAccordion
-          items={watermarkFaqItems}
-          title="Perguntas frequentes sobre Marca d'água"
-          subtitle="Escopo por página, qualidade, segurança e caracteres suportados."
-        />
+
       </div>
 
       <StickyCta />

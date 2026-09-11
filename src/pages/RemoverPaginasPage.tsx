@@ -5,8 +5,8 @@ import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
-import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
+import { ToolPageIntro } from '../components/ToolPageIntro';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { FileLimitsNotice } from '../components/FileLimitsNotice';
@@ -24,34 +24,6 @@ import {
   type PageThumbnail,
 } from '../lib/removePages';
 import { downloadBlob, formatBytes } from '../lib/format';
-import type { FaqItem } from '../data/faq';
-
-const removeFaqItems: FaqItem[] = [
-  {
-    id: 'como-marcar',
-    question: 'Como marco páginas para excluir?',
-    answer:
-      'Após carregar o PDF, as miniaturas aparecem em grade. Clique no X / lixeira de cada página que deseja remover — ela fica destacada em vermelho. Clique de novo para desmarcar. Depois use “Gerar Novo PDF”.',
-  },
-  {
-    id: 'original',
-    question: 'O PDF original é alterado?',
-    answer:
-      'Não. Geramos um arquivo novo com as páginas restantes. O original permanece intacto no seu disco. Você só baixa a versão sem as páginas marcadas.',
-  },
-  {
-    id: 'todas',
-    question: 'Posso remover todas as páginas?',
-    answer:
-      'Não. O PDF final precisa ter ao menos uma página. Desmarque pelo menos uma miniatura antes de gerar o arquivo.',
-  },
-  {
-    id: 'seguro',
-    question: 'É seguro remover páginas aqui?',
-    answer:
-      'Sim. Miniaturas (pdf.js) e remoção (pdf-lib) rodam 100% no navegador. Nada sobe para servidores — o arquivo fica só na memória até o download.',
-  },
-];
 
 /**
  * Página /remover-paginas — exclui páginas selecionadas via miniaturas.
@@ -277,18 +249,7 @@ export default function RemoverPaginasPage() {
       <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
-        <header className="space-y-2">
-          <p className="text-sm font-medium text-brand-600 dark:text-brand-400">
-            Ferramenta gratuita · Sem upload
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Remover Páginas
-          </h1>
-          <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Visualize as páginas em miniaturas, marque as que deseja excluir e
-            baixe um novo PDF — tudo com pdf-lib e pdf.js no seu navegador.
-          </p>
-        </header>
+        <ToolPageIntro path="/remover-paginas" />
 
         {!file ? (
           <DropZone
@@ -552,11 +513,7 @@ export default function RemoverPaginasPage() {
 
         <ToolSeoContent content={removerPaginasSeoContent} />
 
-        <FaqAccordion
-          title="Perguntas frequentes sobre Remover Páginas"
-          subtitle="Seleção, PDF final e privacidade do processamento local."
-          items={removeFaqItems}
-        />
+
       </div>
 
       <StickyCta />

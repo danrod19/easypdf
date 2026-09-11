@@ -25,8 +25,10 @@ export function Layout() {
   const sidebarId = useId();
   const softwareAppSchema = buildSoftwareApplicationSchema();
 
-  // Sem afiliados em páginas legais/institucionais (transparência / AdSense)
+  // Sem afiliados na home (AdSense: conteúdo de baixo valor / vitrine genérica)
+  // e em páginas legais/institucionais.
   const hideBannerRoutes = [
+    '/',
     '/privacidade',
     '/termos',
     '/sobre',

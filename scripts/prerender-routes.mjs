@@ -42,6 +42,7 @@ export const PRERENDER_ROUTES = [
   '/desbloquear-pdf',
   '/remover-paginas',
   '/blog/infraestrutura-nuvem-vs-local',
+  '/blog/pdf-no-navegador-privacidade-lgpd',
   '/sobre',
   '/contato',
   '/privacidade',

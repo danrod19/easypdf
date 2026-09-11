@@ -4,8 +4,8 @@ import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
-import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
+import { ToolPageIntro } from '../components/ToolPageIntro';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { FileLimitsNotice } from '../components/FileLimitsNotice';
@@ -197,25 +197,7 @@ export default function DividirPdfPage() {
       <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
-        <header className="space-y-2">
-          <p className="text-sm font-medium text-brand-600 dark:text-brand-400">
-            Ferramenta gratuita · Sem upload
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Dividir PDF
-          </h1>
-          <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Envie um PDF e informe as páginas que deseja extrair (ex.:{' '}
-            <code className="rounded bg-slate-100 px-1.5 py-0.5 text-sm dark:bg-slate-800">
-              1, 3-5, 8
-            </code>
-            ). Todo o processamento usa{' '}
-            <strong className="font-semibold text-slate-800 dark:text-slate-200">
-              pdf-lib no seu navegador
-            </strong>{' '}
-            — nada é enviado para a nuvem.
-          </p>
-        </header>
+        <ToolPageIntro path="/dividir-pdf" />
 
         {!file ? (
           <DropZone
@@ -404,11 +386,6 @@ export default function DividirPdfPage() {
         />
 
         <ToolSeoContent content={dividirPdfSeoContent} />
-
-        <FaqAccordion
-          title="Perguntas frequentes sobre Dividir PDF"
-          subtitle="Privacidade, custo e como a extração local funciona no navegador."
-        />
       </div>
 
       <StickyCta />

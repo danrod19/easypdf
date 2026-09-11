@@ -12,7 +12,8 @@ type FaqAccordionProps = {
 };
 
 /**
- * FAQ sanfona reutilizável — rodapé de ferramentas e Home.
+ * FAQ sanfona institucional — Home (cookies, cadastro, limites gerais).
+ * Tools usam só o FAQ específico em ToolSeoContent.
  * Inclui microdados Schema.org FAQPage para rich results do Google.
  */
 export function FaqAccordion({

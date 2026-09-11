@@ -5,8 +5,8 @@ import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
-import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
+import { ToolPageIntro } from '../components/ToolPageIntro';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { FileLimitsNotice } from '../components/FileLimitsNotice';
@@ -23,34 +23,6 @@ import {
 } from '../lib/protectPdf';
 import { getPdfPageCount } from '../lib/splitPdf';
 import { downloadBlob, formatBytes } from '../lib/format';
-import type { FaqItem } from '../data/faq';
-
-const protectFaqItems: FaqItem[] = [
-  {
-    id: 'como-abre',
-    question: 'Como alguém abre o PDF protegido?',
-    answer:
-      'Quem receber o arquivo precisará da senha que você definiu. Visualizadores de PDF (Adobe, Chrome, Preview, etc.) pedem a senha ao abrir. Sem a senha, o conteúdo permanece cifrado.',
-  },
-  {
-    id: 'seguro',
-    question: 'A senha é enviada para algum servidor?',
-    answer:
-      'Não. A criptografia roda 100% no seu navegador. O PDF e a senha ficam só na memória do dispositivo até o download. Nada é enviado à nuvem da Easy PDF Local.',
-  },
-  {
-    id: 'remover-senha',
-    question: 'Posso remover a senha depois?',
-    answer:
-      'Sim. Use a ferramenta Desbloquear PDF (/desbloquear-pdf) com a mesma senha para gerar uma cópia sem proteção — também 100% no navegador. Guarde a senha em local seguro: não recuperamos senhas esquecidas.',
-  },
-  {
-    id: 'forca',
-    question: 'Qual senha devo usar?',
-    answer:
-      'Use pelo menos 4 caracteres; recomendamos 8+ com letras e números. Evite senhas óbvias (1234, data de nascimento). A mesma senha serve como user e owner password neste fluxo.',
-  },
-];
 
 /**
  * Página /proteger-pdf — criptografa PDF com senha (client-side).
@@ -213,18 +185,7 @@ export default function ProtegerPdfPage() {
       <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
-        <header className="space-y-2">
-          <p className="text-sm font-medium text-brand-600 dark:text-brand-400">
-            Ferramenta gratuita · Sem upload
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Proteger PDF
-          </h1>
-          <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Defina uma senha e criptografe o PDF no navegador. Quem abrir o
-            arquivo precisará da senha — sem enviar o documento para a nuvem.
-          </p>
-        </header>
+        <ToolPageIntro path="/proteger-pdf" />
 
         {!file ? (
           <DropZone
@@ -430,11 +391,7 @@ export default function ProtegerPdfPage() {
 
         <ToolSeoContent content={protegerPdfSeoContent} />
 
-        <FaqAccordion
-          title="Perguntas frequentes sobre Proteger PDF"
-          subtitle="Senha, privacidade e como abrir o arquivo protegido."
-          items={protectFaqItems}
-        />
+
       </div>
 
       <StickyCta />

@@ -12,8 +12,8 @@ import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
-import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
+import { ToolPageIntro } from '../components/ToolPageIntro';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { FileLimitsNotice } from '../components/FileLimitsNotice';
@@ -36,40 +36,6 @@ import {
   type DrawStroke,
 } from '../lib/drawPdf';
 import { downloadBlob, formatBytes } from '../lib/format';
-import type { FaqItem } from '../data/faq';
-
-const drawFaqItems: FaqItem[] = [
-  {
-    id: 'mobile',
-    question: 'Posso desenhar pelo celular?',
-    answer:
-      'Sim. A camada de desenho aceita toque (touch/pointer events). Use o polegar ou a caneta stylus para traçar. Em telas pequenas o canvas se adapta à largura disponível mantendo a proporção da página.',
-  },
-  {
-    id: 'pagina',
-    question: 'Em qual página o desenho é aplicado?',
-    answer:
-      'Nesta versão a pré-visualização e os traços são feitos na página 1 do PDF. Ao salvar, o pdf-lib injeta as linhas apenas nessa página; as demais permanecem intactas.',
-  },
-  {
-    id: 'qualidade',
-    question: 'O desenho reduz a qualidade do PDF?',
-    answer:
-      'Não. Os traços são linhas vetoriais (drawLine do pdf-lib) sobre o conteúdo original — sem rasterizar a página inteira. A qualidade de textos e imagens do documento se mantém.',
-  },
-  {
-    id: 'seguro',
-    question: 'É seguro desenhar no PDF aqui?',
-    answer:
-      'Sim. A renderização (pdf.js) e a exportação (pdf-lib) rodam 100% no navegador. Seu arquivo nunca é enviado a servidores — fica só na memória do dispositivo até o download.',
-  },
-  {
-    id: 'desfazer',
-    question: 'Como desfazer um traço errado?',
-    answer:
-      'Use o botão “Desfazer último traço” na toolbar. Cada soltura do mouse/toque grava um caminho; desfazer remove o mais recente. “Limpar tudo” apaga todos os traços da sessão.',
-  },
-];
 
 const COLOR_ORDER: DrawColorName[] = ['black', 'blue', 'red'];
 const BRUSH_ORDER: { id: BrushSizeName; label: string }[] = [
@@ -586,25 +552,7 @@ export default function DesenharPdfPage() {
       <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
-        <header className="space-y-2">
-          <p className="text-sm font-medium text-pink-600 dark:text-pink-400">
-            Ferramenta gratuita · Sem upload
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Desenhar no PDF
-          </h1>
-          <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Assine, circule ou rabisque na página 1. A pré-visualização usa{' '}
-            <strong className="font-semibold text-slate-800 dark:text-slate-200">
-              pdf.js
-            </strong>{' '}
-            e a exportação{' '}
-            <strong className="font-semibold text-slate-800 dark:text-slate-200">
-              pdf-lib
-            </strong>{' '}
-            — tudo no seu dispositivo.
-          </p>
-        </header>
+        <ToolPageIntro path="/desenhar-pdf" />
 
         {!file ? (
           <DropZone
@@ -881,12 +829,6 @@ export default function DesenharPdfPage() {
         />
 
         <ToolSeoContent content={desenharPdfSeoContent} />
-
-        <FaqAccordion
-          items={drawFaqItems}
-          title="Perguntas frequentes sobre Desenhar no PDF"
-          subtitle="Mobile, página alvo, qualidade e privacidade."
-        />
       </div>
 
       <StickyCta />

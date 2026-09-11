@@ -309,9 +309,9 @@ export const juntarPdfSeoContent: ToolSeoBlock = {
       description: 'Extrair só as páginas que importam',
     },
     {
-      path: '/blog/juntar-pdf-online-sem-upload',
-      label: 'Guia: juntar PDF sem upload',
-      description: 'Artigo completo no blog',
+      path: '/blog/pdf-no-navegador-privacidade-lgpd',
+      label: 'PDF no navegador e LGPD',
+      description: 'Quando processar localmente faz sentido',
     },
     {
       path: '/pdf-sem-upload',
@@ -476,9 +476,9 @@ export const dividirPdfSeoContent: ToolSeoBlock = {
       description: 'Excluir com miniaturas visuais',
     },
     {
-      path: '/blog/dividir-pdf-online-sem-upload',
-      label: 'Guia: dividir PDF sem upload',
-      description: 'Artigo completo no blog',
+      path: '/blog/pdf-no-navegador-privacidade-lgpd',
+      label: 'PDF no navegador e LGPD',
+      description: 'Quando processar localmente faz sentido',
     },
     {
       path: '/pdf-sem-upload',
@@ -652,9 +652,9 @@ export const girarPdfSeoContent: ToolSeoBlock = {
       description: 'Tirar folhas em branco',
     },
     {
-      path: '/blog/girar-pdf-online-sem-upload',
-      label: 'Guia: como girar PDF sem upload',
-      description: 'Artigo com scan, cabeça para baixo e 90°',
+      path: '/blog/pdf-no-navegador-privacidade-lgpd',
+      label: 'PDF no navegador e LGPD',
+      description: 'Quando processar localmente faz sentido',
     },
     {
       path: '/pdf-sem-upload',
@@ -801,9 +801,9 @@ export const marcaDaguaSeoContent: ToolSeoBlock = {
       description: 'Senha de abertura no arquivo',
     },
     {
-      path: '/blog/marca-dagua-pdf-sem-upload',
-      label: "Guia: marca d'água sem upload",
-      description: 'Artigo completo no blog',
+      path: '/blog/pdf-no-navegador-privacidade-lgpd',
+      label: 'PDF no navegador e LGPD',
+      description: 'Quando processar localmente faz sentido',
     },
     {
       path: '/desenhar-pdf',
@@ -954,9 +954,9 @@ export const desenharPdfSeoContent: ToolSeoBlock = {
       description: 'Senha após assinar',
     },
     {
-      path: '/blog/desenhar-pdf-online-sem-upload',
-      label: 'Guia: desenhar em PDF sem upload',
-      description: 'Artigo completo no blog',
+      path: '/blog/pdf-no-navegador-privacidade-lgpd',
+      label: 'PDF no navegador e LGPD',
+      description: 'Quando processar localmente faz sentido',
     },
     {
       path: '/marca-dagua',
@@ -1117,9 +1117,9 @@ export const wordParaPdfSeoContent: ToolSeoBlock = {
       description: 'Unir o PDF a anexos extras',
     },
     {
-      path: '/blog/word-para-pdf-online-sem-instalar',
-      label: 'Guia: Word para PDF sem instalar',
-      description: 'Artigo no blog',
+      path: '/blog/pdf-no-navegador-privacidade-lgpd',
+      label: 'PDF no navegador e LGPD',
+      description: 'Quando processar localmente faz sentido',
     },
     {
       path: '/pdf-sem-upload',
@@ -1268,9 +1268,9 @@ export const imagemParaPdfSeoContent: ToolSeoBlock = {
       description: 'Unir o PDF gerado a outros arquivos',
     },
     {
-      path: '/blog/imagem-para-pdf-sem-upload',
-      label: 'Guia: imagem para PDF sem upload',
-      description: 'Artigo completo no blog',
+      path: '/blog/pdf-no-navegador-privacidade-lgpd',
+      label: 'PDF no navegador e LGPD',
+      description: 'Quando processar localmente faz sentido',
     },
     {
       path: '/comprimir-pdf',
@@ -1423,9 +1423,9 @@ export const extrairTextoSeoContent: ToolSeoBlock = {
       description: 'OCR só nas páginas necessárias',
     },
     {
-      path: '/blog/extrair-texto-pdf-sem-upload-ocr',
-      label: 'Guia: extrair texto sem upload',
-      description: 'Artigo completo no blog',
+      path: '/blog/pdf-no-navegador-privacidade-lgpd',
+      label: 'PDF no navegador e LGPD',
+      description: 'Quando processar localmente faz sentido',
     },
     {
       path: '/word-para-pdf',
@@ -1577,9 +1577,9 @@ export const protegerPdfSeoContent: ToolSeoBlock = {
       description: 'Remover senha quando você a conhece',
     },
     {
-      path: '/blog/proteger-pdf-senha-sem-upload',
-      label: 'Guia: proteger PDF com senha',
-      description: 'Artigo completo no blog',
+      path: '/blog/pdf-no-navegador-privacidade-lgpd',
+      label: 'PDF no navegador e LGPD',
+      description: 'Quando processar localmente faz sentido',
     },
     {
       path: '/marca-dagua',
@@ -1734,9 +1734,9 @@ export const removerPaginasSeoContent: ToolSeoBlock = {
       description: 'Virar páginas tortas antes de limpar o arquivo',
     },
     {
-      path: '/blog/remover-paginas-pdf-sem-upload',
-      label: 'Guia: remover páginas sem upload',
-      description: 'Artigo completo no blog',
+      path: '/blog/pdf-no-navegador-privacidade-lgpd',
+      label: 'PDF no navegador e LGPD',
+      description: 'Quando processar localmente faz sentido',
     },
     {
       path: '/juntar-pdf',
@@ -1888,9 +1888,9 @@ export const desbloquearPdfSeoContent: ToolSeoBlock = {
       description: 'Aplicar senha de abertura',
     },
     {
-      path: '/blog/desbloquear-pdf-senha-conhecida-sem-upload',
-      label: 'Guia: desbloquear PDF (senha conhecida)',
-      description: 'Artigo completo no blog',
+      path: '/blog/pdf-no-navegador-privacidade-lgpd',
+      label: 'PDF no navegador e LGPD',
+      description: 'Quando processar localmente faz sentido',
     },
     {
       path: '/juntar-pdf',
@@ -2051,9 +2051,9 @@ export const comprimirPdfSeoContent: ToolSeoBlock = {
       description: 'Comprimir só o trecho necessário',
     },
     {
-      path: '/blog/comprimir-pdf-online-celular-sem-app',
-      label: 'Guia: comprimir no celular',
-      description: 'Artigo no blog',
+      path: '/blog/pdf-no-navegador-privacidade-lgpd',
+      label: 'PDF no navegador e LGPD',
+      description: 'Quando processar localmente faz sentido',
     },
     {
       path: '/pdf-sem-upload',

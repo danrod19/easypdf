@@ -5,8 +5,8 @@ import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
-import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
+import { ToolPageIntro } from '../components/ToolPageIntro';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { FileLimitsNotice } from '../components/FileLimitsNotice';
@@ -22,34 +22,6 @@ import {
   unlockedFileName,
 } from '../lib/unlockPdf';
 import { downloadBlob, formatBytes } from '../lib/format';
-import type { FaqItem } from '../data/faq';
-
-const unlockFaqItems: FaqItem[] = [
-  {
-    id: 'senha-correta',
-    question: 'Preciso saber a senha para desbloquear?',
-    answer:
-      'Sim. Esta ferramenta remove a proteção quando você já conhece a senha de abertura. Não fazemos “quebra” de senha nem contornamos a criptografia sem a chave correta.',
-  },
-  {
-    id: 'seguro',
-    question: 'A senha ou o PDF sobem para algum servidor?',
-    answer:
-      'Não. Tudo roda no navegador: a senha só é usada localmente para abrir o arquivo e gerar uma cópia sem proteção. Nada é enviado à nuvem da Easy PDF Local.',
-  },
-  {
-    id: 'qualidade',
-    question: 'O PDF desbloqueado fica idêntico ao original?',
-    answer:
-      'PDFs já abertos sem senha são regravados com pdf-lib (estrutura nativa). PDFs com senha de usuário são validados com pdf.js e reconstruídos página a página em alta qualidade — o visual é preservado; texto pode deixar de ser selecionável no resultado (vira imagem).',
-  },
-  {
-    id: 'errado',
-    question: 'O que acontece se a senha estiver errada?',
-    answer:
-      'Mostramos um aviso claro (“Senha incorreta…”) e não geramos download. Confira maiúsculas, espaços e tente de novo.',
-  },
-];
 
 /**
  * Página /desbloquear-pdf — remove senha de abertura (client-side).
@@ -200,19 +172,7 @@ export default function DesbloquearPdfPage() {
       <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
-        <header className="space-y-2">
-          <p className="text-sm font-medium text-brand-600 dark:text-brand-400">
-            Ferramenta gratuita · Sem upload
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Desbloquear PDF
-          </h1>
-          <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Remova a senha de abertura de um PDF quando você já a conhece.
-            Processamento 100% no navegador — sem envio do arquivo para a
-            nuvem.
-          </p>
-        </header>
+        <ToolPageIntro path="/desbloquear-pdf" />
 
         {!file ? (
           <DropZone
@@ -399,11 +359,7 @@ export default function DesbloquearPdfPage() {
 
         <ToolSeoContent content={desbloquearPdfSeoContent} />
 
-        <FaqAccordion
-          title="Perguntas frequentes sobre Desbloquear PDF"
-          subtitle="Senha, privacidade e o que esperar do arquivo final."
-          items={unlockFaqItems}
-        />
+
       </div>
 
       <StickyCta />

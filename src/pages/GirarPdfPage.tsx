@@ -11,8 +11,8 @@ import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
-import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
+import { ToolPageIntro } from '../components/ToolPageIntro';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { FileLimitsNotice } from '../components/FileLimitsNotice';
@@ -34,40 +34,6 @@ import {
 } from '../lib/rotatePdf';
 import { applyRotationsPreferWorker } from '../lib/pdfOpsWorker';
 import { downloadBlob, formatBytes } from '../lib/format';
-import type { FaqItem } from '../data/faq';
-
-const rotateFaqItems: FaqItem[] = [
-  {
-    id: 'qualidade',
-    question: 'Girar o PDF afeta a qualidade?',
-    answer:
-      'Não. A rotação no PDF é apenas um metadado de orientação da página (0°, 90°, 180° ou 270°). O conteúdo vetorial e as imagens embutidas permanecem intactos — não há recompactação nem perda de nitidez. O download usa o mesmo documento, só com o ângulo atualizado via pdf-lib no seu navegador.',
-  },
-  {
-    id: 'uma-pagina',
-    question: 'Como girar apenas uma página do PDF?',
-    answer:
-      'Na seção “Girar páginas específicas”, digite o número da página (ex.: 3) ou um intervalo (ex.: 1, 3-5) e clique em Girar 90° à esquerda ou à direita. Somente as páginas listadas recebem a rotação. Depois use “Salvar PDF Rotacionado” para baixar o arquivo completo.',
-  },
-  {
-    id: 'seguro-girar',
-    question: 'É seguro girar meus PDFs aqui?',
-    answer:
-      'Sim. Todo o processamento roda 100% offline no navegador com pdf-lib. O arquivo nunca é enviado a servidores — fica só na memória do seu dispositivo até você baixar o resultado ou fechar a aba.',
-  },
-  {
-    id: 'pagar-girar',
-    question: 'Preciso pagar para girar PDFs?',
-    answer:
-      'Não. Girar PDF é gratuito e sem cadastro. Você pode rotacionar todas as páginas ou intervalos específicos quantas vezes quiser, e só baixa quando clicar em Salvar.',
-  },
-  {
-    id: 'salvar',
-    question: 'Por que preciso clicar em Salvar depois de girar?',
-    answer:
-      'Os botões de rotação apenas ajustam o estado local (ângulo de cada página). Assim você pode combinar várias rotações (todas as páginas + páginas específicas) antes de gerar o arquivo. “Salvar PDF Rotacionado” aplica tudo de uma vez e inicia o download como nome-rotacionado.pdf.',
-  },
-];
 
 type Mode = 'all' | 'specific';
 
@@ -341,26 +307,7 @@ export default function GirarPdfPage() {
       <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
-        <header className="space-y-2">
-          <p className="text-sm font-medium text-orange-600 dark:text-orange-400">
-            Ferramenta gratuita · Sem upload
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Girar PDF online
-          </h1>
-          <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Vire páginas de lado ou de cabeça para baixo: 90° à esquerda ou à
-            direita, em todas as páginas ou só um intervalo (ex.:{' '}
-            <code className="rounded bg-slate-100 px-1.5 py-0.5 text-sm dark:bg-slate-800">
-              1, 3-5
-            </code>
-            ). Salve a cópia no navegador —{' '}
-            <strong className="font-semibold text-slate-800 dark:text-slate-200">
-              sem upload
-            </strong>{' '}
-            e sem cadastro.
-          </p>
-        </header>
+        <ToolPageIntro path="/girar-pdf" />
 
         {!file ? (
           <DropZone
@@ -701,12 +648,6 @@ export default function GirarPdfPage() {
         />
 
         <ToolSeoContent content={girarPdfSeoContent} />
-
-        <FaqAccordion
-          items={rotateFaqItems}
-          title="Perguntas frequentes sobre Girar PDF"
-          subtitle="Qualidade, páginas específicas e privacidade do processamento local."
-        />
       </div>
 
       <StickyCta />

@@ -5,8 +5,8 @@ import { getSeoForPath } from '../data/seo';
 import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
-import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
+import { ToolPageIntro } from '../components/ToolPageIntro';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { FileLimitsNotice } from '../components/FileLimitsNotice';
@@ -26,36 +26,8 @@ import {
   type CompressPdfResult,
 } from '../lib/compressPdf';
 import { downloadBlob, formatBytes } from '../lib/format';
-import type { FaqItem } from '../data/faq';
 
 const LEVEL_ORDER: CompressionLevel[] = ['low', 'medium', 'high'];
-
-const compressFaqItems: FaqItem[] = [
-  {
-    id: 'como-funciona',
-    question: 'Como a compressão funciona no navegador?',
-    answer:
-      'Cada página é renderizada em canvas (pdf.js), convertida em JPEG com a qualidade do nível escolhido e montada de novo com pdf-lib. Tudo ocorre no seu dispositivo — sem upload e sem Ghostscript no servidor.',
-  },
-  {
-    id: 'texto-selecionavel',
-    question: 'Posso continuar selecionando texto no PDF comprimido?',
-    answer:
-      'Em geral não. Para garantir privacidade e compressão local, as páginas viram imagens. O visual (scans, fotos, layout) se mantém; texto deixará de ser pesquisável/selecionável. Ideal para PDFs escaneados ou com imagens pesadas.',
-  },
-  {
-    id: 'qual-nivel',
-    question: 'Qual nível de compressão devo usar?',
-    answer:
-      'Média (Recomendado) equilibra tamanho e nitidez. Use Baixa se precisar de mais detalhe (impressão) e Alta para o menor arquivo possível (envio por e-mail/WhatsApp), aceitando mais perda visual.',
-  },
-  {
-    id: 'seguro',
-    question: 'É seguro comprimir PDFs aqui?',
-    answer:
-      'Sim. O arquivo não sobe para a nuvem. Processamento 100% no navegador; o original permanece no seu disco e só a cópia comprimida é baixada.',
-  },
-];
 
 /**
  * Página /comprimir-pdf — reduz tamanho via rasterização (pdf.js + pdf-lib).
@@ -213,23 +185,7 @@ export default function ComprimirPdfPage() {
       <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
-        <header className="space-y-2">
-          <p className="text-sm font-medium text-brand-600 dark:text-brand-400">
-            Ferramenta gratuita · Sem upload
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Comprimir PDF
-          </h1>
-          <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Reduza o tamanho de PDFs escaneados ou com imagens pesadas no
-            navegador, grátis e sem cadastro. Cada página é re-renderizada em
-            JPEG —{' '}
-            <strong className="font-semibold text-slate-800 dark:text-slate-200">
-              sem enviar o arquivo para a nuvem
-            </strong>
-            . Níveis agressivos podem fazer o texto deixar de ser selecionável.
-          </p>
-        </header>
+        <ToolPageIntro path="/comprimir-pdf" />
 
         {!file ? (
           <DropZone
@@ -488,12 +444,6 @@ export default function ComprimirPdfPage() {
         />
 
         <ToolSeoContent content={comprimirPdfSeoContent} />
-
-        <FaqAccordion
-          title="Perguntas frequentes sobre Comprimir PDF"
-          subtitle="Qualidade, texto selecionável e privacidade do processamento local."
-          items={compressFaqItems}
-        />
       </div>
 
       <StickyCta />

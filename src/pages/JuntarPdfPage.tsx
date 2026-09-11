@@ -4,8 +4,8 @@ import { AdSlot } from '../components/AdSlot';
 import { ProgressBar } from '../components/ProgressBar';
 import { DropZone } from '../components/merge/DropZone';
 import { FileList, type PdfItem } from '../components/merge/FileList';
-import { FaqAccordion } from '../components/FaqAccordion';
 import { StickyCta } from '../components/StickyCta';
+import { ToolPageIntro } from '../components/ToolPageIntro';
 import { SuccessAction } from '../components/SuccessAction';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { FileLimitsNotice } from '../components/FileLimitsNotice';
@@ -214,23 +214,7 @@ export default function JuntarPdfPage() {
       <Seo title={seo.title} description={seo.description} path={seo.path} />
 
       <div className="space-y-6">
-        <header className="space-y-2">
-          <p className="text-sm font-medium text-brand-600 dark:text-brand-400">
-            Ferramenta gratuita · Sem upload
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Juntar PDF online e seguro
-          </h1>
-          <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Combine dois ou mais PDFs em um único arquivo, grátis, sem cadastro
-            e no navegador. A ordem da lista define as páginas no PDF final —
-            reordene antes de mesclar. Todo o processamento usa{' '}
-            <strong className="font-semibold text-slate-800 dark:text-slate-200">
-              pdf-lib no seu dispositivo
-            </strong>{' '}
-            — zero envio para a nuvem e privacidade total.
-          </p>
-        </header>
+        <ToolPageIntro path="/juntar-pdf" />
 
         <DropZone
           onFiles={addFiles}
@@ -322,11 +306,6 @@ export default function JuntarPdfPage() {
 
         {/* Conteúdo semântico SEO (H2/H3/P) — legível pelo Googlebot */}
         <ToolSeoContent content={juntarPdfSeoContent} />
-
-        <FaqAccordion
-          title="Perguntas frequentes sobre Juntar PDF"
-          subtitle="Privacidade, custo e como o merge local funciona no navegador."
-        />
       </div>
 
       <StickyCta />
