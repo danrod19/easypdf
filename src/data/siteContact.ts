@@ -5,7 +5,7 @@
  * Override opcional: VITE_CONTACT_EMAIL (sem vazar segredos de infra).
  */
 
-const DEFAULT_CONTACT_EMAIL = 'easypdf19@gmail.com';
+const DEFAULT_CONTACT_EMAIL = 'contato@easypdflocal.com.br';
 
 function resolveContactEmail(): string {
   const fromEnv = (
