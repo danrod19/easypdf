@@ -25,16 +25,10 @@ export function Layout() {
   const sidebarId = useId();
   const softwareAppSchema = buildSoftwareApplicationSchema();
 
-  // Sem afiliados na home (AdSense: conteúdo de baixo valor / vitrine genérica)
-  // e em páginas legais/institucionais.
-  const hideBannerRoutes = [
-    '/',
-    '/privacidade',
-    '/termos',
-    '/sobre',
-    '/contato',
-  ];
-  const showBanner = !hideBannerRoutes.includes(location.pathname);
+  // Densidade de afiliados: nunca na home, institucionais, nem no blog
+  // (pillars / posts). Tools: banner só abaixo do Outlet (depois do SEO);
+  // ofertas extras só no SuccessAction pós-processamento.
+  const showBanner = shouldShowAffiliateBanner(location.pathname);
 
   // Só reserva layout de ad com slot real (não placeholder XXXXXXXXXX)
   const showAdTop = canMountAdSenseUnit(ADSENSE_SLOTS.top);
@@ -190,7 +184,7 @@ export function Layout() {
                   </Suspense>
                 </ErrorBoundary>
 
-                {/* Banner de afiliados — oculto em rotas legais */}
+                {/* Afiliados: tools e hubs — nunca hero; home/legal/blog ocultos */}
                 {showBanner && <AffiliateBanner />}
               </main>
 
@@ -222,6 +216,30 @@ export function Layout() {
       <CookieBanner />
     </div>
   );
+}
+
+/**
+ * Onde o AffiliateBanner (Puma/Kindle/lista ML) pode aparecer.
+ * Home, institucionais e /blog* = zero vitrine.
+ */
+function shouldShowAffiliateBanner(pathname: string): boolean {
+  const p =
+    pathname.length > 1 && pathname.endsWith('/')
+      ? pathname.slice(0, -1)
+      : pathname;
+  if (
+    p === '/' ||
+    p === '/privacidade' ||
+    p === '/termos' ||
+    p === '/sobre' ||
+    p === '/contato'
+  ) {
+    return false;
+  }
+  if (p === '/blog' || p.startsWith('/blog/')) {
+    return false;
+  }
+  return true;
 }
 
 function HamburgerIcon({ className }: { className?: string }) {
