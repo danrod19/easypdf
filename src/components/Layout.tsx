@@ -14,6 +14,12 @@ import { AffiliateBanner } from './AffiliateBanner';
 import { JsonLd } from './JsonLd';
 import { buildSoftwareApplicationSchema } from '../data/schema';
 import { ADSENSE_SLOTS, canMountAdSenseUnit } from '../data/adsense';
+import { tools } from '../data/tools';
+
+/** Só tools ready — 404, hub, blog e institucionais ficam de fora. */
+const AFFILIATE_BANNER_PATHS = new Set(
+  tools.filter((t) => t.status === 'ready').map((t) => t.path)
+);
 
 /**
  * Layout global: sidebar fixa (desktop) + drawer off-canvas (mobile)
@@ -25,9 +31,7 @@ export function Layout() {
   const sidebarId = useId();
   const softwareAppSchema = buildSoftwareApplicationSchema();
 
-  // Densidade de afiliados: nunca na home, institucionais, nem no blog
-  // (pillars / posts). Tools: banner só abaixo do Outlet (depois do SEO);
-  // ofertas extras só no SuccessAction pós-processamento.
+  // AffiliateBanner só em rotas de tool (abaixo do Outlet / SEO).
   const showBanner = shouldShowAffiliateBanner(location.pathname);
 
   // Só reserva layout de ad com slot real (não placeholder XXXXXXXXXX)
@@ -184,7 +188,7 @@ export function Layout() {
                   </Suspense>
                 </ErrorBoundary>
 
-                {/* Afiliados: tools e hubs — nunca hero; home/legal/blog ocultos */}
+                {/* Afiliados: whitelist de tools, abaixo do SEO — nunca no hero */}
                 {showBanner && <AffiliateBanner />}
               </main>
 
@@ -219,27 +223,15 @@ export function Layout() {
 }
 
 /**
- * Onde o AffiliateBanner (Puma/Kindle/lista ML) pode aparecer.
- * Home, institucionais e /blog* = zero vitrine.
+ * AffiliateBanner só se o pathname for uma tool ready.
+ * /pdf-sem-upload, 404, home, legal, /blog* → false.
  */
 function shouldShowAffiliateBanner(pathname: string): boolean {
   const p =
     pathname.length > 1 && pathname.endsWith('/')
       ? pathname.slice(0, -1)
       : pathname;
-  if (
-    p === '/' ||
-    p === '/privacidade' ||
-    p === '/termos' ||
-    p === '/sobre' ||
-    p === '/contato'
-  ) {
-    return false;
-  }
-  if (p === '/blog' || p.startsWith('/blog/')) {
-    return false;
-  }
-  return true;
+  return AFFILIATE_BANNER_PATHS.has(p);
 }
 
 function HamburgerIcon({ className }: { className?: string }) {
