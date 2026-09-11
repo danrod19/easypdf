@@ -328,8 +328,7 @@ export default function SobrePage() {
               Por onde começar
             </h2>
             <p className="mt-2">
-              Ferramentas mais usadas, o hub de privacidade e o blog com guias
-              práticos:
+              Ferramentas mais usadas, o hub de privacidade e o blog:
             </p>
             <ul className="mt-4 grid gap-3 sm:grid-cols-3">
               {mainTools.map((tool) => (
@@ -368,7 +367,7 @@ export default function SobrePage() {
                   className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 transition hover:border-brand-300 hover:bg-brand-50/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-brand-700"
                 >
                   <BookOpen className="h-4 w-4" aria-hidden />
-                  Blog e guias
+                  Blog
                 </Link>
               </li>
               <li>

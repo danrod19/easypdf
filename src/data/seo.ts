@@ -155,9 +155,9 @@ export const seoByPath: Record<string, SeoMeta> = {
     path: '/contato',
   },
   '/blog': {
-    title: 'Blog | Easy PDF Local — Privacidade e PDF Local',
+    title: 'Blog | PDF no navegador, privacidade e LGPD',
     description:
-      'Textos originais sobre PDF no navegador, privacidade, LGPD e limites reais do processamento local — sem upload para converter o arquivo.',
+      'Artigos sobre processar PDF no navegador sem upload: privacidade e LGPD, e nuvem vs. processamento local — limites reais, sem tutoriais em massa.',
     path: '/blog',
   },
 };

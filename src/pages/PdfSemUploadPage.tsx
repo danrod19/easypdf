@@ -466,29 +466,29 @@ export default function PdfSemUploadPage() {
             </li>
             <li>
               <Link
-                to="/blog/juntar-pdf-online-sem-upload"
+                to="/blog/pdf-no-navegador-privacidade-lgpd"
                 className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-4 transition hover:border-brand-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-700"
               >
                 <span className="inline-flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-100">
                   <BookOpen className="h-3.5 w-3.5" aria-hidden />
-                  Guia: juntar PDF sem upload
+                  PDF no navegador, privacidade e LGPD
                 </span>
                 <span className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                  Artigo prático no blog
+                  Quando processar localmente faz sentido — e quando não
                 </span>
               </Link>
             </li>
             <li>
               <Link
-                to="/blog/girar-pdf-online-sem-upload"
+                to="/blog/infraestrutura-nuvem-vs-local"
                 className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-4 transition hover:border-brand-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-700"
               >
                 <span className="inline-flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-100">
                   <BookOpen className="h-3.5 w-3.5" aria-hidden />
-                  Guia: girar PDF / cabeça para baixo
+                  Nuvem vs. processamento local
                 </span>
                 <span className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                  Como virar páginas no navegador, sem upload
+                  O que muda quando o PDF não sobe para processar
                 </span>
               </Link>
             </li>
