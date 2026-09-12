@@ -193,6 +193,7 @@ function main() {
   const PILLAR_SLUGS = new Set([
     'infraestrutura-nuvem-vs-local',
     'pdf-no-navegador-privacidade-lgpd',
+    'quando-pdf-no-navegador-falha',
   ]);
   for (const post of posts) {
     entries.push({

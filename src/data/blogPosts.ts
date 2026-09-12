@@ -247,6 +247,20 @@ export const blogPosts: BlogPostMeta[] = [
     readTime: '9 min',
     tags: ['Privacidade', 'LGPD', 'PDF local'],
   },
+  {
+    id: 'quando-pdf-no-navegador-falha',
+    slug: 'quando-pdf-no-navegador-falha',
+    title:
+      'Quando o PDF no navegador falha (memória, OCR, celular)',
+    excerpt:
+      'O modelo local não é ilimitado: 50 MB, merge 20/80 MB, OCR 30 páginas, compressão 50. O que a UI recusa, o que fazer e quando usar outro programa.',
+    seoTitle: 'Quando o PDF no navegador falha | Easy PDF Local',
+    seoDescription:
+      'O modelo local não é ilimitado: 50 MB, merge 20/80 MB, OCR 30 págs, compressão 50. O que a UI recusa, RAM no celular, e quando usar outro programa.',
+    date: '2026-09-12',
+    readTime: '9 min',
+    tags: ['Limites', 'OCR', 'Celular'],
+  },
 ];
 
 /** Posts mais recentes primeiro */

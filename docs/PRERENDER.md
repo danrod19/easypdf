@@ -44,7 +44,7 @@ Não é inviável servir 200 sem barra: o Workers Assets expõe `drop-trailing-s
 [assets]
 directory = "./dist"
 html_handling = "drop-trailing-slash"
-not_found_handling = "single-page-application"
+not_found_handling = "404-page"
 ```
 
 | Request | Resposta (drop-trailing-slash) | Asset |
@@ -73,6 +73,15 @@ curl -s "https://easypdflocal.com.br/juntar-pdf" | findstr /i "canonical og:url 
 ```
 
 **Não aceitar:** 307 sem→com **e** canonical apontando para a outra variante.
+
+## 404 vs SPA
+
+Rotas **conhecidas** (lista em `prerender-routes.mjs`) viram `dist/{rota}/index.html` e o Worker Assets responde **200**.  
+URL **inexistente** não tem arquivo: `not_found_handling = "404-page"` serve `dist/404.html` (cópia de `public/404.html`) com **HTTP 404**, title “Página não encontrada”, sem grid de tools.  
+Não usar `single-page-application` aqui: isso devolve **200 + title da home** (shell Vite) e o crawler trata lixo como home.  
+`html_handling = "drop-trailing-slash"` permanece: `/juntar-pdf/` → 307 → `/juntar-pdf`.  
+Risco: se o prerender fail-soft e **não** gerar pastas por rota, deep-link real também 404 — o CI de produção usa `PRERENDER_STRICT=1` + `validate:prerender` para não deployar sem HTML das rotas conhecidas.  
+Navegação **client-side** na SPA (já com JS) ainda pode mostrar `NotFoundPage.tsx`; o GET direto é o que importa para o protocolo.
 
 ## Como funciona
 

@@ -60,12 +60,11 @@ export default function BlogPage() {
             Blog Easy PDF Local
           </p>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
-            PDF no navegador, privacidade e LGPD
+            PDF no navegador, privacidade e limites
           </h1>
           <p className="max-w-2xl text-slate-600 dark:text-slate-400">
-            Dois artigos originais: o que muda quando o arquivo não sobe para
-            processar, e o que o modelo local resolve (e o que não resolve) na
-            prática.
+            Artigos originais: LGPD e documentos no aparelho, nuvem vs. local, e
+            quando o navegador não dá conta (memória, OCR, celular).
           </p>
         </header>
 

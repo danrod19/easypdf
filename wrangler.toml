@@ -6,7 +6,7 @@
 # (requer CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID)
 #
 # HTML por rota (dist/juntar-pdf/index.html) é servido como asset estático.
-# Rotas sem arquivo caem no index.html (SPA fallback).
+# URL sem arquivo: HTTP 404 + dist/404.html (não devolve o shell da home).
 #
 # --- Trailing slash / SEO (decisão canônica SEM barra) ---
 # Default do platform: html_handling = "auto-trailing-slash"
@@ -29,5 +29,5 @@ workers_dev = true
 directory = "./dist"
 # Canonical URL = SEM barra final (exceto "/"). Ver comentário acima.
 html_handling = "drop-trailing-slash"
-# Fallback para deep-links sem HTML pré-renderizado (fail-soft SPA)
-not_found_handling = "single-page-application"
+# Sem arquivo prerender/asset → 404.html com status 404 (não 200 + title da home)
+not_found_handling = "404-page"

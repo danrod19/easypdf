@@ -43,6 +43,7 @@ export const PRERENDER_ROUTES = [
   '/remover-paginas',
   '/blog/infraestrutura-nuvem-vs-local',
   '/blog/pdf-no-navegador-privacidade-lgpd',
+  '/blog/quando-pdf-no-navegador-falha',
   '/sobre',
   '/contato',
   '/privacidade',
