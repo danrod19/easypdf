@@ -56,7 +56,7 @@ export function BrandLogo({
         </span>
         {!hideTagline && (
           <span className="truncate text-[10px] font-bold uppercase tracking-wider text-red-600 dark:text-red-500">
-            100% Seguro e Offline
+            No navegador · com limites
           </span>
         )}
       </div>

@@ -46,82 +46,81 @@ export function buildCanonicalUrl(pathname: string): string {
 
 export const seoByPath: Record<string, SeoMeta> = {
   '/': {
-    title:
-      'Easy PDF Local | Ferramentas de PDF 100% Seguras e Sem Upload',
+    title: 'Easy PDF Local | PDF no navegador, com limites honestos',
     description:
-      'Junte, divida, gire e converta PDFs grátis no navegador. Processamento 100% local — seus arquivos nunca sobem para a nuvem. Sem cadastro.',
+      'Junte, divida, gire e converta PDFs no navegador. Processamento no dispositivo, sem cadastro — com tetos de tamanho e páginas para não travar.',
     path: '/',
   },
   '/juntar-pdf': {
-    title: 'Juntar PDF Online Grátis | Sem Upload e Sem Cadastro',
+    title: 'Juntar PDF: unir na ordem da lista (até 20 arquivos)',
     description:
-      'Junte vários PDFs grátis no navegador, sem upload e sem cadastro. Merge local, ordem das páginas e privacidade total no seu dispositivo.',
+      'Una PDFs na ordem da fila, no navegador. Até 20 arquivos, 50 MB cada e 80 MB no total. Originais no disco permanecem.',
     path: '/juntar-pdf',
   },
   '/dividir-pdf': {
-    title: 'Dividir PDF Online Grátis | Sem Upload e Sem Cadastro',
+    title: 'Dividir PDF: extrair páginas (1, 3-5) no navegador',
     description:
-      'Extraia páginas de PDF grátis no navegador, sem upload e sem cadastro. Intervalos (1, 3-5) com privacidade local.',
+      'Informe o intervalo e baixe um PDF só com esse trecho. Um arquivo de saída, não ZIP. Original no disco intacto.',
     path: '/dividir-pdf',
   },
   '/girar-pdf': {
-    title: 'Girar PDF Online Grátis | Virar Página Sem Upload',
+    title: 'Girar PDF: virar 90° ou de cabeça para baixo',
     description:
-      'Como girar um PDF ou virar página de cabeça para baixo no navegador. 90° esquerda/direita, grátis, sem upload e sem cadastro.',
+      'Orientação de página em passos de 90°. Não endireita foto torta nem faz OCR. Salvar aplica os ângulos no arquivo.',
     path: '/girar-pdf',
   },
   '/marca-dagua': {
-    title: "Marca d'água em PDF Grátis | Sem Upload e Sem Cadastro",
+    title: "Marca d'água de texto em todas as páginas do PDF",
     description:
-      "Adicione marca d'água de texto grátis no navegador, sem upload e sem cadastro. Opacidade e estilo 100% locais.",
+      "Sobreponha um texto (ex.: CONFIDENCIAL) em todas as páginas. É marca visual — não é senha nem DRM.",
     path: '/marca-dagua',
   },
   '/desenhar-pdf': {
-    title: 'Desenhar e Assinar PDF Grátis | Sem Upload no Navegador',
+    title: 'Desenhar no PDF: anotar a página 1 (não é editor Adobe)',
     description:
-      'Assine ou desenhe no PDF grátis no navegador, sem upload e sem cadastro. Mouse ou toque — processamento local.',
+      'Traço à mão na folha 1, mouse ou toque. Sem anotar as outras páginas, sem texto tipográfico, sem ICP-Brasil.',
     path: '/desenhar-pdf',
   },
   '/word-para-pdf': {
-    title: 'Word para PDF Online Grátis | Sem Upload e Sem Instalar',
+    title: 'Word para PDF: converter DOCX no navegador',
     description:
-      'Converta Word (DOCX) para PDF grátis no navegador, sem instalar programa, sem upload e sem cadastro. Conversão 100% local.',
+      'DOCX → PDF sem instalar Word. Layout do dia a dia; tabelas e artes complexas podem divergir. Não abre .doc antigo.',
     path: '/word-para-pdf',
   },
   '/imagem-para-pdf': {
-    title: 'Imagem para PDF Online Grátis | Sem Upload e Sem Cadastro',
+    title: 'Imagem para PDF: JPG/PNG em páginas, na sua ordem',
     description:
-      'Converta JPG, PNG ou WebP em PDF grátis no navegador, sem upload e sem cadastro. Várias imagens, ordem personalizada.',
+      'Cada imagem vira uma página no tamanho da foto — sem A4 forçado. Até 20 arquivos. Sem HEIC nesta ferramenta.',
     path: '/imagem-para-pdf',
   },
   '/extrair-texto': {
-    title: 'Extrair Texto de PDF Grátis | Sem Upload no Navegador',
+    title: 'Extrair texto de PDF: nativo ou OCR em português',
     description:
-      'Extraia texto de PDF grátis no navegador, sem upload e sem cadastro. Nativo (pdf.js) ou OCR em português local.',
+      'Camada de texto com pdf.js, ou Tesseract no CPU em scans. OCR até 30 páginas; revise erros em foto torta e manuscrito.',
     path: '/extrair-texto',
   },
   '/proteger-pdf': {
-    title: 'Proteger PDF com Senha Grátis | Sem Upload e Sem Cadastro',
+    title: 'Proteger PDF: senha de abertura no dispositivo',
     description:
-      'Proteja PDF com senha grátis no navegador, sem upload e sem cadastro. Criptografia local no seu dispositivo.',
+      'Cifra o PDF no navegador. Esqueceu a senha: não há recuperação. Não impede print screen.',
     path: '/proteger-pdf',
   },
   '/desbloquear-pdf': {
-    title: 'Desbloquear PDF Online Grátis | Sem Upload e Sem Cadastro',
+    title: 'Desbloquear PDF: só se você já souber a senha',
     description:
-      'Remova senha de PDF grátis no navegador quando já a conhece. Sem upload, sem cadastro — desbloqueio 100% local.',
+      'Gera uma cópia aberta com a senha correta. Não quebramos senha esquecida nem testamos combinações.',
     path: '/desbloquear-pdf',
   },
   '/remover-paginas': {
-    title: 'Remover Páginas de PDF Grátis | Sem Upload e Sem Cadastro',
+    title: 'Remover páginas de PDF: marcar miniaturas e baixar cópia',
     description:
-      'Apague páginas de PDF grátis no navegador, sem upload e sem cadastro. Miniaturas locais e cópia nova com o que restar.',
+      'Marque as folhas na grade e baixe um PDF novo. O original no disco não muda. Precisa restar ao menos uma página.',
     path: '/remover-paginas',
   },
   '/comprimir-pdf': {
-    title: 'Comprimir PDF Online Grátis | Sem Upload no Navegador',
+    title: 'Comprimir PDF: reduzir tamanho (página vira imagem)',
     description:
-      'Comprima PDF grátis no navegador ou no celular, sem app, sem upload e sem cadastro. Reduza tamanho com privacidade local.',
+      'Rasteriza cada página em JPEG. Texto em geral deixa de ser selecionável. Até 50 MB e 50 páginas.',
     path: '/comprimir-pdf',
   },
   '/pdf-sem-upload': {
@@ -163,9 +162,9 @@ export const seoByPath: Record<string, SeoMeta> = {
 };
 
 export const defaultSeo: SeoMeta = {
-  title: 'Easy PDF Local | Ferramentas de PDF 100% Seguras e Sem Upload',
+  title: 'Easy PDF Local | PDF no navegador, com limites honestos',
   description:
-    'Uma suíte completa e segura para manipular PDFs direto no seu navegador. Nenhuma imagem ou documento é enviado para a nuvem. 100% gratuito e privado.',
+    'Ferramentas de PDF no navegador: juntar, dividir, comprimir e converter no dispositivo. Sem cadastro — com limites técnicos de tamanho e páginas.',
   path: '/',
 };
 

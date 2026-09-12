@@ -20,7 +20,6 @@ import type { LucideIcon } from 'lucide-react';
 import { Seo } from '../components/Seo';
 import { JsonLd } from '../components/JsonLd';
 import { HowItWorks } from '../components/HowItWorks';
-import { FaqAccordion } from '../components/FaqAccordion';
 import { ToolSeoContent } from '../components/ToolSeoContent';
 import { getSeoForPath } from '../data/seo';
 import { homeSeoContent } from '../data/toolSeoContent';
@@ -70,13 +69,13 @@ export default function HomePage() {
               id="home-hero"
               className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl md:text-5xl dark:text-slate-50"
             >
-              Ferramentas de PDF 100% seguras e sem upload
+              Ferramentas de PDF no navegador — no seu dispositivo
             </h1>
 
             <p className="mx-auto max-w-2xl text-base text-slate-600 sm:text-lg dark:text-slate-400">
-              Junte, divida, gire e converta PDFs grátis no navegador.
-              Processamento local no seu dispositivo — sem conta, sem fila e
-              sem enviar arquivos para a nuvem.
+              Junte, divida, gire e converta PDFs no navegador. Sem conta e
+              sem fila de servidor — com limites de tamanho e páginas para o
+              aparelho não travar.
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-3">
@@ -249,11 +248,8 @@ export default function HomePage() {
           ))}
         </section>
 
-        {/* Conteúdo semântico para Googlebot (H2/H3/P) */}
+        {/* Hub: como usar o site + cookies / quando o local falha */}
         <ToolSeoContent content={homeSeoContent} />
-
-        {/* FAQ interativo */}
-        <FaqAccordion />
       </div>
     </>
   );

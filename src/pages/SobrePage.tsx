@@ -99,6 +99,11 @@ export default function SobrePage() {
               risco de exposição desnecessária de contratos, laudos, currículos
               e arquivos pessoais.
             </p>
+            <p className="mt-2">
+              É um projeto solo. Não é Adobe, não é iLovePDF e não processa PDF
+              por e-mail: a operação roda na ferramenta do navegador. Falar com
+              o mantenedor é outro canal — o e-mail de contato.
+            </p>
           </section>
 
           {/* 2. Propósito */}

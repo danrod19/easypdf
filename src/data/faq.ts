@@ -1,4 +1,4 @@
-import { getHomeLimitsFaqAnswer } from './fileLimitsCopy';
+import { LIMIT_NUMBERS } from './fileLimitsCopy';
 
 export type FaqItem = {
   id: string;
@@ -6,51 +6,22 @@ export type FaqItem = {
   answer: string;
 };
 
+const n = LIMIT_NUMBERS;
+
 /**
- * Perguntas frequentes reutilizáveis — foco em privacidade offline e freemium.
- * Otimizadas para SEO e conversão comercial.
- * Números de limites = FILE_LIMITS via fileLimitsCopy.
+ * FAQ institucional — cookies e teto do cliente.
+ * Sem “é seguro editar meus PDFs?” / “preciso pagar?” (boilerplate das tools).
  */
 export const defaultFaqItems: FaqItem[] = [
-  {
-    id: 'seguro',
-    question: 'É seguro editar meus PDFs aqui?',
-    answer:
-      'Sim. Toda a edição e conversão rodam 100% offline no seu navegador. Seus arquivos nunca saem do dispositivo: não há upload para servidores, nem armazenamento em nuvem. O processamento usa bibliotecas JavaScript locais (pdf-lib, jsPDF, Tesseract.js e outras). Ao fechar a aba, nada permanece conosco.',
-  },
-  {
-    id: 'pagar',
-    question: 'Preciso pagar para usar?',
-    answer:
-      "Não. As ferramentas principais — Juntar PDF, Dividir PDF, Girar PDF, Marca d'água, Desenhar no PDF, Word para PDF, Imagem para PDF e OCR — são gratuitas e sem cadastro. Não há plano pago nem cota diária de uso por conta. Há limites técnicos do navegador (por exemplo tamanho do arquivo e, em OCR/compressão, número de páginas) para o processamento local permanecer estável, especialmente no celular. Eventuais anúncios ajudam a manter o serviço no ar sem cobrar do usuário.",
-  },
-  {
-    id: 'limites-tecnicos',
-    question: 'Existe limite de tamanho ou de páginas?',
-    answer: getHomeLimitsFaqAnswer(),
-  },
-  {
-    id: 'sem-servidor',
-    question: 'Como o site funciona sem carregar arquivos para um servidor?',
-    answer:
-      'Ao selecionar um arquivo, ele fica apenas na memória do seu navegador. Scripts WebAssembly e JavaScript processam o documento localmente no seu CPU/GPU. O resultado (PDF unido, dividido, convertido ou texto OCR) é gerado no cliente e o download parte direto do seu dispositivo — nenhum byte do arquivo é transmitido para nossos servidores.',
-  },
-  {
-    id: 'internet',
-    question: 'Preciso de internet durante o processamento?',
-    answer:
-      'A conexão é necessária apenas para carregar a página e (em OCR) o modelo de idioma do Tesseract na primeira utilização. Depois disso, a manipulação dos seus PDFs e imagens ocorre no dispositivo. Seus documentos em si nunca são enviados pela rede.',
-  },
-  {
-    id: 'quais-formatos',
-    question: 'Quais formatos são aceitos?',
-    answer:
-      "Dependendo da ferramenta: PDF para juntar, dividir, girar, marca d'água, desenhar e extrair texto; DOCX para Word → PDF; JPEG, PNG e WebP para Imagem → PDF. Tudo com validação no navegador antes do processamento.",
-  },
   {
     id: 'cookies',
     question: 'O site usa cookies? Eles leem o conteúdo do meu PDF?',
     answer:
       'Cookies e scripts de medição/publicidade (quando ativos e com o consentimento exigido) tratam de navegação e anúncios — não leem o PDF, DOCX ou imagem que você processa na ferramenta. Preferências ficam no rodapé. Detalhes na Política de Privacidade.',
+  },
+  {
+    id: 'navegador-nao-da-conta',
+    question: 'Quando o processamento local falha?',
+    answer: `Quando o arquivo ou a operação passam da memória do navegador. Tetos atuais: ${n.maxFileMb} MB por arquivo; merge até ${n.maxMergeFiles} arquivos / ${n.maxMergeTotalMb} MB no total; OCR ${n.maxOcrPages} páginas; compressão ${n.maxCompressPages} páginas. Acima disso o site recusa ou o aparelho trava — não há modo ilimitado no cliente.`,
   },
 ];
